@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
               flex: 1,
               child: Container(
                 child: TextFormField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: '검색',
                   ),
@@ -54,17 +54,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),  
                 ),
                 Card( 
-                  child: Container(
-                      padding: const EdgeInsets.all(20),
-                      child: 
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Icon(Icons.video_library, size: 50,),
-                          Text('영상 검색', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                        ],
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/video/search');
+                    },
+                    child: Container(
+                        padding: const EdgeInsets.all(20),
+                        child: 
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Icon(Icons.video_library, size: 50,),
+                            Text('영상 검색', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                          ],
+                      ),
                     ),
-                  ),
+                ),
                 ),
                 Card(
                   child: Container(

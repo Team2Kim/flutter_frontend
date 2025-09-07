@@ -12,12 +12,12 @@ class DiaryScreen extends StatefulWidget {
 class _DiaryScreenState extends State<DiaryScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppbar(
+    return const Scaffold(
+      appBar: CustomAppbar(
         title: '일기',
         automaticallyImplyLeading: true,
       ),
-      body: const Center(
+      body: Center(
         child: Text(
           '일기 화면',
           style: TextStyle(fontSize: 24),

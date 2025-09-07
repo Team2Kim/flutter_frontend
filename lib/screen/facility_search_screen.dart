@@ -12,12 +12,12 @@ class FacilitySearchScreen extends StatefulWidget {
 class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
   @override
   Widget build(BuildContext context) {  
-    return Scaffold(
-      appBar: const CustomAppbar(
+    return const Scaffold(
+      appBar: CustomAppbar(
         title: '시설 검색',
         automaticallyImplyLeading: true,
       ),
-      body: const Center(
+      body: Center(
         child: Text(
           '시설 검색 화면',
           style: TextStyle(fontSize: 24),

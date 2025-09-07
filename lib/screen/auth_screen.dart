@@ -36,7 +36,8 @@ class _AuthScreenState extends State<AuthScreen> {
         padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 로고 또는 제목
@@ -103,7 +104,7 @@ class _AuthScreenState extends State<AuthScreen> {
               
               // 언어 선택
               DropdownButtonFormField<String>(
-                value: _selectedLanguage,
+                initialValue: _selectedLanguage,
                 decoration: const InputDecoration(
                   labelText: '언어 선택',
                   prefixIcon: Icon(Icons.language),
@@ -192,6 +193,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),

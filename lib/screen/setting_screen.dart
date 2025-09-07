@@ -12,12 +12,12 @@ class SettingScreen extends StatefulWidget {
 class _SettingScreenState extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppbar(
+    return const Scaffold(
+      appBar: CustomAppbar(
         title: '설정',
         automaticallyImplyLeading: true,
       ),
-      body: const Center(
+      body: Center(
         child: Text(
           '설정 화면',
           style: TextStyle(fontSize: 24),

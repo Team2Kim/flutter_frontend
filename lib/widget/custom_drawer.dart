@@ -14,37 +14,37 @@ class _CustomDrawerState extends State<CustomDrawer> {
       child: Column(
         children: [
           ListTile(
-            title: Text('홈', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+            title: const Text('홈', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
             onTap: () {
               Navigator.pushReplacementNamed(context, '/home');
             },
           ),
           ListTile(
-            title: Text('일기', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+            title: const Text('일기', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
             onTap: () {
               Navigator.pushNamed(context, '/diary');
             },
           ),
           ListTile(
-            title: Text('시설 검색', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+            title: const Text('시설 검색', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
             onTap: () {
               Navigator.pushNamed(context, '/facility/search');
             },
           ),
           ListTile(
-            title: Text('설정', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+            title: const Text('설정', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
             onTap: () {
               Navigator.pushNamed(context, '/setting');
             },
           ),
           ListTile(
-            title: Text('영상 검색', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+            title: const Text('영상 검색', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
             onTap: () {
               Navigator.pushNamed(context, '/video/search');
             },
           ),
           ListTile(
-            title: Text('로그아웃', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
+            title: const Text('로그아웃', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
             onTap: () {
               Navigator.pushNamed(context, '/auth');
             },
