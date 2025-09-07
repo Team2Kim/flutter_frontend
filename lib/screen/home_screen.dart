@@ -42,16 +42,21 @@ class _HomeScreenState extends State<HomeScreen> {
               child: ListView(
               children: [
                 Card(
-                  child: Container(
-                      padding: const EdgeInsets.all(20),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Icon(Icons.search, size: 50,),
-                          Text('시설 검색', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                        ],
-                    ),
-                  ),  
+                  child: InkWell(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/facility/search');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Icon(Icons.search, size: 50,),
+                            Text('시설 검색', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                          ],
+                      ),
+                    ),  
+                  ),
                 ),
                 Card( 
                   child: InkWell(
