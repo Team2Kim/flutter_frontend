@@ -12,7 +12,7 @@ class MapSearchScreen extends StatefulWidget {
 
 class _MapSearchScreenState extends State<MapSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final location = NLatLng(37.5666, 126.979);
+  final location = NLatLng(37.6304351, 127.0378089);
   
   void _performSearch() {
     // 여기에 검색 로직을 구현할 수 있습니다
@@ -39,9 +39,10 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                 ),
                 onMapReady: (controller) {
                   final marker = NMarker(
-                    id: "city_hall",
+                    icon: NOverlayImage.fromAssetImage('assets/images/sub_logo.png'),
+                    id: "Gangbuk_Fitness_Center",
                     position: location,
-                    caption: NOverlayCaption(text: "서울시청"),
+                    caption: NOverlayCaption(text: "강북체력인증센터"),
                   );
                   controller.addOverlay(marker);
                   print("naver map is ready!");
