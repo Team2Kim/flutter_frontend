@@ -13,6 +13,29 @@ class MapSearchScreen extends StatefulWidget {
 class _MapSearchScreenState extends State<MapSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final location = NLatLng(37.6304351, 127.0378089);
+  Map<String, dynamic> locations = {
+    'Ansan_Fitness_Center': {
+      'address': '경기 안산시 상록구 한양대학로 55',
+      'operation_time': '평일 09:00~18:00',
+      'tel': '0507-1324-8052',
+      'location': NLatLng(37.2967403, 126.8352371),
+      'name': '안산체력인증센터',
+    },
+    'Suwon_Fitness_Center': {
+      'address': '경기 수원시 영통구 광교산로 154-42 경기대학교 성신관2강의동 지하2003호',
+      'operation_time': '평일 09:00~18:00',
+      'tel': '0507-1359-1485',
+      'location': NLatLng(37.2996813, 127.0335522),
+      'name': '수원체력인증센터',
+    },
+    'Hwasung_Fitness_Center': {
+      'address': '경기도 화성시 봉담읍 동화리 18 406-1) 화성국민체육센터 B1',
+      'operation_time': '평일 09:00~18:00',
+      'tel': '031-278-7548',
+      'location': NLatLng(37.2208397, 126.9517371),
+      'name': '화성체력인증센터',
+    },
+  };
   
   void _performSearch() {
     // 여기에 검색 로직을 구현할 수 있습니다
@@ -38,13 +61,16 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                   initialCameraPosition: NCameraPosition(target: location, zoom: 14),
                 ),
                 onMapReady: (controller) {
-                  final marker = NMarker(
-                    icon: NOverlayImage.fromAssetImage('assets/images/sub_logo.png'),
-                    id: "Gangbuk_Fitness_Center",
-                    position: location,
-                    caption: NOverlayCaption(text: "강북체력인증센터"),
-                  );
-                  controller.addOverlay(marker);
+                  for (var location in locations.values) {
+                    final marker = NMarker(
+                      icon: NOverlayImage.fromAssetImage('assets/images/sub_logo.png'),
+                      id: location['name'],
+                      position: location['location'],
+                      caption: NOverlayCaption(text: location['name']),
+                    );
+                    controller.addOverlay(marker);
+                  }
+                  
                   print("naver map is ready!");
                 },
               ),
@@ -90,20 +116,21 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                       height: MediaQuery.of(context).size.height * 0.2,
                       margin: const EdgeInsets.only(bottom: 16),
                       child: ListView.builder(
+                        itemCount: locations.length,
                         scrollDirection: Axis.horizontal,
-                        itemCount: 3, // 고정된 개수 추가
                         itemBuilder: (context, index) {
+                            final location = locations.values.elementAt(index);
                             return Card(
                               borderOnForeground: false,
                               child: Container(
                                 padding: const EdgeInsets.all(20),
                                 child: Container(
-                                  child: const Column(
+                                  child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
-                                          Text('강북체력인증센터', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                                          Text(location['name'] as String, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
                                         ],
                                       ),
                                       const SizedBox(height: 10),
@@ -111,21 +138,21 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                         Text('주소:', style: TextStyle(fontSize: 14,),),
-                                        Text('서울특별시 강북구 오현로31길 51 (번동) 3층', style: TextStyle(fontSize: 14,),),
+                                        Text(location['address'] as String, style: TextStyle(fontSize: 14,),),
                                         ],
                                       ),
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                         Text('운영시간:', style: TextStyle(fontSize: 14,),),
-                                        Text('평일 09:00~18:00', style: TextStyle(fontSize: 14,),),
+                                        Text(location['operation_time'] as String, style: TextStyle(fontSize: 14,),),
                                         ],
                                       ),
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                        Text('TEL:', style: TextStyle(fontSize: 14,),),
-                                        Text('02-980-0101', style: TextStyle(fontSize: 14,),),
+                                          Text('TEL:', style: TextStyle(fontSize: 14,),),
+                                          Text(location['tel'] as String, style: TextStyle(fontSize: 14,),),
                                         ],
                                       ),
                                     ],
