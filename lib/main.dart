@@ -12,7 +12,8 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
-   WidgetsFlutterBinding.ensureInitialized(); // runApp 실행 이전이면 필요
+  await dotenv.load(fileName: ".env");
+  WidgetsFlutterBinding.ensureInitialized(); // runApp 실행 이전이면 필요
 
   await FlutterNaverMap().init(
           clientId: '${dotenv.env['NAVER_MAP_CLIENT_ID']}',

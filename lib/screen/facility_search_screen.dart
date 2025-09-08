@@ -66,7 +66,9 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  IconButton(onPressed: () {}, icon: const Icon(Icons.map, size: 24,)),
+                  IconButton(onPressed: () {
+                    Navigator.pushNamed(context, '/map/search');
+                  }, icon: const Icon(Icons.map, size: 24,)),
                   IconButton(onPressed: () {}, icon: const Icon(Icons.search_outlined, size: 24,)),
                 ],
               ),
@@ -74,6 +76,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
               // 영상 목록
               Expanded(
                 child: ListView.builder(
+                  scrollDirection: Axis.vertical,
                   itemBuilder: (context, index) {
                     return Card(
                       borderOnForeground: false,
