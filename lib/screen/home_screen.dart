@@ -77,16 +77,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 ),
                 Card(
-                  child: Container(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/diary');
+                    },
+                    child: Container(
                     padding: const EdgeInsets.all(20),
                     child: 
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                         Icon(Icons.fitness_center, size: 50,),
-                        Text('체력 기록장', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                        Text('운동 일지', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
                       ],
                     ),
+                  ),
                   )
                 ),
               ],
