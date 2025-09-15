@@ -1,7 +1,5 @@
-import 'dart:ffi';
-
 class ExerciseModelResponse {
-  final Long exerciseId;
+  final int exerciseId;
   final String title;
   final String category;
   final String exerciseTool;

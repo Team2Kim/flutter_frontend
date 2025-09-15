@@ -1,9 +1,8 @@
-import 'dart:ffi';
 import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/model/user_model.dart';
 
 class BookmarkModelResponse {
-  final Long bookmarkId;
+  final int bookmarkId;
   final UserModelResponse user;
   final ExerciseModelResponse exercise;
   final DateTime createdAt;

@@ -1,8 +1,7 @@
-import 'dart:ffi';
 import 'package:gukminexdiary/model/user_model.dart';
 
 class DailyLogModelResponse {
-  final Long logId;
+  final int logId;
   final DateTime date;
   final UserModelResponse user;
   final String memo;

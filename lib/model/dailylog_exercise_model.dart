@@ -1,9 +1,8 @@
-import 'dart:ffi';
 import 'package:gukminexdiary/model/dailylog_model.dart';
 import 'package:gukminexdiary/model/exercise_model.dart';
 
 class DailyLogExerciseModelResponse {
-  final Long dailyLogExerciseId;
+  final int dailyLogExerciseId;
   final DailyLogModelResponse dailyLog;
   final ExerciseModelResponse exercise;
   final String intensity;

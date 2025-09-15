@@ -1,7 +1,5 @@
-import 'dart:ffi';
-
 class FacilityModelResponse {
-  final Long facilityId;
+  final int facilityId;
   final String name;
   final String? groupName;
   final String? categoryName;

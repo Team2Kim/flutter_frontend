@@ -1,7 +1,5 @@
-import 'dart:ffi';
-
 class UserModelResponse {
-  final Long userId;
+  final int userId;
   final String loginId;
   final String nickName;
   final String passwordHash;
