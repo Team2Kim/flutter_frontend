@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:gukminexdiary/provider/facility_provider.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/custom_drawer.dart';
+import 'package:provider/provider.dart';
 
 class FacilitySearchScreen extends StatefulWidget {
   const FacilitySearchScreen({super.key});
@@ -11,14 +13,27 @@ class FacilitySearchScreen extends StatefulWidget {
 
 class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-    void _performSearch() {
+
+  void _performSearch() {
     // 여기에 검색 로직을 구현할 수 있습니다
     print('검색어: ${_searchController.text}');
     print('선택된 필터들:');
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
+      facilityProvider.getLocations();
+    });
+  }
+  
+
+
+  @override
   Widget build(BuildContext context) {  
+    final facilityProvider = Provider.of<FacilityProvider>(context);
     return Scaffold(
       appBar: CustomAppbar(
         title: '시설 검색',
@@ -76,48 +91,56 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
               // 영상 목록
               Expanded(
                 child: ListView.builder(
+                  itemCount: facilityProvider.locations.length,
                   scrollDirection: Axis.vertical,
                   itemBuilder: (context, index) {
+                    final location = facilityProvider.locations[index];
                     return Card(
                       borderOnForeground: false,
-                      child: Container(
+                      child: InkWell(
+                        onTap: () {
+                          facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
+                          facilityProvider.setFocusLocationIndex(index);
+                          Navigator.pushNamed(context, '/map/search');
+                        },
+                        child: Container(
                         padding: const EdgeInsets.all(20),
                         child: Container(
-                          child: const Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('강북체력인증센터', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                                  const Icon(Icons.video_library, size: 36,),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                Text('주소:', style: TextStyle(fontSize: 14,),),
-                                Text('서울특별시 강북구 오현로31길 51 (번동) 3층', style: TextStyle(fontSize: 14,),),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                Text('운영시간:', style: TextStyle(fontSize: 14,),),
-                                Text('평일 09:00~18:00', style: TextStyle(fontSize: 14,),),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                Text('TEL:', style: TextStyle(fontSize: 14,),),
-                                Text('02-980-0101', style: TextStyle(fontSize: 14,),),
-                                ],
-                              ),
-                            ],
-                          )
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(location.name, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                                    const Icon(Icons.video_library, size: 36,),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Column(
+                                  children: [
+                                  Text('주소: ${location.roadAddress ?? ''}', style: TextStyle(fontSize: 14,),),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                  Text('운영여부:', style: TextStyle(fontSize: 14,),),
+                                  Text(location.status ?? '', style: TextStyle(fontSize: 14,),),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                  Text('TEL:', style: TextStyle(fontSize: 14,),),
+                                  Text(location.phoneNumber ?? '', style: TextStyle(fontSize: 14,),),
+                                  ],
+                                ),
+                              ],
+                            )
+                          ),
                         ),
-                      ),
+                      )
                     );
                   },
                 ),

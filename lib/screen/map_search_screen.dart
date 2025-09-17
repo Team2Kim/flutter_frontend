@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gukminexdiary/model/facility_model.dart';
-import 'package:gukminexdiary/services/facility_service.dart';
+import 'package:gukminexdiary/provider/facility_provider.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:provider/provider.dart';
 
 class MapSearchScreen extends StatefulWidget {
   const MapSearchScreen({super.key});
@@ -13,28 +14,17 @@ class MapSearchScreen extends StatefulWidget {
 
 class _MapSearchScreenState extends State<MapSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  var focusLocation = NLatLng(37.6304351, 127.0378089);
-  List<FacilityModelResponse> locations = [];
-  final FacilityService _facilityService = FacilityService();
+  final ScrollController _scrollController = ScrollController();
   NaverMapController? _mapController;
 
   @override
   void initState() {
     super.initState();
-    _getLocations();
-  }
-
-  void _getLocations() async {
-    var fetchedLocations = await _facilityService.getFacilities_example();
-    setState(() {
-      locations = fetchedLocations;
-      // 첫 번째 시설을 초기 위치로 설정
-      if (locations.isNotEmpty) {
-        focusLocation = NLatLng(locations.first.latitude!, locations.first.longitude!);
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
+      facilityProvider.getLocations();
     });
   }
-
   
   void _performSearch() {
     // 여기에 검색 로직을 구현할 수 있습니다
@@ -44,6 +34,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 
   @override
   Widget build(BuildContext context) {  
+    final facilityProvider = Provider.of<FacilityProvider>(context);
     final safeAreaPadding = EdgeInsets.zero;
 
     return Scaffold(
@@ -57,17 +48,40 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
               NaverMap(
                 options: NaverMapViewOptions(
                   contentPadding: safeAreaPadding,
-                  initialCameraPosition: NCameraPosition(target: focusLocation, zoom: 14),
+                  initialCameraPosition: NCameraPosition(target: facilityProvider.focusLocation, zoom: 14),
                 ),
                 onMapReady: (controller) {
                   _mapController = controller;
-                  for (var location in locations) {
+                  for (int i = 0; i < facilityProvider.locations.length; i++) {
+                    final location = facilityProvider.locations[i];
                     final marker = NMarker(
                       icon: NOverlayImage.fromAssetImage('assets/images/sub_logo.png'),
                       id: location.name,
                       position: NLatLng(location.latitude!, location.longitude!),
                       caption: NOverlayCaption(text: location.name),
                     );
+                    
+                    // 마커 클릭 이벤트 추가
+                    marker.setOnTapListener((overlay) async {
+                      facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
+                      facilityProvider.setFocusLocationIndex(i);
+                      
+                      // ListView를 선택된 시설로 스크롤
+                      _scrollController.animateTo(
+                        MediaQuery.of(context).size.width * 0.8 * i,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                      
+                      // 지도 카메라 업데이트
+                      await controller.updateCamera(
+                        NCameraUpdate.withParams(
+                          target: NLatLng(location.latitude!, location.longitude!),
+                          zoom: 16,
+                        ),
+                      );
+                    });
+                    
                     controller.addOverlay(marker);
                   }
                   
@@ -113,22 +127,45 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 
                     // 시설 목록
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.2,
+                      height: MediaQuery.of(context).size.height * 0.235,
                       margin: const EdgeInsets.only(bottom: 16),
-                      child: ListView.builder(
-                        itemCount: locations.length,
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                            final location = locations.elementAt(index);
+                      child: Consumer<FacilityProvider>(
+                        builder: (context, facilityProvider, child) {
+                          // focusLocationIndex가 변경되면 ListView 스크롤
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (facilityProvider.focusLocationIndex != -1 && _scrollController.hasClients) {
+                              _scrollController.animateTo(
+                                MediaQuery.of(context).size.width * 0.8 * facilityProvider.focusLocationIndex,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            }
+                          });
+                          
+                          return ListView.builder(
+                            itemCount: facilityProvider.locations.length,
+                            controller: _scrollController,
+                            scrollDirection: Axis.horizontal,
+                            itemBuilder: (context, index) {
+                            final location = facilityProvider.locations.elementAt(index);
                             return Card(
                               borderOnForeground: false,
                               child: InkWell (
                                 onTap: () async {
-                                  focusLocation = NLatLng(location.latitude!, location.longitude!);
+                                  facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
+                                  facilityProvider.setFocusLocationIndex(index);
+                                  
+                                  // ListView를 선택된 시설로 스크롤
+                                  _scrollController.animateTo(
+                                    MediaQuery.of(context).size.width * 0.8 * index,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                  
                                   if (_mapController != null) {
                                     await _mapController!.updateCamera(
                                       NCameraUpdate.withParams(
-                                        target: focusLocation,
+                                        target: facilityProvider.focusLocation,
                                         zoom: 16,
                                       ),
                                     );
@@ -136,7 +173,8 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                   // 지오코딩 정보 가져오기 (선택사항)
                                   // API 키가 설정되어 있을 때만 호출
                                   try {
-                                    final geocoding = await _facilityService.getGeoCoding(location);
+                                    facilityProvider.setGeoCoding(location);
+                                    final geocoding = facilityProvider.geoCoding;
                                     print('지오코딩 정보: $geocoding');
                                     print('지오코딩 정보: ${geocoding.addresses.first.roadAddress}');
                                     print('지오코딩 정보: ${geocoding.addresses.first.jibunAddress}');
@@ -193,7 +231,9 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                               ),
                             );
                           },
-                        ),
+                        );
+                        },
+                      ),
                     ),
                 ],
               ),

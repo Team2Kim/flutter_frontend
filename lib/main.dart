@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gukminexdiary/provider/auth_provider.dart';
+import 'package:gukminexdiary/provider/facility_provider.dart';
 import 'package:gukminexdiary/screen/home_screen.dart';
 import 'package:gukminexdiary/screen/auth_screen.dart';
 import 'package:gukminexdiary/screen/diary_screen.dart';
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
+        ChangeNotifierProvider(create: (context) => FacilityProvider()),
       ],
       child: MaterialApp(
         title: '국민체력 일기장',
