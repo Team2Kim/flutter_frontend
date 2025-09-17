@@ -8,6 +8,7 @@ import 'package:gukminexdiary/screen/map_search_screen.dart';
 import 'package:gukminexdiary/screen/facility_search_screen.dart';
 import 'package:gukminexdiary/screen/setting_screen.dart';
 import 'package:gukminexdiary/screen/video_search_screen.dart';
+import 'package:gukminexdiary/provider/exercise_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => FacilityProvider()),
+        ChangeNotifierProvider(create: (context) => ExerciseProvider()),
       ],
       child: MaterialApp(
         title: '국민체력 일기장',

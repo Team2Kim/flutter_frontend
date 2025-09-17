@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/custom_drawer.dart';
+import 'package:gukminexdiary/provider/exercise_provider.dart';
+import 'package:gukminexdiary/model/exercise_model.dart';
+import 'package:gukminexdiary/screen/video_detail_screen.dart';
+import 'package:provider/provider.dart';
 
 class VideoSearchScreen extends StatefulWidget {
   const VideoSearchScreen({super.key});
@@ -57,6 +61,15 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
     '치매': false,
     '기타': false,
   };
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final exerciseProvider = context.read<ExerciseProvider>();
+      await exerciseProvider.getExercises();
+    });
+  }
 
   // 필터 섹션 빌드 메서드
   Widget _buildFilterSection(String title, Map<String, bool> filters, bool hasSelectAll) {
@@ -142,6 +155,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final exerciseProvider = Provider.of<ExerciseProvider>(context);
     return Scaffold(
       appBar: CustomAppbar(
         title: '영상 검색',
@@ -240,52 +254,44 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
               // 영상 목록
               Expanded(
                 child: ListView.builder(
+                  itemCount: exerciseProvider.exercises.length,
                   itemBuilder: (context, index) {
+                    final exercise = exerciseProvider.exercises[index];
                     return Card(
                       borderOnForeground: false,
                       child: Container(
                         padding: const EdgeInsets.all(20),
-                        child: Container(
-                          child: const Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('영상 이름', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                                  const Icon(Icons.video_library, size: 36,),
-                                ],
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VideoDetailScreen(exercise: exercise),
                               ),
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                Text('체력항목:', style: TextStyle(fontSize: 14,),),
-                                Text('심폐지구력', style: TextStyle(fontSize: 14,),),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                Text('운동도구:', style: TextStyle(fontSize: 14,),),
-                                Text('목봉/사다리/줄/하프콘', style: TextStyle(fontSize: 14,),),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                Text('신체부위:', style: TextStyle(fontSize: 14,),),
-                                Text('등/복부/몸통/둔부', style: TextStyle(fontSize: 14,),),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                Text('운동대상:', style: TextStyle(fontSize: 14,),),
-                                Text('유소년', style: TextStyle(fontSize: 14,),),
-                                ],
-                              ),
-                            ],
-                          )
+                            );
+                          },
+                          child: Container(
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(exercise.title, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                                        Text(exercise.category, style: TextStyle(fontSize: 14,),),
+                                        Text(exercise.bodyPart, style: TextStyle(fontSize: 14,),),
+                                        Text(exercise.targetGroup, style: TextStyle(fontSize: 14,),),
+                                        Text(_formatVideoLength(exercise.videoLength ?? 0), style: TextStyle(fontSize: 14,),),
+                                      ],
+                                    ),                       
+                                    Image.network(exercise.imageUrl ?? '', width: 150, height: 100,),
+                                  ],
+                                ),
+                              ],
+                            )
+                          ),
                         ),
                       ),
                     );
@@ -296,5 +302,9 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
         ),
       )
     );
+  }
+
+  String _formatVideoLength(int videoLength) {
+    return (videoLength~/60).toString() + "분 " + (videoLength%60).toString() + "초";
   }
 }
