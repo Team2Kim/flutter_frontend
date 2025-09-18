@@ -29,8 +29,20 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
     if (widget.exercise.videoUrl != null && widget.exercise.videoUrl!.isNotEmpty) {
       _controller = VideoPlayerController.networkUrl(Uri.parse(widget.exercise.videoUrl!));
       await _controller!.initialize();
+      
+      // 비디오 상태 변화를 감지하는 리스너 추가
+      _controller!.addListener(_videoListener);
+      
       setState(() {
         _isVideoInitialized = true;
+      });
+    }
+  }
+
+  void _videoListener() {
+    if (_controller != null) {
+      setState(() {
+        // 비디오 상태가 변경될 때마다 UI 업데이트
       });
     }
   }
@@ -252,6 +264,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
 
   @override
   void dispose() {
+    _controller?.removeListener(_videoListener);
     _controller?.dispose();
     super.dispose();
   }
