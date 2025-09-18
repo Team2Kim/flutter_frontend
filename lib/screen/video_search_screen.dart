@@ -67,7 +67,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final exerciseProvider = context.read<ExerciseProvider>();
-      await exerciseProvider.getExercises();
+      await exerciseProvider.getExercisesData(1);
     });
   }
 
@@ -280,13 +280,13 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(exercise.title, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                                        Text(exercise.category, style: TextStyle(fontSize: 14,),),
-                                        Text(exercise.bodyPart, style: TextStyle(fontSize: 14,),),
-                                        Text(exercise.targetGroup, style: TextStyle(fontSize: 14,),),
-                                        Text(_formatVideoLength(exercise.videoLength ?? 0), style: TextStyle(fontSize: 14,),),
+                                        Text(exercise.fitnessFactorName ?? '', style: TextStyle(fontSize: 14,),),
+                                        Text(exercise.bodyPart ?? '', style: TextStyle(fontSize: 14,),),
+                                        Text(exercise.targetGroup ?? '', style: TextStyle(fontSize: 14,),),
+                                        Text(_formatVideoLength(exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14,),),
                                       ],
                                     ),                       
-                                    Image.network(exercise.imageUrl ?? '', width: 150, height: 100,),
+                                    Image.network("${exercise.imageUrl}/${exercise.imageFileName}", width: 150, height: 100,),
                                   ],
                                 ),
                               ],

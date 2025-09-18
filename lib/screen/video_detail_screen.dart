@@ -295,17 +295,26 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
         title: '운동 영상',
         automaticallyImplyLeading: true,
       ),
+      backgroundColor: const Color.fromARGB(255, 68, 134, 255),
       body: _isFullScreen 
           ? _buildFullScreenVideo()
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
+              child: 
+              Container(
+                margin: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(101, 255, 255, 255),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: 
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
              // 영상 섹션 (일반 모드)
              Container(
                width: double.infinity,
-               height: 250,
+               height: MediaQuery.of(context).size.height * 0.25,
                decoration: BoxDecoration(
                  color: Colors.grey[300],
                  borderRadius: BorderRadius.circular(12),
@@ -509,6 +518,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
               
               // 운동 정보 섹션
               Card(
+              color: const Color.fromARGB(255, 183, 206, 255),
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -519,16 +529,17 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                       style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 255, 255, 255),
                       ),
                     ),
                     const SizedBox(height: 16),
                     
-                    _buildInfoRow('카테고리', widget.exercise.category),
-                    _buildInfoRow('운동 부위', widget.exercise.bodyPart),
-                    _buildInfoRow('대상 그룹', widget.exercise.targetGroup),
-                    _buildInfoRow('영상 길이', _formatVideoLength(widget.exercise.videoLength ?? 0)),
+                    _buildInfoRow('카테고리', widget.exercise.fitnessFactorName ?? '', Color.fromARGB(255, 255, 255, 255)),
+                    _buildInfoRow('운동 부위', widget.exercise.bodyPart ?? '', Color.fromARGB(255, 255, 255, 255)),
+                    _buildInfoRow('대상 그룹', widget.exercise.targetGroup ?? '', Color.fromARGB(255, 255, 255, 255)),
+                    _buildInfoRow('영상 길이', _formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), Color.fromARGB(255, 255, 255, 255)),
                     // _buildInfoRow('언어', widget.exercise.language),
-                    _buildInfoRow('게시일자', widget.exercise.createdAt?.toString() ?? ''),
+                    // _buildInfoRow('게시일자', widget.exercise.createdAt == null ? .toString().split(' ')[0] ?? '', Color.fromARGB(255, 255, 255, 255)),
                     // _buildInfoRow('운영기관', widget.exercise.operatingOrganization),
                   ],
                 ),
@@ -539,6 +550,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
             
             // 운동 설명 섹션
             Card(
+              color: const Color.fromARGB(255, 183, 206, 255),
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -549,12 +561,14 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 255, 255, 255),
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      widget.exercise.videoDescription ?? '',
+                      widget.exercise.description ?? '',
                       style: const TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
                         fontSize: 16,
                         height: 1.5,
                       ),
@@ -565,38 +579,16 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
             ),
             
             const SizedBox(height: 20),
-            
-            // 기술적 정보 섹션
-            // Card(
-            //   child: Padding(
-            //     padding: const EdgeInsets.all(20),
-            //     child: Column(
-            //       crossAxisAlignment: CrossAxisAlignment.start,
-            //       children: [
-            //         const Text(
-            //           '기술적 정보',
-            //           style: TextStyle(
-            //             fontSize: 20,
-            //             fontWeight: FontWeight.bold,
-            //           ),
-            //         ),
-            //         const SizedBox(height: 12),
-            //         _buildInfoRow('파일 크기', '${(widget.exercise.fileSize ?? 0) ~/ (1024 * 1024)} MB'),
-            //         _buildInfoRow('해상도', widget.exercise.resolution),
-            //         _buildInfoRow('프레임률', '${widget.exercise.frameRate} fps'),
-            //         _buildInfoRow('파일 형식', widget.exercise.fileType),
-            //       ],
-            //     ),
-            //   ),
-            // ),
+          
             ],
           ],
+          ),
+          ),
         ),
-      ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, Color color) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -606,16 +598,21 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
             width: 100,
             child: Text(
               '$label:',
-              style: const TextStyle(
+              style: TextStyle(
+                color: color,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
             ),
           ),
           Expanded(
-            child: Text(
+            child: Text(  
               value,
-              style: const TextStyle(fontSize: 14),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: color,
+                fontSize: 14,
+              ),
             ),
           ),
         ],

@@ -13,10 +13,10 @@ class ExerciseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getExercises() async {
-    final exercises = await _exerciseService.getExercises();
+  Future<void> getExercisesData(int page) async {
+    final exercises = await _exerciseService.getExercisesData(page);
     print(exercises);
-    setExercises(exercises);
+    setExercises(exercises);  
     notifyListeners();
   }
 }

@@ -1,10 +1,11 @@
 import 'package:gukminexdiary/model/exercise_model.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:gukminexdiary/config/api_config.dart';
 
 class ExerciseService {
-  final String baseUrl = 'https://api.example.com';
-
+  final String baseUrl = ApiConfig.baseUrl;
+  final String exerciseEndpoint = ApiConfig.exerciseEndpoint;
   final String example_data = '''
 {
   "response": {
@@ -54,12 +55,47 @@ class ExerciseService {
     print(items.map((item) => ExerciseModelResponse.fromJson_temp(item)).toList());
     return items.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson_temp(item)).toList();
   }
-  // Future<List<ExerciseModelResponse>> getExercises() async {
-  //   final response = await http.get(Uri.parse('$baseUrl/exercises'));
-  //   if (response.statusCode == 200) {
-  //     return ExerciseModelResponse.fromJson(jsonDecode(response.body));
-  //   } else {
-  //     throw Exception('Failed to load exercises');
-  //   }
-  // }
+
+  Future<List<ExerciseModelResponse>> getExercisesData(int page) async {
+    final response = await http.get(
+      Uri.parse('$exerciseEndpoint/$page'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+    print(response.body);
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      print(json);
+      
+      // API 응답이 List인지 Map인지 확인
+      if (json is List) {
+        return json.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+      } else if (json is Map<String, dynamic>) {
+        // 만약 응답이 Map이고 data 필드에 List가 있다면
+        if (json.containsKey('data') && json['data'] is List) {
+          final dataList = json['data'] as List;
+          return dataList.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+        }
+        // 만약 응답이 Map이고 exercises 필드에 List가 있다면
+        else if (json.containsKey('exercises') && json['exercises'] is List) {
+          final exercisesList = json['exercises'] as List;
+          return exercisesList.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+        }
+        // 만약 응답이 Map이고 items 필드에 List가 있다면
+        else if (json.containsKey('items') && json['items'] is List) {
+          final itemsList = json['items'] as List;
+          return itemsList.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+        }
+        // 단일 객체인 경우
+        else {
+          return [ExerciseModelResponse.fromJson(json)];
+        }
+      }
+      
+      throw Exception('Unexpected response format');
+    } else {
+      throw Exception('Failed to load exercises: ${response.statusCode}');
+    }
+  }
 }
