@@ -89,6 +89,38 @@ class ExerciseModelResponse {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'exerciseId': exerciseId,
+      'title': title,
+      'description': description,
+      'trainingName': trainingName,
+      'targetGroup': targetGroup,
+      'fitnessFactorName': fitnessFactorName,
+      'fitnessLevelName': fitnessLevelName,
+      'bodyPart': bodyPart,
+      'muscleName': muscleName,
+      'exerciseTool': exerciseTool,
+      'videoLengthSeconds': videoLengthSeconds,
+      'resolution': resolution,
+      'fpsCount': fpsCount,
+      'imageFileName': imageFileName,
+      'imageUrl': imageUrl,
+      'fileSize': fileSize,
+      'trainingAimName': trainingAimName,
+      'trainingPlaceName': trainingPlaceName,
+      'trainingSectionName': trainingSectionName,
+      'trainingStepName': trainingStepName,
+      'trainingSequenceName': trainingSequenceName,
+      'trainingWeekName': trainingWeekName,
+      'repetitionCountName': repetitionCountName,
+      'setCountName': setCountName,
+      'operationName': operationName,
+      'gookmin100': gookmin100,
+      'videoUrl': videoUrl,
+    };
+  }
+
   // 기존 fromJson_temp 메서드는 제거하고 fromJson으로 통일
   factory ExerciseModelResponse.fromJson_temp(Map<String, dynamic> json) {
     return ExerciseModelResponse.fromJson(json);

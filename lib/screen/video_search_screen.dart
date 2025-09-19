@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/custom_drawer.dart';
 import 'package:gukminexdiary/provider/exercise_provider.dart';
+import 'package:gukminexdiary/provider/bookmark_provider.dart';
 import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/screen/video_detail_screen.dart';
 import 'package:provider/provider.dart';
@@ -68,7 +69,9 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final exerciseProvider = context.read<ExerciseProvider>();
+      final bookmarkProvider = context.read<BookmarkProvider>();
       await exerciseProvider.getExercisesData(1);
+      await bookmarkProvider.getBookmarks();
     });
   }
 
@@ -261,7 +264,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
                     return Card(
                       borderOnForeground: false,
                       child: Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(15),
                         child: InkWell(
                           onTap: () {
                             Navigator.push(
@@ -272,48 +275,83 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
                             );
                           },
                           child: Container(
+                            width: double.infinity,
                             child: Column(
                               children: [
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(exercise.title, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                                        Text(exercise.fitnessFactorName ?? '', style: TextStyle(fontSize: 14,),),
-                                        Text(exercise.bodyPart ?? '', style: TextStyle(fontSize: 14,),),
-                                        Text(exercise.targetGroup ?? '', style: TextStyle(fontSize: 14,),),
-                                        Text(_formatVideoLength(exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14,),),
-                                      ],
-                                    ),                       
                                     CachedNetworkImage(
-                                      imageUrl: "${exercise.imageUrl}/${exercise.imageFileName}",
-                                      width: 150,
-                                      height: 100,
-                                      fit: BoxFit.cover,
+                                      imageUrl: "${exercise.imageUrl}/${exercise.imageFileName}", 
+                                      imageBuilder: (context, imageProvider) => Container(
+                                        width: 100,
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(10),
+                                          image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                        ),
+                                      ),
                                       placeholder: (context, url) => Container(
-                                        width: 150,
-                                        height: 100,
-                                        color: Colors.grey[300],
+                                        width: 100,
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(20),
+                                          color: Colors.grey[300],
+                                        ),
                                         child: const Center(
                                           child: CircularProgressIndicator(),
                                         ),
                                       ),
                                       errorWidget: (context, url, error) => Container(
-                                        width: 150,
-                                        height: 100,
-                                        color: Colors.grey[300],
+                                        width: 100,
+                                        height: 50,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(20),
+                                          color: Colors.grey[300],
+                                        ),
                                         child: const Icon(
                                           Icons.error,
                                           color: Colors.red,
                                         ),
                                       ),
                                     ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(exercise.title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                                        ),
+                                        Consumer<BookmarkProvider>(
+                                          builder: (context, bookmarkProvider, child) {
+                                            final isBookmarked = bookmarkProvider.isBookmarked(exercise);
+                                            return IconButton(
+                                              onPressed: () async {
+                                                if (isBookmarked) {
+                                                  bookmarkProvider.removeBookmark(exercise);
+                                                } else {
+                                                  bookmarkProvider.addBookmark(exercise);
+                                                }
+                                              },
+                                              icon: Icon(
+                                                isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                                color: isBookmarked ? Colors.blue : Colors.grey,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    )
                                   ],
                                 ),
+                                Row(
+                                  children: [
+                                    Text(exercise.fitnessFactorName ?? '', style: TextStyle(fontSize: 14,),),
+                                    Text(exercise.bodyPart ?? '', style: TextStyle(fontSize: 14,),),
+                                    Text(exercise.targetGroup ?? '', style: TextStyle(fontSize: 14,),),
+                                    Text(_formatVideoLength(exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14,),),
+                                  ],
+                                ),  
                               ],
-                            )
+                            )                   
                           ),
                         ),
                       ),
