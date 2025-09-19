@@ -5,6 +5,7 @@ import 'package:gukminexdiary/provider/exercise_provider.dart';
 import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/screen/video_detail_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class VideoSearchScreen extends StatefulWidget {
   const VideoSearchScreen({super.key});
@@ -286,7 +287,29 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
                                         Text(_formatVideoLength(exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14,),),
                                       ],
                                     ),                       
-                                    Image.network("${exercise.imageUrl}/${exercise.imageFileName}", width: 150, height: 100,),
+                                    CachedNetworkImage(
+                                      imageUrl: "${exercise.imageUrl}/${exercise.imageFileName}",
+                                      width: 150,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Container(
+                                        width: 150,
+                                        height: 100,
+                                        color: Colors.grey[300],
+                                        child: const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) => Container(
+                                        width: 150,
+                                        height: 100,
+                                        color: Colors.grey[300],
+                                        child: const Icon(
+                                          Icons.error,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],
