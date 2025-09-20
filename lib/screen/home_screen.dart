@@ -94,6 +94,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   )
                 ),
+                Card(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/bookmark');
+                    },
+                  child:
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(Icons.bookmark, size: 50,),
+                          Text('즐겨찾기', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),),
             Image.asset('assets/images/main_logo.png', width: 100, height: 100),

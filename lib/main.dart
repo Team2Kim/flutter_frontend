@@ -13,6 +13,8 @@ import 'package:gukminexdiary/provider/bookmark_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gukminexdiary/screen/bookmark_screen.dart';
+import 'package:gukminexdiary/screen/video_detail_screen.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -64,8 +66,9 @@ class MyApp extends StatelessWidget {
           '/facility/search': (context) => const FacilitySearchScreen(),
           '/map/search': (context) => const MapSearchScreen(),
           '/setting': (context) => const SettingScreen(),
-          '/video/search': (context) => const VideoSearchScreen()
-        }
+          '/video/search': (context) => const VideoSearchScreen(),
+          '/bookmark': (context) => const BookmarkScreen(),
+        },
       )
     );
   }

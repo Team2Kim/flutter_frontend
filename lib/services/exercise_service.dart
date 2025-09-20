@@ -55,6 +55,13 @@ class ExerciseService {
     print(items.map((item) => ExerciseModelResponse.fromJson_temp(item)).toList());
     return items.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson_temp(item)).toList();
   }
+  
+  List<ExerciseModelResponse> getExercisesByBookmark() {
+    final json = jsonDecode(example_data);
+    final items = json['response']['body']['items']['item'] as List;
+    return items.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+  }
+
 
   Future<List<ExerciseModelResponse>> getExercisesData(int page) async {
     final response = await http.get(
