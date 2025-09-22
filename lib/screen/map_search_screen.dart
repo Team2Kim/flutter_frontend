@@ -4,6 +4,7 @@ import 'package:gukminexdiary/provider/facility_provider.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:provider/provider.dart';
+import 'package:gukminexdiary/widget/facility_card.dart';
 
 class MapSearchScreen extends StatefulWidget {
   const MapSearchScreen({super.key});
@@ -148,88 +149,51 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                             scrollDirection: Axis.horizontal,
                             itemBuilder: (context, index) {
                             final location = facilityProvider.locations.elementAt(index);
-                            return Card(
-                              borderOnForeground: false,
-                              child: InkWell (
-                                onTap: () async {
-                                  facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
-                                  facilityProvider.setFocusLocationIndex(index);
-                                  
-                                  // ListView를 선택된 시설로 스크롤
-                                  _scrollController.animateTo(
-                                    MediaQuery.of(context).size.width * 0.8 * index,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut,
-                                  );
-                                  
-                                  if (_mapController != null) {
-                                    await _mapController!.updateCamera(
-                                      NCameraUpdate.withParams(
-                                        target: facilityProvider.focusLocation,
-                                        zoom: 16,
-                                      ),
-                                    );
-                                  }
-                                  // 지오코딩 정보 가져오기 (선택사항)
-                                  // API 키가 설정되어 있을 때만 호출
-                                  try {
-                                    facilityProvider.setGeoCoding(location);
-                                    final geocoding = facilityProvider.geoCoding;
-                                    print('지오코딩 정보: $geocoding');
-                                    print('지오코딩 정보: ${geocoding.addresses.first.roadAddress}');
-                                    print('지오코딩 정보: ${geocoding.addresses.first.jibunAddress}');
-                                    print('지오코딩 정보: ${geocoding.addresses.first.englishAddress}');
-                                    print('지오코딩 정보: ${geocoding.addresses.first.addressElements}');
-                                    for (var addressElement in geocoding.addresses.first.addressElements) {
-                                      print('지오코딩 정보: ${addressElement.types}');
-                                      print('지오코딩 정보: ${addressElement.longName}');
-                                      print('지오코딩 정보: ${addressElement.shortName}');
-                                      print('지오코딩 정보: ${addressElement.code}');
-                                    }
-                                    print('지오코딩 정보: ${geocoding.addresses.first.x}');
-                                    print('지오코딩 정보: ${geocoding.addresses.first.y}');
-                                    print('지오코딩 정보: ${geocoding.addresses.first.distance}');
-                                  } catch (e) {
-                                    print('지오코딩 오류: $e');
-                                    // 지오코딩 실패해도 맵 이동은 정상 동작
-                                  }
-                                },
-                                child: Container(
-                                  width: MediaQuery.of(context).size.width * 0.8,
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(location.name, style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),),
-                                        ],
-                                      ),
-                                       Column(
-                                         crossAxisAlignment: CrossAxisAlignment.start,
-                                         children: [
-                                           Text('주소: ${location.roadAddress!}', style: TextStyle(fontSize: 14,),),
-                                         ],  
-                                       ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                        Text('운영여부:', style: TextStyle(fontSize: 14,),),
-                                        Text(location.status!, style: TextStyle(fontSize: 14,),),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text('TEL:', style: TextStyle(fontSize: 14,),),
-                                          Text(location.phoneNumber as String, style: TextStyle(fontSize: 14,),),
-                                        ],
-                                      ),
-                                    ],
-                                  )
+                            return Container(
+                              margin: const EdgeInsets.only(right: 16),
+                              child: FacilityCard(width: MediaQuery.of(context).size.width * 0.8, location: location, onTap: () async {
+                              facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
+                              facilityProvider.setFocusLocationIndex(index);
+                              
+                              // ListView를 선택된 시설로 스크롤
+                              _scrollController.animateTo(
+                                MediaQuery.of(context).size.width * 0.8 * index,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                              
+                              if (_mapController != null) {
+                                await _mapController!.updateCamera(
+                                  NCameraUpdate.withParams(
+                                    target: facilityProvider.focusLocation,
+                                    zoom: 16,
                                   ),
-                              ),
-                            );
+                                );
+                              }
+                              // 지오코딩 정보 가져오기 (선택사항)
+                              // API 키가 설정되어 있을 때만 호출
+                              try {
+                                facilityProvider.setGeoCoding(location);
+                                final geocoding = facilityProvider.geoCoding;
+                                print('지오코딩 정보: $geocoding');
+                                print('지오코딩 정보: ${geocoding.addresses.first.roadAddress}');
+                                print('지오코딩 정보: ${geocoding.addresses.first.jibunAddress}');
+                                print('지오코딩 정보: ${geocoding.addresses.first.englishAddress}');
+                                print('지오코딩 정보: ${geocoding.addresses.first.addressElements}');
+                                for (var addressElement in geocoding.addresses.first.addressElements) {
+                                  print('지오코딩 정보: ${addressElement.types}');
+                                  print('지오코딩 정보: ${addressElement.longName}');
+                                  print('지오코딩 정보: ${addressElement.shortName}');
+                                  print('지오코딩 정보: ${addressElement.code}');
+                                }
+                                print('지오코딩 정보: ${geocoding.addresses.first.x}');
+                                print('지오코딩 정보: ${geocoding.addresses.first.y}');
+                                print('지오코딩 정보: ${geocoding.addresses.first.distance}');
+                              } catch (e) {
+                                print('지오코딩 오류: $e');
+                                // 지오코딩 실패해도 맵 이동은 정상 동작
+                              }
+                            }));
                           },
                         );
                         },

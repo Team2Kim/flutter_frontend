@@ -3,6 +3,7 @@ import 'package:gukminexdiary/provider/facility_provider.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/custom_drawer.dart';
 import 'package:provider/provider.dart';
+import 'package:gukminexdiary/widget/facility_card.dart';
 
 class FacilitySearchScreen extends StatefulWidget {
   const FacilitySearchScreen({super.key});
@@ -40,7 +41,6 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
         automaticallyImplyLeading: true,
       ),
       body: Container(
-          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.grey[100],
             borderRadius: BorderRadius.circular(10),
@@ -95,55 +95,13 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                   scrollDirection: Axis.vertical,
                   itemBuilder: (context, index) {
                     final location = facilityProvider.locations[index];
-                    return Card(
-                      borderOnForeground: false,
-                      child: InkWell(
-                        onTap: () {
-                          facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
-                          facilityProvider.setFocusLocationIndex(index);
-                          Navigator.pushNamed(context, '/map/search');
-                        },
-                        child: Container(
-                        padding: const EdgeInsets.all(20),
-                        child: Container(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(location.name, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                                    const Icon(Icons.video_library, size: 36,),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                Column(
-                                  children: [
-                                  Text('주소: ${location.roadAddress ?? ''}', style: TextStyle(fontSize: 14,),),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                  Text('운영여부:', style: TextStyle(fontSize: 14,),),
-                                  Text(location.status ?? '', style: TextStyle(fontSize: 14,),),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                  Text('TEL:', style: TextStyle(fontSize: 14,),),
-                                  Text(location.phoneNumber ?? '', style: TextStyle(fontSize: 14,),),
-                                  ],
-                                ),
-                              ],
-                            )
-                          ),
-                        ),
-                      )
-                    );
+                    return FacilityCard(location: location, onTap: () {
+                      facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
+                      facilityProvider.setFocusLocationIndex(index);
+                      Navigator.pushNamed(context, '/map/search');
+                    }, width: double.infinity);
                   },
-                ),
+                ),  
               ),
           ],
         ),
