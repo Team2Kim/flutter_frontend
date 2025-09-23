@@ -63,18 +63,13 @@ class ExerciseService {
   }
 
 
-  Future<List<ExerciseModelResponse>> getExercisesData(int page, int size) async {
-    final response = await http.get(
-      Uri.parse('$exerciseEndpoint?size=$size&page=$page'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    );
+  Future<List<ExerciseModelResponse>> getExercisesData(int page, int size, String? keyword) async {
+    final response = await getExercisesDataFromAPI(page, size, keyword);
     print(response.body);
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final json = data['content'];
-      print(json);
+      // print(json);
       
       // API 응답이 List인지 Map인지 확인
       if (json is List) {
@@ -105,5 +100,15 @@ class ExerciseService {
     } else {
       throw Exception('Failed to load exercises: ${response.statusCode}');
     }
+  }
+
+  Future<http.Response> getExercisesDataFromAPI(int page, int size, String? keyword) async {
+    final response = await http.get(
+      Uri.parse(keyword != null ? '$exerciseEndpoint?size=$size&page=$page&keyword=$keyword' : '$exerciseEndpoint?size=$size&page=$page '),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+    return response;
   }
 }

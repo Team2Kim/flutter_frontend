@@ -17,6 +17,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isFilterExpanded = false; // 필터 섹션 접기/펼치기 상태
   bool _isLoadingMore = false; // 추가 로딩 상태
+  bool _lastPage = false;
   
   // 필터 상태 관리
   Map<String, bool> _targetFilters = {
@@ -70,15 +71,17 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final exerciseProvider = context.read<ExerciseProvider>();
       final bookmarkProvider = context.read<BookmarkProvider>();
-      await exerciseProvider.getExercisesData();
+      await exerciseProvider.getExercisesData('');
       await bookmarkProvider.getBookmarks();
     });
   }
 
   // 스크롤 감지 로직
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
-        _scrollController.position.maxScrollExtent - 200) {
+    if (_lastPage || _isLoadingMore) return;
+    
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 200) {
       _loadMoreData();
     }
   }
@@ -87,13 +90,16 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
   Future<void> _loadMoreData() async {
     if (_isLoadingMore) return;
     
+    final exerciseProvider = context.read<ExerciseProvider>();
+    if (exerciseProvider.isLoading || exerciseProvider.lastPage) return;
+    
     setState(() {
       _isLoadingMore = true;
     });
 
     try {
-      final exerciseProvider = context.read<ExerciseProvider>();
-      await exerciseProvider.getExercisesData();
+      await exerciseProvider.getMoreExercisesData();
+      _lastPage = exerciseProvider.lastPage;
     } catch (e) {
       print('추가 데이터 로드 실패: $e');
     } finally {
@@ -160,13 +166,11 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
   // 검색 실행
   void _performSearch() {
     // 여기에 검색 로직을 구현할 수 있습니다
+    _lastPage = false;
+    final exerciseProvider = context.read<ExerciseProvider>();
+    exerciseProvider.resetExercises();
+    exerciseProvider.getExercisesData(_searchController.text);
     print('검색어: ${_searchController.text}');
-    print('선택된 필터들:');
-    _printSelectedFilters('대상', _targetFilters);
-    _printSelectedFilters('체력항목', _fitnessFilters);
-    _printSelectedFilters('운동부위', _bodyPartFilters);
-    _printSelectedFilters('운동도구', _equipmentFilters);
-    _printSelectedFilters('질환', _conditionFilters);
   }
 
   void _printSelectedFilters(String category, Map<String, bool> filters) {

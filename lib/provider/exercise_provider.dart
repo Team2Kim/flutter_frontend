@@ -10,24 +10,55 @@ class ExerciseProvider extends ChangeNotifier {
   List<ExerciseModelResponse> get exercises => _exercises;
   List<ExerciseModelResponse> get bookmarks => _bookmarks;
 
+  bool get lastPage => _lastPage;
+  bool get isLoading => _isLoading;
+
   int _nowPage = 0;
   bool _lastPage = false;
-  
+  bool _isLoading = false;
+  String _keyword = '';
+
 
   void setExercises(List<ExerciseModelResponse> exercises) {
     _exercises.addAll(exercises);
     notifyListeners();
   }
 
-  Future<void> getExercisesData() async {
-    if (_lastPage) return;
-    _nowPage++;
-    final exercises = await _exerciseService.getExercisesData(_nowPage, 10);
-    print(exercises);
-    if (exercises.length < 10) {
-      _lastPage = true;
+  Future<void> getExercisesData(String keyword) async {
+    if (_lastPage || _isLoading) return;
+    
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      _nowPage++;
+      final exercises = await _exerciseService.getExercisesData(_nowPage, 10, keyword);
+      print('페이지 $_nowPage 로드됨, 데이터 개수: ${exercises.length}');
+      
+      _keyword = keyword;
+      if (exercises.length < 10) {
+        _lastPage = true;
+      }
+      setExercises(exercises);
+    } catch (e) {
+      print('데이터 로드 실패: $e');
+      _nowPage--; // 실패시 페이지 번호 되돌리기
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    setExercises(exercises);  
+  }
+
+  Future<void> getMoreExercisesData() async {
+    getExercisesData(_keyword);
+  }
+
+  void resetExercises() {
+    _nowPage = 0;
+    _lastPage = false;
+    _isLoading = false;
+    _exercises = [];
+    _keyword = '';
     notifyListeners();
   }
 }
