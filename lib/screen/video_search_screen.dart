@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
-import 'package:gukminexdiary/widget/custom_drawer.dart';
 import 'package:gukminexdiary/provider/exercise_provider.dart';
 import 'package:gukminexdiary/provider/bookmark_provider.dart';
-import 'package:gukminexdiary/model/exercise_model.dart';
-import 'package:gukminexdiary/screen/video_detail_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gukminexdiary/widget/video_card.dart';
 
 class VideoSearchScreen extends StatefulWidget {
@@ -18,7 +14,9 @@ class VideoSearchScreen extends StatefulWidget {
 
 class _VideoSearchScreenState extends State<VideoSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   bool _isFilterExpanded = false; // 필터 섹션 접기/펼치기 상태
+  bool _isLoadingMore = false; // 추가 로딩 상태
   
   // 필터 상태 관리
   Map<String, bool> _targetFilters = {
@@ -68,12 +66,41 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final exerciseProvider = context.read<ExerciseProvider>();
       final bookmarkProvider = context.read<BookmarkProvider>();
-      await exerciseProvider.getExercisesData(1, 10);
+      await exerciseProvider.getExercisesData();
       await bookmarkProvider.getBookmarks();
     });
+  }
+
+  // 스크롤 감지 로직
+  void _onScroll() {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMoreData();
+    }
+  }
+
+  // 추가 데이터 로드
+  Future<void> _loadMoreData() async {
+    if (_isLoadingMore) return;
+    
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final exerciseProvider = context.read<ExerciseProvider>();
+      await exerciseProvider.getExercisesData();
+    } catch (e) {
+      print('추가 데이터 로드 실패: $e');
+    } finally {
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
   }
 
   // 필터 섹션 빌드 메서드
@@ -155,6 +182,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -258,8 +286,19 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
               // 영상 목록
               Expanded(
                 child: ListView.builder(
-                  itemCount: exerciseProvider.exercises.length,
+                  controller: _scrollController,
+                  itemCount: exerciseProvider.exercises.length + (_isLoadingMore ? 1 : 0),
                   itemBuilder: (context, index) {
+                    // 로딩 인디케이터 표시
+                    if (index == exerciseProvider.exercises.length) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+                    
                     final exercise = exerciseProvider.exercises[index];
                     return VideoCard(exercise: exercise);
                   },

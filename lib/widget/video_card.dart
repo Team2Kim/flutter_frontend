@@ -150,8 +150,8 @@ class VideoCard extends StatelessWidget {
   }
 
   String _formatTitleLength(String title) {
-    if (title.length > 14) {
-      return title.substring(0, 14) + "...";
+    if (title.length > 12) {
+      return title.substring(0, 12) + "...";
     }
     return title;
   }
