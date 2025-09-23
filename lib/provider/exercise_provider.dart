@@ -15,8 +15,8 @@ class ExerciseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getExercisesData(int page) async {
-    final exercises = await _exerciseService.getExercisesData(page);
+  Future<void> getExercisesData(int page, int size) async {
+    final exercises = await _exerciseService.getExercisesData(page, size);
     print(exercises);
     setExercises(exercises);  
     notifyListeners();

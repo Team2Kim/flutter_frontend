@@ -71,7 +71,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final exerciseProvider = context.read<ExerciseProvider>();
       final bookmarkProvider = context.read<BookmarkProvider>();
-      await exerciseProvider.getExercisesData(1);
+      await exerciseProvider.getExercisesData(1, 10);
       await bookmarkProvider.getBookmarks();
     });
   }

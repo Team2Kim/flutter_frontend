@@ -89,7 +89,9 @@ class VideoCard extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(exercise.title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,), textAlign: TextAlign.start,),
+                                Column(children: [
+                                   Text(_formatTitleLength(exercise.title), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,), textAlign: TextAlign.start,),
+                                ],),
                                 Consumer<BookmarkProvider>(
                                   builder: (context, bookmarkProvider, child) {
                                     final isBookmarked = bookmarkProvider.isBookmarked(exercise);
@@ -145,5 +147,12 @@ class VideoCard extends StatelessWidget {
 
   String _formatVideoLength(int videoLength) {
     return (videoLength~/60).toString() + "분 " + (videoLength%60).toString() + "초";
+  }
+
+  String _formatTitleLength(String title) {
+    if (title.length > 14) {
+      return title.substring(0, 14) + "...";
+    }
+    return title;
   }
 }

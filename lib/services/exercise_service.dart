@@ -63,16 +63,17 @@ class ExerciseService {
   }
 
 
-  Future<List<ExerciseModelResponse>> getExercisesData(int page) async {
+  Future<List<ExerciseModelResponse>> getExercisesData(int page, int size) async {
     final response = await http.get(
-      Uri.parse('$exerciseEndpoint/$page'),
+      Uri.parse('$exerciseEndpoint?size=$size&page=$page'),
       headers: {
         'Content-Type': 'application/json',
       },
     );
     print(response.body);
     if (response.statusCode == 200) {
-      final json = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      final json = data['content'];
       print(json);
       
       // API 응답이 List인지 Map인지 확인
