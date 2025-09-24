@@ -53,7 +53,7 @@ class FacilityCard extends StatelessWidget {
                         children: [
                           Column(
                             children: [
-                              Text('주소: ${location.roadAddress ?? ''}', style: TextStyle(fontSize: 14,),),
+                              Text('주소: ${location.roadAddress ?? ''} (${_buildDistance(location.distance)})', style: TextStyle(fontSize: 14,),),
                             ],
                           ),
                           Row(
@@ -79,5 +79,12 @@ class FacilityCard extends StatelessWidget {
             ),
           )
         );
+  }
+
+  String _buildDistance(double? distance) {
+    if (distance == null) {
+      return '현 위치로부터 알 수 없음';
+    }
+    return '현 위치로부터 ${(distance / 1000.0).toStringAsFixed(1)}km';
   }
 }

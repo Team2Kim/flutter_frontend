@@ -3,6 +3,8 @@ import 'package:gukminexdiary/model/geocoding_model.dart';
 import 'package:gukminexdiary/services/facility_service.dart';
 import 'package:gukminexdiary/model/facility_model.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class FacilityProvider extends ChangeNotifier {
   // 현재 시설 검색 상태
@@ -10,6 +12,10 @@ class FacilityProvider extends ChangeNotifier {
   bool _isSearching = false;
   List<FacilityModelResponse> _locations = [];
   int _focusLocationIndex = 0;
+  bool _hasMoreData = true;
+  int _currentPage = 0;
+  Position? _currentPosition;
+  bool _isLoadingMore = false;
 
   NLatLng _focusLocation = NLatLng(37.6304351, 127.0378089);
   GeocodingModelResponse _geoCoding = GeocodingModelResponse(meta: Meta(totalCount: 0, page: 0, count: 0), status: '', addresses: []);
@@ -20,6 +26,9 @@ class FacilityProvider extends ChangeNotifier {
   NLatLng get focusLocation => _focusLocation;
   GeocodingModelResponse get geoCoding => _geoCoding;
   int get focusLocationIndex => _focusLocationIndex;
+  bool get hasMoreData => _hasMoreData;
+  bool get isLoadingMore => _isLoadingMore;
+  Position? get currentPosition => _currentPosition;
 
   // Setters
   void setIsSearching(bool isSearching) {
@@ -51,5 +60,177 @@ class FacilityProvider extends ChangeNotifier {
         _focusLocation = NLatLng(_locations.first.latitude!, _locations.first.longitude!);
       }
     notifyListeners();
+  }
+
+  // 위치 권한 요청
+  Future<bool> _requestLocationPermission() async {
+    final status = await Permission.location.request();
+    return status == PermissionStatus.granted;
+  }
+
+  // 현재 위치 가져오기
+  Future<Position?> getCurrentLocation() async {
+    try {
+      // 위치 권한 확인
+      if (!await _requestLocationPermission()) {
+        print('위치 권한이 거부되었습니다.');
+        return null;
+      }
+
+      // 위치 서비스 활성화 확인
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        print('위치 서비스가 비활성화되어 있습니다.');
+        return null;
+      }
+
+      // 현재 위치 가져오기
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+
+      _currentPosition = position;
+      return position;
+    } catch (e) {
+      print('위치 가져오기 실패: $e');
+      return null;
+    }
+  }
+
+  // 거리 계산 (km)
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    return Geolocator.distanceBetween(lat1, lon1, lat2, lon2) / 1000;
+  }
+
+  // 위치 기반 시설 검색 (초기 로드)
+  Future<void> searchNearbyFacilities() async {
+    try {
+      _isSearching = true;
+      _currentPage = 0;
+      _hasMoreData = true;
+      _locations.clear();
+      notifyListeners();
+
+      // 현재 위치 가져오기
+      Position? position = await getCurrentLocation();
+      if (position == null) {
+        print('위치를 가져올 수 없습니다.');
+        _isSearching = false;
+        notifyListeners();
+        return;
+      }
+
+      // 3km 이내 시설 검색 (10개씩)
+      List<FacilityModelResponse> facilities = await _facilityService.getFacilities_page(
+        position.latitude,
+        position.longitude,
+        10,
+        _currentPage,
+      );
+
+      // 3km 이내 시설만 필터링 (API에서 제공하는 distance 사용, 미터 단위)
+      List<FacilityModelResponse> nearbyFacilities = facilities.where((facility) {
+        return facility.distance != null && facility.distance! <= 3000;
+      }).toList();
+
+      _locations = nearbyFacilities;
+      _currentPage = 0;
+      _hasMoreData = nearbyFacilities.length >= 10; // 10개 미만이면 더 이상 데이터 없음
+
+      if (_locations.isNotEmpty) {
+        _focusLocation = NLatLng(_locations.first.latitude!, _locations.first.longitude!);
+      }
+
+      _isSearching = false;
+      notifyListeners();
+    } catch (e) {
+      print('근처 시설 검색 실패: $e');
+      _isSearching = false;
+      notifyListeners();
+    }
+  }
+
+  // 더 많은 시설 로드 (무한 스크롤)
+  Future<void> loadMoreFacilities() async {
+    if (_isLoadingMore || !_hasMoreData || _currentPosition == null) return;
+
+    try {
+      _isLoadingMore = true;
+      notifyListeners();
+
+      _currentPage++;
+      List<FacilityModelResponse> facilities = await _facilityService.getFacilities_page(
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+        10,
+        _currentPage,
+      );
+
+      // 3km 이내 시설만 필터링 (API에서 제공하는 distance 사용, 미터 단위)
+      List<FacilityModelResponse> nearbyFacilities = facilities.where((facility) {
+        return facility.distance != null && facility.distance! <= 3000;
+      }).toList();
+
+      if (nearbyFacilities.isEmpty) {
+        _hasMoreData = false;
+      } else {
+        _locations.addAll(nearbyFacilities);
+        _hasMoreData = nearbyFacilities.length >= 10; // 10개 미만이면 더 이상 데이터 없음
+      }
+
+      _isLoadingMore = false;
+      notifyListeners();
+    } catch (e) {
+      print('더 많은 시설 로드 실패: $e');
+      _isLoadingMore = false;
+      _hasMoreData = false;
+      notifyListeners();
+    }
+  }
+
+  void resetFacilities() {
+    _locations.clear();
+    _currentPage = 0;
+    _hasMoreData = true;
+    notifyListeners();
+  }
+
+  // 지도 중심 위치 기반 시설 검색 (map_search_screen용)
+  Future<void> searchFacilitiesByMapCenter(double lat, double lon) async {
+    try {
+      _isSearching = true;
+      _currentPage = 0;
+      _hasMoreData = true;
+      _locations.clear();
+      notifyListeners();
+
+      // 3km 이내 시설 검색 (10개씩)
+      List<FacilityModelResponse> facilities = await _facilityService.getFacilities(
+        lat,
+        lon,
+        3000,
+      );
+
+      // 3km 이내 시설만 필터링 (API에서 제공하는 distance 사용, 미터 단위)
+      List<FacilityModelResponse> nearbyFacilities = facilities.where((facility) {
+        return facility.distance != null && facility.distance! <= 3000;
+      }).toList();
+
+      _locations = nearbyFacilities;
+      _currentPage = 0;
+      _hasMoreData = nearbyFacilities.length >= 10;
+
+      if (_locations.isNotEmpty) {
+        _focusLocation = NLatLng(_locations.first.latitude!, _locations.first.longitude!);
+      }
+
+      _isSearching = false;
+      notifyListeners();
+    } catch (e) {
+      print('지도 중심 시설 검색 실패: $e');
+      _isSearching = false;
+      notifyListeners();
+    }
   }
 }

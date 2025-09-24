@@ -3,17 +3,37 @@ import 'package:http/http.dart' as http;
 import 'package:gukminexdiary/model/facility_model.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gukminexdiary/model/geocoding_model.dart';
+import 'package:gukminexdiary/config/api_config.dart';
+
 
 class FacilityService {
+  final String baseUrl = ApiConfig.baseUrl;
+  final String facilityEndpoint = ApiConfig.facilityEndpoint;
 
-  // Future<List<Facility>> getFacilities() async {
-  //   final response = await http.get(Uri.parse('https://api.example.com/facilities'));
-  //   if (response.statusCode == 200) {
-  //     return Facility.fromJson(jsonDecode(response.body));
-  //   } else {
-  //     throw Exception('Failed to load facilities');
-  //   }
-  // }
+  Future<List<FacilityModelResponse>> getFacilities(double lat, double lon, int rad) async {
+    final response = await http.get(Uri.parse('${facilityEndpoint}/map?lat=${lat}&lon=${lon}&rad=${rad}'));
+    print('response: ${response.body}');
+    if (response.statusCode == 200) {
+      final List<dynamic> items = jsonDecode(response.body);
+      final List<FacilityModelResponse> facilities = items.map((item) => FacilityModelResponse.fromJson(item)).toList();
+      return facilities;
+    } else {
+      throw Exception('Failed to load facilities');
+    }
+  }
+
+  Future<List<FacilityModelResponse>> getFacilities_page(double lat, double lon, int size, int page) async {
+    final response = await http.get(Uri.parse('${facilityEndpoint}/list?lat=${lat}&lon=${lon}&size=${size}&page=${page}'));
+    print('response: ${response.body}');
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      final List<dynamic> items = data['content'];
+      final List<FacilityModelResponse> facilities = items.map((item) => FacilityModelResponse.fromJson(item)).toList();
+      return facilities;
+    } else {
+      throw Exception('Failed to load facilities');
+    }
+  }
 
   Future<List<FacilityModelResponse>> getFacilities_example() async {
     return [
@@ -21,6 +41,7 @@ class FacilityService {
         facilityId: 1, 
         name: '수원체력인증센터', 
         groupName: '체육센터',
+        typeName: '체력인증센터',
         categoryName: '체력인증센터',
         status: '운영',
         postalCode: '12345',
@@ -29,12 +50,14 @@ class FacilityService {
         longitude: 127.0335522,
         phoneNumber: '0507-1324-8052',
         isNation: 'Y',
-        lastUpdateDate: DateTime.now(),
+        lastUpdateDate: '2024-01-01T00:00:00',
+        distance: 0.5,
       ),
       FacilityModelResponse(
         facilityId: 2, 
         name: '안산체력인증센터', 
         groupName: '체육센터',
+        typeName: '체력인증센터',
         categoryName: '체력인증센터',
         status: '운영',
         postalCode: '12345',
@@ -43,11 +66,14 @@ class FacilityService {
         longitude: 126.8352371,
         phoneNumber: '0507-1359-1485',
         isNation: 'Y',
-        lastUpdateDate: DateTime.now(),
+        lastUpdateDate: '2024-01-01T00:00:00',
+        distance: 1.2,
       ),
       FacilityModelResponse(
         facilityId: 3, 
-        name: '화성체력인증센터', groupName: '체육센터',
+        name: '화성체력인증센터', 
+        groupName: '체육센터',
+        typeName: '체력인증센터',
         categoryName: '체력인증센터',
         status: '운영',
         postalCode: '12345',
@@ -56,7 +82,8 @@ class FacilityService {
         longitude: 126.9517371,
         phoneNumber: '031-278-7548',
         isNation: 'Y',
-        lastUpdateDate: DateTime.now(),
+        lastUpdateDate: '2024-01-01T00:00:00',
+        distance: 2.1,
       ),
     ];
   }

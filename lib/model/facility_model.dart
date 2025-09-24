@@ -2,6 +2,7 @@ class FacilityModelResponse {
   final int facilityId;
   final String name;
   final String? groupName;
+  final String? typeName;
   final String? categoryName;
   final String? status;
   final String? postalCode;
@@ -9,8 +10,9 @@ class FacilityModelResponse {
   final double? latitude;
   final double? longitude;
   final String? phoneNumber;
-  final DateTime? lastUpdateDate;
+  final String? lastUpdateDate;
   final String? isNation;
+  final double? distance;
 
 
   FacilityModelResponse(
@@ -18,6 +20,7 @@ class FacilityModelResponse {
       required this.facilityId, 
       required this.name, 
       this.groupName, 
+      this.typeName,
       this.categoryName, 
       this.status, 
       this.postalCode, 
@@ -27,6 +30,7 @@ class FacilityModelResponse {
       this.phoneNumber, 
       this.isNation, 
       this.lastUpdateDate,
+      this.distance,
     }
   );
 
@@ -35,15 +39,17 @@ class FacilityModelResponse {
       facilityId: json['facilityId'],
       name: json['name'],
       groupName: json['groupName'],
+      typeName: json['typeName'],
       categoryName: json['categoryName'],
       status: json['status'],
       postalCode: json['postalCode'],
       roadAddress: json['roadAddress'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
+      latitude: json['latitude']?.toDouble(),
+      longitude: json['longitude']?.toDouble(),
       phoneNumber: json['phoneNumber'],
       isNation: json['isNation'],
-      lastUpdateDate: DateTime.parse(json['lastUpdateDate']),
+      lastUpdateDate: json['lastUpdateDate'],
+      distance: json['distance']?.toDouble(),
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gukminexdiary/provider/facility_provider.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
-import 'package:gukminexdiary/widget/custom_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:gukminexdiary/widget/facility_card.dart';
 
@@ -14,6 +13,7 @@ class FacilitySearchScreen extends StatefulWidget {
 
 class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   void _performSearch() {
     // 여기에 검색 로직을 구현할 수 있습니다
@@ -24,17 +24,32 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
-      facilityProvider.getLocations();
+      await facilityProvider.searchNearbyFacilities();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
+      if (facilityProvider.hasMoreData && !facilityProvider.isLoadingMore) {
+        facilityProvider.loadMoreFacilities();
+      }
+    }
   }
   
 
 
   @override
   Widget build(BuildContext context) {  
-    final facilityProvider = Provider.of<FacilityProvider>(context);
     return Scaffold(
       appBar: CustomAppbar(
         title: '시설 검색',
@@ -88,18 +103,49 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              // 영상 목록
+              // 시설 목록
               Expanded(
-                child: ListView.builder(
-                  itemCount: facilityProvider.locations.length,
-                  scrollDirection: Axis.vertical,
-                  itemBuilder: (context, index) {
-                    final location = facilityProvider.locations[index];
-                    return FacilityCard(location: location, onTap: () {
-                      facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
-                      facilityProvider.setFocusLocationIndex(index);
-                      Navigator.pushNamed(context, '/map/search');
-                    }, width: double.infinity);
+                child: Consumer<FacilityProvider>(
+                  builder: (context, facilityProvider, child) {
+                    if (facilityProvider.isSearching && facilityProvider.locations.isEmpty) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (facilityProvider.locations.isEmpty) {
+                      return const Center(
+                        child: Text('근처에 시설이 없습니다.'),
+                      );
+                    }
+
+                    return ListView.builder(
+                      controller: _scrollController,
+                      itemCount: facilityProvider.locations.length + (facilityProvider.isLoadingMore ? 1 : 0),
+                      scrollDirection: Axis.vertical,
+                      itemBuilder: (context, index) {
+                        if (index == facilityProvider.locations.length) {
+                          // 로딩 인디케이터
+                          return const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+
+                        final location = facilityProvider.locations[index];
+                        return FacilityCard(
+                          location: location, 
+                          onTap: () {
+                            facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
+                            facilityProvider.setFocusLocationIndex(index);
+                            Navigator.pushNamed(context, '/map/search');
+                          }, 
+                          width: double.infinity
+                        );
+                      },
+                    );
                   },
                 ),  
               ),
