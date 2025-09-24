@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gukminexdiary/provider/facility_provider.dart';
+import 'package:gukminexdiary/provider/naver_map_provider.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:provider/provider.dart';
@@ -15,17 +16,23 @@ class MapSearchScreen extends StatefulWidget {
 class _MapSearchScreenState extends State<MapSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  NaverMapController? _mapController;
-  NMarker? _myLocationMarker;
-  NMarker? _focusedMarker;
   bool _isDown = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
-      // await facilityProvider.searchNearbyFacilities();
+      final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
+      final naverMapProvider = Provider.of<NaverMapProvider>(context, listen: false);
+      
+      if (!naverMapProvider.isMapReady) {
+        await naverMapProvider.initMap(NCameraPosition(target: facilityProvider.focusLocation, zoom: 14));
+        print('지도 초기화 완료');
+      }
+
+      if (mounted) {  
+        await naverMapProvider.updateFacilityMarkers(context, facilityProvider, _scrollController);
+      }
     });
   }
   
@@ -37,175 +44,105 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 
   void _searchByCurrentLocation() async {
     final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
-    await facilityProvider.searchNearbyFacilities();
-    await _updateFacilityMarkers();
-    final cameraPosition = _mapController!.nowCameraPosition;
-    facilityProvider.setFocusLocation(cameraPosition.target.latitude, cameraPosition.target.longitude);
-
+    final naverMapProvider = Provider.of<NaverMapProvider>(context, listen: false);
     
-    // 지도 카메라를 현재 위치로 이동
-    if (_mapController != null && facilityProvider.currentPosition != null) {
-      await _mapController!.updateCamera(
-        NCameraUpdate.withParams(
-          target: NLatLng(
-            facilityProvider.currentPosition!.latitude,
-            facilityProvider.currentPosition!.longitude,
-          ),
-          zoom: 14,
-        ),
-      );
+    if (naverMapProvider.isMapReady) {
+      await naverMapProvider.resetFacilityMarkers(facilityProvider);
+      await facilityProvider.searchNearbyFacilities();
+      if (mounted) {   // 현재 위치 기반 시설 검색
+        await naverMapProvider.updateFacilityMarkers(context, facilityProvider, _scrollController);
+      }
     }
   }
 
-  void _searchByfocusLocation() async {
+  void _searchByFocusLocation() async {
     final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
-    final cameraPosition = _mapController!.nowCameraPosition;
-    await facilityProvider.searchFacilitiesByMapCenter(cameraPosition.target.latitude, cameraPosition.target.longitude);
-    await _updateFacilityMarkers();
-  }
-
-  Future<void> _updateFacilityMarkers() async {
-    final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
-    print('facilityProvider.locations.length: ${facilityProvider.locations.length}');
-    for (int i = 0; i < facilityProvider.locations.length; i++) {
-      final location = facilityProvider.locations[i];
-      final marker = NMarker(
-        size: NSize(20, 30),
-        iconTintColor: const Color.fromARGB(255, 139, 139, 139),
-        //icon: NOverlayImage.fromAssetImage('assets/images/sub_logo.png'),
-        id: location.facilityId.toString(),
-        position: NLatLng(location.latitude!, location.longitude!),
-        caption: NOverlayCaption(text: location.name),
-      );
-      
-      // 마커 클릭 이벤트 추가
-      marker.setOnTapListener((overlay) async {
-        facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
-        facilityProvider.setFocusLocationIndex(i);
-        
-        // ListView를 선택된 시설로 스크롤
-        _scrollController.animateTo(
-          MediaQuery.of(context).size.width * 0.8 * i,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-        
-        // 지도 카메라 업데이트
-        await _mapController!.updateCamera(
-          NCameraUpdate.withParams(
-            target: NLatLng(location.latitude!, location.longitude!),
-            zoom: 16,
-          ),
-        );
-      });
-      
-      _mapController!.addOverlay(marker);
-    }
-  }
-
-  Future<void> _resetFacilityMarkers() async {
-    final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
-    for (int i = 0; i < facilityProvider.locations.length; i++) {
-      final location = facilityProvider.locations[i];
-      _mapController!.deleteOverlay(NOverlayInfo(type: NOverlayType.marker, id: location.facilityId.toString()));
+    final naverMapProvider = Provider.of<NaverMapProvider>(context, listen: false);
+    final cameraPosition = naverMapProvider.focusedCameraPosition; 
+    
+    if (cameraPosition != null) {
+      if (naverMapProvider.isMapReady) {
+        await naverMapProvider.resetFacilityMarkers(facilityProvider);
+        await facilityProvider.searchFacilitiesByMapCenter(cameraPosition.target.latitude, cameraPosition.target.longitude);
+        if (mounted) {
+          await naverMapProvider.updateFacilityMarkers(context, facilityProvider, _scrollController);
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {  
     final facilityProvider = Provider.of<FacilityProvider>(context);
-    final safeAreaPadding = EdgeInsets.zero;
+    final naverMapProvider = Provider.of<NaverMapProvider>(context);
 
     return Scaffold(
       appBar: CustomAppbar(
         title: '시설 검색',
         automaticallyImplyLeading: true,
       ),
-      body: 
-          Stack(
-            children: [
-              NaverMap(
-                options: NaverMapViewOptions(
-                  contentPadding: safeAreaPadding,
-                  initialCameraPosition: NCameraPosition(target: facilityProvider.focusLocation, zoom: 14),
-                ),
-                onMapReady: (controller) {
-                  _mapController = controller;
-                  _myLocationMarker = NMarker(
-                    iconTintColor: const Color.fromARGB(255, 0, 0, 0),
-                    size: NSize(30, 40),
-                    id: 'myLocationMarker',
-                    position: NLatLng(facilityProvider.currentPosition!.latitude, facilityProvider.currentPosition!.longitude),
-                    caption: NOverlayCaption(text: '내 위치'),
-                  );
-                  controller.addOverlay(_myLocationMarker!);
-                  _focusedMarker = NMarker(
-                    iconTintColor: const Color.fromARGB(255, 17, 0, 255),
-                    size: NSize(30, 40),
-                    id: 'focusedMarker',
-                    position: NLatLng(facilityProvider.focusLocation.latitude, facilityProvider.focusLocation.longitude),
-                    // caption: NOverlayCaption(text: '선택된 위치'),
-                  );
-                  controller.addOverlay(_focusedMarker!);
-                  print("naver map is ready!");
-                  _updateFacilityMarkers();
-                },
-                onCameraIdle: () async {
-                  final cameraPosition = _mapController!.nowCameraPosition;
-                  // final target = cameraPosition?.target;
-                  print('cameraPosition: ${cameraPosition}');
-                  _mapController!.deleteOverlay(NOverlayInfo(type: NOverlayType.marker, id: 'focusedMarker'));
-                  facilityProvider.setFocusLocation(cameraPosition.target.latitude, cameraPosition.target.longitude);
-                  _focusedMarker = NMarker(
-                    iconTintColor: const Color.fromARGB(255, 17, 0, 255),
-                    size: NSize(30, 40),
-                    id: 'focusedMarker',
-                    position: NLatLng(cameraPosition.target.latitude, cameraPosition.target.longitude),
-                    // caption: NOverlayCaption(text: '선택된 위치'),
-                  );
-                  _mapController!.addOverlay(_focusedMarker!);
-                },
-              ),
-             Container(
+      body: Stack(
+        children: [
+          // 지도
+          if (naverMapProvider.isMapReady)
+            naverMapProvider.map!
+          else
+            const Center(child: CircularProgressIndicator()),
+          
+          // UI 컨트롤들
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
               padding: const EdgeInsets.all(20),
-              child: 
-              Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // 검색창
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _searchController,
-                              decoration: const InputDecoration(
-                                hintText: '검색어를 입력해주세요.',
-                                border: InputBorder.none,
-                              ),
-                            ),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: _performSearch,
-                            icon: const Icon(Icons.search),
-                            label: const Text('검색'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[800],
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
+              child: Column(
+                children: [
+                  // 검색창
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    // 시설 목록
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    child: Row(
                       children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _searchController,
+                            decoration: const InputDecoration(
+                              hintText: '검색어를 입력해주세요.',
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: _performSearch,
+                          icon: const Icon(Icons.search),
+                          label: const Text('검색'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[800],
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          // 하단 시설 목록
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
                         // 현재 위치 기반 재검색 버튼
                           Container(
                             margin: const EdgeInsets.only(bottom: 8),
@@ -215,18 +152,6 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
-                                      _mapController!.deleteOverlay(NOverlayInfo(type: NOverlayType.marker, id: 'focusedMarker'));
-                                      facilityProvider.setFocusLocation(facilityProvider.currentPosition!.latitude, facilityProvider.currentPosition!.longitude);
-                                      facilityProvider.setFocusLocationIndex(0);            
-                                      _focusedMarker = NMarker(
-                                        iconTintColor: const Color.fromARGB(255, 17, 0, 255),
-                                        size: NSize(30, 40),
-                                        id: 'focusedMarker',
-                                        position: NLatLng(facilityProvider.currentPosition!.latitude, facilityProvider.currentPosition!.longitude),
-                                        // caption: NOverlayCaption(text: '선택된 위치'),
-                                      );
-                                      _mapController!.addOverlay(_focusedMarker!);
-                                      await _resetFacilityMarkers();
                                       _searchByCurrentLocation();
                                     },
                                     icon: const Icon(Icons.location_on),
@@ -249,8 +174,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                 Expanded(
                                   child: ElevatedButton.icon(
                                   onPressed: () async {
-                                    await _resetFacilityMarkers();
-                                    _searchByfocusLocation();
+                                    _searchByFocusLocation();
                                   },
                                   icon: const Icon(Icons.my_location),
                                   label: const Text('현 위치로 검색'),
@@ -299,14 +223,9 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                       duration: const Duration(milliseconds: 300),
                                       curve: Curves.easeInOut,
                                     );
-                                    
-                                    if (_mapController != null) {
-                                      await _mapController!.updateCamera(
-                                        NCameraUpdate.withParams(
-                                          target: facilityProvider.focusLocation,
-                                          zoom: 16,
-                                        ),
-                                      );
+                                            
+                                    if (naverMapProvider.isMapReady) {
+                                      naverMapProvider.setFocusLocation(NLatLng(location.latitude!, location.longitude!), facilityProvider);
                                     }
                                     // 지오코딩 정보 가져오기 (선택사항)
                                     // API 키가 설정되어 있을 때만 호출
@@ -338,14 +257,12 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                             ),
                           ),
 
-                      ],
-                    ),
-                    
                 ],
               ),
-              )
-            ],
+            ),
           ),
+        ],
+      ),
     );
   }
 }

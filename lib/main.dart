@@ -15,6 +15,7 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gukminexdiary/screen/bookmark_screen.dart';
 import 'package:gukminexdiary/screen/video_detail_screen.dart';
+import 'package:gukminexdiary/provider/naver_map_provider.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -50,6 +51,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => FacilityProvider()),
         ChangeNotifierProvider(create: (context) => ExerciseProvider()),
         ChangeNotifierProvider(create: (context) => BookmarkProvider()),
+        ChangeNotifierProvider(create: (context) => NaverMapProvider()),
       ],
       child: MaterialApp(
         title: '국민체력 일기장',
