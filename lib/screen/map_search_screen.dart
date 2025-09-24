@@ -39,6 +39,9 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
     await facilityProvider.searchNearbyFacilities();
     await _updateFacilityMarkers();
+    final cameraPosition = _mapController!.nowCameraPosition;
+    facilityProvider.setFocusLocation(cameraPosition.target.latitude, cameraPosition.target.longitude);
+
     
     // 지도 카메라를 현재 위치로 이동
     if (_mapController != null && facilityProvider.currentPosition != null) {
@@ -212,6 +215,17 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
+                                      _mapController!.deleteOverlay(NOverlayInfo(type: NOverlayType.marker, id: 'focusedMarker'));
+                                      facilityProvider.setFocusLocation(facilityProvider.currentPosition!.latitude, facilityProvider.currentPosition!.longitude);
+                                      facilityProvider.setFocusLocationIndex(0);            
+                                      _focusedMarker = NMarker(
+                                        iconTintColor: const Color.fromARGB(255, 17, 0, 255),
+                                        size: NSize(30, 40),
+                                        id: 'focusedMarker',
+                                        position: NLatLng(facilityProvider.currentPosition!.latitude, facilityProvider.currentPosition!.longitude),
+                                        // caption: NOverlayCaption(text: '선택된 위치'),
+                                      );
+                                      _mapController!.addOverlay(_focusedMarker!);
                                       await _resetFacilityMarkers();
                                       _searchByCurrentLocation();
                                     },
