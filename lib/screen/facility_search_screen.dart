@@ -13,7 +13,10 @@ class FacilitySearchScreen extends StatefulWidget {
 
 class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _keywordController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  List<String> _keywords = [];
+  int _type = 0; // 이름 검색 / 조건 검색색
 
   void _performSearch() async {
     // 여기에 검색 로직을 구현할 수 있습니다
@@ -75,26 +78,68 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
+                      child: _type == 0 ? TextFormField(
                         controller: _searchController,
                         decoration: const InputDecoration(
                           hintText: '검색어를 입력해주세요.',
                           border: InputBorder.none,
                         ),
+                      ) : TextFormField(
+                        controller: _keywordController,
+                        onChanged: (value) {
+                          if (value.endsWith(' ')) {
+                            setState(() {
+                              _keywords.add(value.trim());
+                            });
+                            _keywordController.clear();
+                          }  
+                        },
+                        decoration: const InputDecoration(
+                          hintText: '입력 후 띄어쓰기를 하면 조건이 추가됩니다.',
+                          border: InputBorder.none,
+                        ),
                       ),
                     ),
-                    ElevatedButton.icon(
-                      onPressed: _performSearch,
-                      icon: const Icon(Icons.search),
-                      label: const Text('검색'),
+                    ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[800],
+                        backgroundColor: _type == 0 ? Colors.grey[800] : Colors.blue,
                         foregroundColor: Colors.white,
                       ),
+                      onPressed: () {
+                        setState(() {
+                          _type += 1;
+                          _type %= 2;
+                        });
+                      },
+                      child: _type == 0 ? const Text('이름', style: TextStyle(color: Colors.white)) : const Text('조건', style: TextStyle(color: Colors.white)),
+                    ),
+                    IconButton(
+                      onPressed: _performSearch,
+                      icon: const Icon(Icons.search),
                     ),
                   ],
                 ),
               ),
+              _type == 1 ?Container(
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Row(children: [
+                  for (var keyword in _keywords)
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.all(0),
+                      ),  
+                      onPressed: () {
+                      setState(() {
+                        _keywords.remove(keyword);
+                      });
+                    }, child: Text('${keyword} X')),
+                ],),
+              ) : const SizedBox(),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
