@@ -16,6 +16,7 @@ class FacilityProvider extends ChangeNotifier {
   int _currentPage = 0;
   Position? _currentPosition;
   bool _isLoadingMore = false;
+  String? _keyword;
 
   NLatLng _focusLocation = NLatLng(37.6304351, 127.0378089);
   GeocodingModelResponse _geoCoding = GeocodingModelResponse(meta: Meta(totalCount: 0, page: 0, count: 0), status: '', addresses: []);
@@ -29,7 +30,7 @@ class FacilityProvider extends ChangeNotifier {
   bool get hasMoreData => _hasMoreData;
   bool get isLoadingMore => _isLoadingMore;
   Position? get currentPosition => _currentPosition;
-
+  String? get keyword => _keyword;
   // Setters
   void setIsSearching(bool isSearching) {
     _isSearching = isSearching;
@@ -151,21 +152,65 @@ class FacilityProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> searchFacilities(String? keyword) async {
+    _isSearching = true;
+    _currentPage = 0;
+    _hasMoreData = true;
+    _locations.clear();
+    _keyword = keyword;
+    notifyListeners();
+
+    List<FacilityModelResponse> facilities = await _facilityService.getFacilities_search(
+      _focusLocation.latitude,
+      _focusLocation.longitude,
+      _keyword!,
+      10,
+      _currentPage,
+    );
+
+          // 3km 이내 시설만 필터링 (API에서 제공하는 distance 사용, 미터 단위)
+      List<FacilityModelResponse> nearbyFacilities = facilities.where((facility) {
+        return facility.distance != null && facility.distance! <= 3000;
+      }).toList();
+
+      _locations = nearbyFacilities;
+      _currentPage = 0;
+      _hasMoreData = nearbyFacilities.length >= 10; // 10개 미만이면 더 이상 데이터 없음
+
+      if (_locations.isNotEmpty) {
+        _focusLocation = NLatLng(_locations.first.latitude!, _locations.first.longitude!);
+      }
+
+      _isSearching = false;
+      notifyListeners();
+  }
+
   // 더 많은 시설 로드 (무한 스크롤)
   Future<void> loadMoreFacilities() async {
     if (_isLoadingMore || !_hasMoreData || _currentPosition == null) return;
 
     try {
       _isLoadingMore = true;
+      List<FacilityModelResponse> facilities = [];
       notifyListeners();
 
       _currentPage++;
-      List<FacilityModelResponse> facilities = await _facilityService.getFacilities_page(
-        _currentPosition!.latitude,
-        _currentPosition!.longitude,
-        10,
-        _currentPage,
-      );
+      if (_keyword != null || _keyword != '') {
+        facilities = await _facilityService.getFacilities_search(
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+          _keyword!,
+          10,
+          _currentPage,
+        );
+      } else {  
+        facilities = await _facilityService.getFacilities_page(
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+          10,
+          _currentPage,
+        );
+      }
 
       // 3km 이내 시설만 필터링 (API에서 제공하는 distance 사용, 미터 단위)
       List<FacilityModelResponse> nearbyFacilities = facilities.where((facility) {
@@ -178,6 +223,7 @@ class FacilityProvider extends ChangeNotifier {
         _locations.addAll(nearbyFacilities);
         _hasMoreData = nearbyFacilities.length >= 10; // 10개 미만이면 더 이상 데이터 없음
       }
+
 
       _isLoadingMore = false;
       notifyListeners();

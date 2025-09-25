@@ -24,15 +24,27 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
-      // await facilityProvider.searchNearbyFacilities();
+      final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
+      _searchController.text = facilityProvider.keyword ?? '';
     });
   }
   
-  void _performSearch() {
+  void _performSearch() async {
     // 여기에 검색 로직을 구현할 수 있습니다
     print('검색어: ${_searchController.text}');
     print('선택된 필터들:');
+    await _resetFacilityMarkers();
+    final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
+    await facilityProvider.searchFacilities(_searchController.text);
+    await _updateFacilityMarkers();
+    final cameraPosition = _mapController!.nowCameraPosition;
+    facilityProvider.setFocusLocation(cameraPosition.target.latitude, cameraPosition.target.longitude);
+    await _mapController!.updateCamera(
+      NCameraUpdate.withParams(
+        target: facilityProvider.focusLocation,
+        zoom: 16,
+      ),
+    );
   }
 
   void _searchByCurrentLocation() async {
@@ -85,7 +97,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
         
         // ListView를 선택된 시설로 스크롤
         _scrollController.animateTo(
-          MediaQuery.of(context).size.width * 0.8 * i,
+          MediaQuery.of(context).size.width * 0.9 * i,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
@@ -274,7 +286,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                 WidgetsBinding.instance.addPostFrameCallback((_) {
                                   if (facilityProvider.focusLocationIndex != -1 && _scrollController.hasClients) {
                                     _scrollController.animateTo(
-                                      MediaQuery.of(context).size.width * 0.8 * facilityProvider.focusLocationIndex,
+                                      MediaQuery.of(context).size.width * 0.95 * facilityProvider.focusLocationIndex,
                                       duration: const Duration(milliseconds: 300),
                                       curve: Curves.easeInOut,
                                     );
@@ -295,7 +307,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                     
                                     // ListView를 선택된 시설로 스크롤
                                     _scrollController.animateTo(
-                                      MediaQuery.of(context).size.width * index,
+                                      MediaQuery.of(context).size.width * 0.95 * index,
                                       duration: const Duration(milliseconds: 300),
                                       curve: Curves.easeInOut,
                                     );

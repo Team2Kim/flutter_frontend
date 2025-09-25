@@ -43,8 +43,9 @@ dependencies:
   http: ^1.1.0
   video_player: ^2.8.2
   cached_network_image: ^3.3.1
-  geolocator: ^10.1.0
+  geolocator: ^10.0.1
   permission_handler: ^11.0.1
+  geolocator_android: 4.6.0
   
 dev_dependencies:
   flutter_test:

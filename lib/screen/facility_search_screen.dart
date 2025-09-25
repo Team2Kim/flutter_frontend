@@ -15,10 +15,12 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  void _performSearch() {
+  void _performSearch() async {
     // 여기에 검색 로직을 구현할 수 있습니다
     print('검색어: ${_searchController.text}');
-    print('선택된 필터들:');
+    // print('선택된 필터들:');
+    final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
+    facilityProvider.searchFacilities(_searchController.text);
   }
 
   @override
@@ -28,6 +30,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
       await facilityProvider.searchNearbyFacilities();
+      _searchController.text = facilityProvider.keyword ?? '';
     });
   }
 
