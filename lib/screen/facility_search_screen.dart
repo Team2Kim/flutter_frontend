@@ -49,7 +49,6 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
       final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
       if (facilityProvider.hasMoreData && !facilityProvider.isLoadingMore) {
         facilityProvider.loadMoreFacilities();
-        setState(() {});
       }
     }
   }
