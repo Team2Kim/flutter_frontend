@@ -12,18 +12,18 @@ class FacilitySearchScreen extends StatefulWidget {
 }
 
 class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _keywordController = TextEditingController();
+  // final TextEditingController _searchController = TextEditingController();
+  // final TextEditingController _keywordController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  List<String> _keywords = [];
-  int _type = 0; // 이름 검색 / 조건 검색색
+  // List<String> _keywords = [];
+  // int _type = 0; // 이름 검색 / 조건 검색
 
   void _performSearch() async {
     // 여기에 검색 로직을 구현할 수 있습니다
-    print('검색어: ${_searchController.text}');
+    // print('검색어: ${facilityProvider.searchController.text}');
     // print('선택된 필터들:');
     final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
-    facilityProvider.searchFacilities(_searchController.text);
+    facilityProvider.searchFacilities(facilityProvider.searchController.text);
   }
 
   @override
@@ -34,7 +34,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
       final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
       await facilityProvider.searchNearbyFacilities();
       facilityProvider.resetKeyword();
-      _searchController.text = facilityProvider.keyword ?? '';
+      facilityProvider.searchController.text = facilityProvider.keyword ?? '';
     });
   }
 
@@ -57,6 +57,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
 
   @override
   Widget build(BuildContext context) {  
+    final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
     return Scaffold(
       appBar: CustomAppbar(
         title: '시설 검색',
@@ -79,20 +80,20 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: _type == 0 ? TextFormField(
-                        controller: _searchController,
+                      child: facilityProvider.type == 0 ? TextFormField(
+                        controller: facilityProvider.searchController,
                         decoration: const InputDecoration(
                           hintText: '검색어를 입력해주세요.',
                           border: InputBorder.none,
                         ),
                       ) : TextFormField(
-                        controller: _keywordController,
+                        controller: facilityProvider.keywordController,
                         onChanged: (value) {
                           if (value.endsWith(' ')) {
                             setState(() {
-                              _keywords.add(value.trim());
+                              facilityProvider.keywords.add(value.trim());
                             });
-                            _keywordController.clear();
+                            facilityProvider.keywordController.clear();
                           }  
                         },
                         decoration: const InputDecoration(
@@ -103,16 +104,15 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _type == 0 ? Colors.grey[800] : Colors.blue,
+                        backgroundColor: facilityProvider.type == 0 ? Colors.grey[800] : Colors.blue,
                         foregroundColor: Colors.white,
                       ),
                       onPressed: () {
                         setState(() {
-                          _type += 1;
-                          _type %= 2;
+                          facilityProvider.toggleType();
                         });
                       },
-                      child: _type == 0 ? const Text('이름', style: TextStyle(color: Colors.white)) : const Text('조건', style: TextStyle(color: Colors.white)),
+                      child: facilityProvider.type == 0 ? const Text('이름', style: TextStyle(color: Colors.white)) : const Text('조건', style: TextStyle(color: Colors.white)),
                     ),
                     IconButton(
                       onPressed: _performSearch,
@@ -121,7 +121,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                   ],
                 ),
               ),
-              _type == 1 ?Container(
+              facilityProvider.type == 1 ? Container(
                 height: 24,
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -129,15 +129,13 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                   border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Row(children: [
-                  for (var keyword in _keywords)
+                  for (var keyword in facilityProvider.keywords)
                     TextButton(
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.all(0),
                       ),  
                       onPressed: () {
-                      setState(() {
-                        _keywords.remove(keyword);
-                      });
+                      facilityProvider.removeKeyword(keyword);
                     }, child: Text('${keyword} X')),
                 ],),
               ) : const SizedBox(),
@@ -182,7 +180,6 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                             ),
                           );
                         }
-
                         final location = facilityProvider.locations[index];
                         return FacilityCard(
                           location: location, 
@@ -198,6 +195,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                   },
                 ),  
               ),
+              const Text("한 번에 20개씩 3km 이내 시설만 검색됩니다.", style: TextStyle(fontSize: 12, color: Colors.grey),),
           ],
         ),
       )

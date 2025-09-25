@@ -14,12 +14,16 @@ class FacilityProvider extends ChangeNotifier {
   int _focusLocationIndex = 0;
   bool _hasMoreData = true;
   int _currentPage = 0;
+  final int _pageSize = 20;
   Position? _currentPosition;
   bool _isLoadingMore = false;
+  int _type = 0; //검색 방식 0: 이름 검색, 1: 조건 검색
   String? _keyword;
-
   NLatLng _focusLocation = NLatLng(37.6304351, 127.0378089);
   GeocodingModelResponse _geoCoding = GeocodingModelResponse(meta: Meta(totalCount: 0, page: 0, count: 0), status: '', addresses: []);
+  List<String> _keywords = [];
+  TextEditingController _keywordController = TextEditingController();
+  TextEditingController _searchController = TextEditingController();
 
   // Getters
   bool get isSearching => _isSearching;
@@ -31,6 +35,14 @@ class FacilityProvider extends ChangeNotifier {
   bool get isLoadingMore => _isLoadingMore;
   Position? get currentPosition => _currentPosition;
   String? get keyword => _keyword;
+  int get pageSize => _pageSize;
+  int get currentPage => _currentPage;
+  int get type => _type;
+  List<String> get keywords => _keywords;
+  TextEditingController get keywordController => _keywordController;
+  TextEditingController get searchController => _searchController;
+
+
   // Setters
   void setIsSearching(bool isSearching) {
     _isSearching = isSearching;
@@ -47,8 +59,18 @@ class FacilityProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleType() {
+    _type = _type == 0 ? 1 : 0;
+    notifyListeners();
+  }
+
   void resetKeyword() {
     _keyword = '';
+    notifyListeners();
+  }
+  
+  void removeKeyword(String keyword) {
+    _keywords.remove(keyword);
     notifyListeners();
   }
 
@@ -130,7 +152,7 @@ class FacilityProvider extends ChangeNotifier {
       List<FacilityModelResponse> facilities = await _facilityService.getFacilities_page(
         position.latitude,
         position.longitude,
-        10,
+        _pageSize,
         _currentPage,
       );
 
@@ -168,7 +190,7 @@ class FacilityProvider extends ChangeNotifier {
       _focusLocation.latitude,
       _focusLocation.longitude,
       _keyword!,
-      10,
+      _pageSize,
       _currentPage,
     );
 
@@ -205,14 +227,14 @@ class FacilityProvider extends ChangeNotifier {
           _currentPosition!.latitude,
           _currentPosition!.longitude,
           _keyword!,
-          10,
+          _pageSize,
           _currentPage,
         );
       } else {  
         facilities = await _facilityService.getFacilities_page(
           _currentPosition!.latitude,
           _currentPosition!.longitude,
-          10,
+          _pageSize,
           _currentPage,
         );
       }
@@ -261,10 +283,11 @@ class FacilityProvider extends ChangeNotifier {
       notifyListeners();
 
       // 3km 이내 시설 검색 (10개씩)
-      List<FacilityModelResponse> facilities = await _facilityService.getFacilities(
+      List<FacilityModelResponse> facilities = await _facilityService.getFacilities_page(
         lat,
         lon,
-        3000,
+        _pageSize,
+        _currentPage,
       );
 
       // 3km 이내 시설만 필터링 (API에서 제공하는 distance 사용, 미터 단위)

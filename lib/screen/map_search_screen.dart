@@ -25,17 +25,17 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
-      _searchController.text = facilityProvider.keyword ?? '';
+      facilityProvider.searchController.text = facilityProvider.keyword ?? '';
     });
   }
   
   void _performSearch() async {
     // 여기에 검색 로직을 구현할 수 있습니다
-    print('검색어: ${_searchController.text}');
+    // print('검색어: ${facilityProvider.searchController.text}');
     print('선택된 필터들:');
     await _resetFacilityMarkers();
     final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
-    await facilityProvider.searchFacilities(_searchController.text);
+    await facilityProvider.searchFacilities(facilityProvider.searchController.text);
     await _updateFacilityMarkers();
     final cameraPosition = _mapController!.nowCameraPosition;
     facilityProvider.setFocusLocation(cameraPosition.target.latitude, cameraPosition.target.longitude);
@@ -75,6 +75,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     await facilityProvider.searchFacilitiesByMapCenter(cameraPosition.target.latitude, cameraPosition.target.longitude);
     await _updateFacilityMarkers();
   }
+
 
   Future<void> _updateFacilityMarkers() async {
     final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
@@ -178,7 +179,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // 검색창
-                    Container(
+                   Column(children: [Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -187,25 +188,66 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                       child: Row(
                         children: [
                           Expanded(
-                            child: TextFormField(
-                              controller: _searchController,
+                            child: facilityProvider.type == 0 ? TextFormField(
+                              controller: facilityProvider.searchController,
                               decoration: const InputDecoration(
                                 hintText: '검색어를 입력해주세요.',
                                 border: InputBorder.none,
                               ),
+                            ) : TextFormField(
+                              controller: facilityProvider.keywordController,
+                              onChanged: (value) {
+                                if (value.endsWith(' ')) {
+                                  setState(() {
+                                    facilityProvider.keywords.add(value.trim());
+                                  });
+                                  facilityProvider.keywordController.clear();
+                                }  
+                              },
+                              decoration: const InputDecoration(
+                                hintText: '입력 후 띄어쓰기를 하면 조건이 추가됩니다.',
+                                border: InputBorder.none,
+                              ),
                             ),
                           ),
-                          ElevatedButton.icon(
-                            onPressed: _performSearch,
-                            icon: const Icon(Icons.search),
-                            label: const Text('검색'),
+                          ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[800],
+                              backgroundColor: facilityProvider.type == 0 ? Colors.grey[800] : Colors.blue,
                               foregroundColor: Colors.white,
                             ),
+                            onPressed: () {
+                              setState(() {
+                                facilityProvider.toggleType();
+                              });
+                            },
+                            child: facilityProvider.type == 0 ? const Text('이름', style: TextStyle(color: Colors.white)) : const Text('조건', style: TextStyle(color: Colors.white)),
                           ),
-                        ],
+                          IconButton(
+                            onPressed: _performSearch,
+                            icon: const Icon(Icons.search),
+                          ),
+                          ],
+                        ),
                       ),
+                      facilityProvider.type == 1 ? Container(
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Row(children: [
+                          for (var keyword in facilityProvider.keywords)
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.all(0),
+                              ),  
+                              onPressed: () {
+                              facilityProvider.removeKeyword(keyword);
+                            }, child: Text('${keyword} X')),
+                        ],),
+                      ) : const SizedBox(),
+                    ],
                     ),
                     // 시설 목록
                     Column(
