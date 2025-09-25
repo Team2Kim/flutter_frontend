@@ -119,6 +119,18 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     }
   }
 
+    Future<void> _updateFocusedMarker() async {
+    final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
+    _mapController!.deleteOverlay(NOverlayInfo(type: NOverlayType.marker, id: 'focusedMarker'));
+    _focusedMarker = NMarker(
+      iconTintColor: const Color.fromARGB(255, 17, 0, 255),
+      size: NSize(30, 40),
+      id: 'focusedMarker',
+      position: NLatLng(facilityProvider.focusLocation.latitude, facilityProvider.focusLocation.longitude),
+    );
+    _mapController!.addOverlay(_focusedMarker!);
+  }
+
   @override
   Widget build(BuildContext context) {  
     final facilityProvider = Provider.of<FacilityProvider>(context);
@@ -146,15 +158,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                     position: NLatLng(facilityProvider.currentPosition!.latitude, facilityProvider.currentPosition!.longitude),
                     caption: NOverlayCaption(text: '내 위치'),
                   );
-                  controller.addOverlay(_myLocationMarker!);
-                  _focusedMarker = NMarker(
-                    iconTintColor: const Color.fromARGB(255, 17, 0, 255),
-                    size: NSize(30, 40),
-                    id: 'focusedMarker',
-                    position: NLatLng(facilityProvider.focusLocation.latitude, facilityProvider.focusLocation.longitude),
-                    // caption: NOverlayCaption(text: '선택된 위치'),
-                  );
-                  controller.addOverlay(_focusedMarker!);
+                  _updateFocusedMarker();
                   print("naver map is ready!");
                   _updateFacilityMarkers();
                 },
@@ -162,16 +166,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                   final cameraPosition = _mapController!.nowCameraPosition;
                   // final target = cameraPosition?.target;
                   print('cameraPosition: ${cameraPosition}');
-                  _mapController!.deleteOverlay(NOverlayInfo(type: NOverlayType.marker, id: 'focusedMarker'));
-                  facilityProvider.setFocusLocation(cameraPosition.target.latitude, cameraPosition.target.longitude);
-                  _focusedMarker = NMarker(
-                    iconTintColor: const Color.fromARGB(255, 17, 0, 255),
-                    size: NSize(30, 40),
-                    id: 'focusedMarker',
-                    position: NLatLng(cameraPosition.target.latitude, cameraPosition.target.longitude),
-                    // caption: NOverlayCaption(text: '선택된 위치'),
-                  );
-                  _mapController!.addOverlay(_focusedMarker!);
+                  _updateFocusedMarker();
                 },
               ),
              Container(
@@ -223,17 +218,9 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
-                                      _mapController!.deleteOverlay(NOverlayInfo(type: NOverlayType.marker, id: 'focusedMarker'));
                                       facilityProvider.setFocusLocation(facilityProvider.currentPosition!.latitude, facilityProvider.currentPosition!.longitude);
                                       facilityProvider.setFocusLocationIndex(0);            
-                                      _focusedMarker = NMarker(
-                                        iconTintColor: const Color.fromARGB(255, 17, 0, 255),
-                                        size: NSize(30, 40),
-                                        id: 'focusedMarker',
-                                        position: NLatLng(facilityProvider.currentPosition!.latitude, facilityProvider.currentPosition!.longitude),
-                                        // caption: NOverlayCaption(text: '선택된 위치'),
-                                      );
-                                      _mapController!.addOverlay(_focusedMarker!);
+                                      _updateFocusedMarker();
                                       await _resetFacilityMarkers();
                                       _searchByCurrentLocation();
                                     },
@@ -289,6 +276,17 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                   itemCount: facilityProvider.locations.length,
                                   controller: _pageController,
                                   scrollDirection: Axis.horizontal,
+                                  onPageChanged: (index) async {
+                                    facilityProvider.setFocusLocationIndex(index);
+                                    facilityProvider.setFocusLocation(facilityProvider.locations[index].latitude!, facilityProvider.locations[index].longitude!);
+                                    _updateFocusedMarker();
+                                    _mapController!.updateCamera(
+                                      NCameraUpdate.withParams(
+                                        target: facilityProvider.focusLocation,
+                                        zoom: 16,
+                                      ),
+                                    );
+                                  },
                                   itemBuilder: (context, index) {
                                   final location = facilityProvider.locations.elementAt(index);
                                   return Container(
