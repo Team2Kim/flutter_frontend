@@ -166,6 +166,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                   final cameraPosition = _mapController!.nowCameraPosition;
                   // final target = cameraPosition?.target;
                   print('cameraPosition: ${cameraPosition}');
+                  facilityProvider.setFocusLocation(cameraPosition.target.latitude, cameraPosition.target.longitude);
                   _updateFocusedMarker();
                 },
               ),
