@@ -14,7 +14,7 @@ class MapSearchScreen extends StatefulWidget {
 
 class _MapSearchScreenState extends State<MapSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+  final PageController _pageController = PageController(viewportFraction: 0.95);
   NaverMapController? _mapController;
   NMarker? _myLocationMarker;
   NMarker? _focusedMarker;
@@ -96,12 +96,8 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
         facilityProvider.setFocusLocationIndex(i);
         
         // ListView를 선택된 시설로 스크롤
-        _scrollController.animateTo(
-          MediaQuery.of(context).size.width * 0.9 * i,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-        
+        _pageController.jumpToPage(i);
+
         // 지도 카메라 업데이트
         await _mapController!.updateCamera(
           NCameraUpdate.withParams(
@@ -284,18 +280,14 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                               builder: (context, facilityProvider, child) {
                                 // focusLocationIndex가 변경되면 ListView 스크롤
                                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  if (facilityProvider.focusLocationIndex != -1 && _scrollController.hasClients) {
-                                    _scrollController.animateTo(
-                                      MediaQuery.of(context).size.width * 0.95 * facilityProvider.focusLocationIndex,
-                                      duration: const Duration(milliseconds: 300),
-                                      curve: Curves.easeInOut,
-                                    );
+                                  if (facilityProvider.focusLocationIndex != -1 && _pageController.hasClients) {
+                                    _pageController.jumpToPage(facilityProvider.focusLocationIndex);
                                   }
                                 });
                                 
-                                return ListView.builder(
+                                return PageView.builder(
                                   itemCount: facilityProvider.locations.length,
-                                  controller: _scrollController,
+                                  controller: _pageController,
                                   scrollDirection: Axis.horizontal,
                                   itemBuilder: (context, index) {
                                   final location = facilityProvider.locations.elementAt(index);
@@ -306,11 +298,8 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                     facilityProvider.setFocusLocationIndex(index);
                                     
                                     // ListView를 선택된 시설로 스크롤
-                                    _scrollController.animateTo(
-                                      MediaQuery.of(context).size.width * 0.95 * index,
-                                      duration: const Duration(milliseconds: 300),
-                                      curve: Curves.easeInOut,
-                                    );
+                                    _pageController.jumpToPage(index);
+                    
                                     
                                     if (_mapController != null) {
                                       await _mapController!.updateCamera(
