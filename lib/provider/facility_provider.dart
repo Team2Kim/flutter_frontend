@@ -47,6 +47,10 @@ class FacilityProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void resetKeyword() {
+    _keyword = '';
+    notifyListeners();
+  }
 
   void setGeoCoding(FacilityModelResponse facility) async {
     _geoCoding = await _facilityService.getGeoCoding(facility);
@@ -56,7 +60,7 @@ class FacilityProvider extends ChangeNotifier {
   void getLocations() async {
     var fetchedLocations = await _facilityService.getFacilities_example();
     _locations = fetchedLocations;
-    print('locations: $_locations');
+    // print('locations: $_locations');
     if (_locations.isNotEmpty) {
         _focusLocation = NLatLng(_locations.first.latitude!, _locations.first.longitude!);
       }
@@ -195,6 +199,7 @@ class FacilityProvider extends ChangeNotifier {
       notifyListeners();
 
       _currentPage++;
+      // print('currentPage: $_currentPage');
       if (_keyword != null || _keyword != '') {
         facilities = await _facilityService.getFacilities_search(
           _currentPosition!.latitude,
@@ -212,10 +217,14 @@ class FacilityProvider extends ChangeNotifier {
         );
       }
 
+      // print('nearbyFacilities: $facilities');
+
       // 3km 이내 시설만 필터링 (API에서 제공하는 distance 사용, 미터 단위)
       List<FacilityModelResponse> nearbyFacilities = facilities.where((facility) {
         return facility.distance != null && facility.distance! <= 3000;
       }).toList();
+
+      // print('nearbyFacilities: $nearbyFacilities');
 
       if (nearbyFacilities.isEmpty) {
         _hasMoreData = false;

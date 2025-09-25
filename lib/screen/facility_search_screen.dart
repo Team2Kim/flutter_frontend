@@ -33,6 +33,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
       await facilityProvider.searchNearbyFacilities();
+      facilityProvider.resetKeyword();
       _searchController.text = facilityProvider.keyword ?? '';
     });
   }
@@ -48,6 +49,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
       final facilityProvider = Provider.of<FacilityProvider>(context, listen: false);
       if (facilityProvider.hasMoreData && !facilityProvider.isLoadingMore) {
         facilityProvider.loadMoreFacilities();
+        setState(() {});
       }
     }
   }

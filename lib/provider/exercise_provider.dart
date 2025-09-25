@@ -31,10 +31,9 @@ class ExerciseProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      _nowPage++;
       final exercises = await _exerciseService.getExercisesData(_nowPage, 10, keyword);
       print('페이지 $_nowPage 로드됨, 데이터 개수: ${exercises.length}');
-      
+      _nowPage++;
       _keyword = keyword;
       if (exercises.length < 10) {
         _lastPage = true;

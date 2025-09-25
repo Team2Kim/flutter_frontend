@@ -158,6 +158,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                     position: NLatLng(facilityProvider.currentPosition!.latitude, facilityProvider.currentPosition!.longitude),
                     caption: NOverlayCaption(text: '내 위치'),
                   );
+                  _mapController!.addOverlay(_myLocationMarker!);
                   _updateFocusedMarker();
                   print("naver map is ready!");
                   _updateFacilityMarkers();
