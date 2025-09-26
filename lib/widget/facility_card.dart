@@ -40,7 +40,7 @@ class FacilityCard extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(location.name, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                          Text(_buildFacilityName(location.name), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
                           const Icon(Icons.video_library, size: 36,),
                         ],
                       ),
@@ -79,6 +79,13 @@ class FacilityCard extends StatelessWidget {
             ),
           )
         );
+  }
+
+  String _buildFacilityName(String name) {
+    if (name.length > 14) {
+      return '${name.substring(0, 14)}...';
+    }
+    return name;
   }
 
   String _buildDistance(double? distance) {

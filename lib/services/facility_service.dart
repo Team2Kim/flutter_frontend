@@ -48,6 +48,21 @@ class FacilityService {
     }
   }
 
+  Future<List<FacilityModelResponse>> getFacilities_search_by_keywords(double lat, double lon, List<String> keywords, int size, int page) async {
+    final keywordsString = keywords.join(',');
+    print('keywordsString: ${keywordsString}');
+    final response = await http.get(Uri.parse('${facilityEndpoint}/search?lat=${lat}&lon=${lon}&categoryName=${keywordsString}&size=${size}&page=${page}'));
+    print('response: ${response.body}');
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      final List<dynamic> items = data['content'];
+      final List<FacilityModelResponse> facilities = items.map((item) => FacilityModelResponse.fromJson(item)).toList();
+      return facilities;
+    } else {
+      throw Exception('Failed to load facilities');
+    }
+  }
+
   Future<List<FacilityModelResponse>> getFacilities_example() async {
     return [
       FacilityModelResponse(

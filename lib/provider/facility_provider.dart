@@ -69,6 +69,12 @@ class FacilityProvider extends ChangeNotifier {
     notifyListeners();
   }
   
+  void addKeyword(String keyword) {
+    if (keyword.isEmpty) return;
+    _keywords.add(keyword);
+    notifyListeners();
+  }
+
   void removeKeyword(String keyword) {
     _keywords.remove(keyword);
     notifyListeners();
@@ -185,30 +191,41 @@ class FacilityProvider extends ChangeNotifier {
     _locations.clear();
     _keyword = keyword;
     notifyListeners();
+    
+    List<FacilityModelResponse> facilities = [];
 
-    List<FacilityModelResponse> facilities = await _facilityService.getFacilities_search(
-      _focusLocation.latitude,
-      _focusLocation.longitude,
-      _keyword!,
-      _pageSize,
-      _currentPage,
-    );
+    if (_type == 0) {
+      facilities = await _facilityService.getFacilities_search(
+        _focusLocation.latitude,
+        _focusLocation.longitude,
+        _keyword!,
+        _pageSize,
+        _currentPage,
+      );
+    } else {
+      facilities = await _facilityService.getFacilities_search_by_keywords(
+        _focusLocation.latitude,
+        _focusLocation.longitude,
+        _keywords,
+        _pageSize,
+        _currentPage,
+      );
+    }
+        // 3km 이내 시설만 필터링 (API에서 제공하는 distance 사용, 미터 단위)
+    List<FacilityModelResponse> nearbyFacilities = facilities.where((facility) {
+      return facility.distance != null && facility.distance! <= 3000;
+    }).toList();
 
-          // 3km 이내 시설만 필터링 (API에서 제공하는 distance 사용, 미터 단위)
-      List<FacilityModelResponse> nearbyFacilities = facilities.where((facility) {
-        return facility.distance != null && facility.distance! <= 3000;
-      }).toList();
+    _locations = nearbyFacilities;
+    _currentPage = 0;
+    _hasMoreData = nearbyFacilities.length >= 10; // 10개 미만이면 더 이상 데이터 없음
 
-      _locations = nearbyFacilities;
-      _currentPage = 0;
-      _hasMoreData = nearbyFacilities.length >= 10; // 10개 미만이면 더 이상 데이터 없음
+    if (_locations.isNotEmpty) {
+      _focusLocation = NLatLng(_locations.first.latitude!, _locations.first.longitude!);
+    }
 
-      if (_locations.isNotEmpty) {
-        _focusLocation = NLatLng(_locations.first.latitude!, _locations.first.longitude!);
-      }
-
-      _isSearching = false;
-      notifyListeners();
+    _isSearching = false;
+    notifyListeners();
   }
 
   // 더 많은 시설 로드 (무한 스크롤)
@@ -222,7 +239,8 @@ class FacilityProvider extends ChangeNotifier {
 
       _currentPage++;
       // print('currentPage: $_currentPage');
-      if (_keyword != null || _keyword != '') {
+      if ((_keyword != null || _keyword != '') && _type == 0) {
+        print("이름 검색 실행");
         facilities = await _facilityService.getFacilities_search(
           _currentPosition!.latitude,
           _currentPosition!.longitude,
@@ -230,7 +248,17 @@ class FacilityProvider extends ChangeNotifier {
           _pageSize,
           _currentPage,
         );
+      } else if (_keywords.isNotEmpty && _type == 1) {
+        print("조건 검색 실행");
+        facilities = await _facilityService.getFacilities_search_by_keywords(
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+          _keywords, 
+          _pageSize, 
+          _currentPage
+        );
       } else {  
+        print("기본 검색 실행");
         facilities = await _facilityService.getFacilities_page(
           _currentPosition!.latitude,
           _currentPosition!.longitude,
