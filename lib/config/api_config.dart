@@ -9,4 +9,5 @@ class ApiConfig {
   static const String notificationEndpoint = '$baseUrl/notification';
   static const String settingEndpoint = '$baseUrl/setting';
   static const String videoEndpoint = '$baseUrl/video';
+  static const String bookmarkEndpoint = '$baseUrl/bookmarks';
 }

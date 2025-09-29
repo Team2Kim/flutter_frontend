@@ -1,27 +1,49 @@
 import 'package:gukminexdiary/model/exercise_model.dart';
-import 'package:gukminexdiary/model/user_model.dart';
 
-class BookmarkModelResponse {
+class BookmarkApiItem {
   final int bookmarkId;
-  final UserModelResponse user;
   final ExerciseModelResponse exercise;
   final DateTime createdAt;
 
-  BookmarkModelResponse(
-    {
-      required this.bookmarkId, 
-      required this.user, 
-      required this.exercise, 
-      required this.createdAt,
-    }
-  );
+  BookmarkApiItem({
+    required this.bookmarkId,
+    required this.exercise,
+    required this.createdAt,
+  });
 
-  factory BookmarkModelResponse.fromJson(Map<String, dynamic> json) {
-    return BookmarkModelResponse(
+  factory BookmarkApiItem.fromJson(Map<String, dynamic> json) {
+    return BookmarkApiItem(
       bookmarkId: json['bookmarkId'],
-      user: json['user'],
-      exercise: json['exercise'],
+      exercise: ExerciseModelResponse.fromJson(json['exercise']),
       createdAt: DateTime.parse(json['createdAt']),
     );
   }
 }
+
+class BookmarkApiResponse {
+  final List<BookmarkApiItem> content;
+  final int totalPages;
+  final int totalElements;
+  final bool last;
+  final bool first;
+
+  BookmarkApiResponse({
+    required this.content,
+    required this.totalPages,
+    required this.totalElements,
+    required this.last,
+    required this.first,
+  });
+
+  factory BookmarkApiResponse.fromJson(Map<String, dynamic> json) {
+    return BookmarkApiResponse(
+      content: (json['content'] as List)
+          .map((item) => BookmarkApiItem.fromJson(item))
+          .toList(),
+      totalPages: json['totalPages'],
+      totalElements: json['totalElements'],
+      last: json['last'],
+      first: json['first'],
+    );
+  }
+} 

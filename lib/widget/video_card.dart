@@ -97,11 +97,7 @@ class VideoCard extends StatelessWidget {
                                     final isBookmarked = bookmarkProvider.isBookmarked(exercise);
                                     return IconButton(
                                       onPressed: () async {
-                                        if (isBookmarked) {
-                                          bookmarkProvider.removeBookmark(exercise);
-                                        } else {
-                                          bookmarkProvider.addBookmark(exercise);
-                                        }
+                                        bookmarkProvider.toggleBookmark(exercise);
                                       },
                                       icon: Icon(
                                         isBookmarked ? Icons.bookmark : Icons.bookmark_border,
