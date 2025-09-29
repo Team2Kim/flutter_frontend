@@ -14,7 +14,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gukminexdiary/screen/bookmark_screen.dart';
-import 'package:gukminexdiary/screen/video_detail_screen.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -38,10 +37,24 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    // 앱 시작 시 인증 상태 확인
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      authProvider.checkAuthStatus();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -51,25 +64,29 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => ExerciseProvider()),
         ChangeNotifierProvider(create: (context) => BookmarkProvider()),
       ],
-      child: MaterialApp(
-        title: '국민체력 일기장',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          useMaterial3: true,
-          fontFamily: 'Pretendard',
-        ),
-        home: const HomeScreen(),
-        routes: {
-          '/auth': (context) => const AuthScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/diary': (context) => const DiaryScreen(),
-          '/facility/search': (context) => const FacilitySearchScreen(),
-          '/map/search': (context) => const MapSearchScreen(),
-          '/setting': (context) => const SettingScreen(),
-          '/video/search': (context) => const VideoSearchScreen(),
-          '/bookmark': (context) => const BookmarkScreen(),
+      child: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          return MaterialApp(
+            title: '국민체력 일기장',
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+              useMaterial3: true,
+              fontFamily: 'Pretendard',
+            ),
+            home: authProvider.isAuthenticated ? const HomeScreen() : const AuthScreen(),
+            routes: {
+              '/auth': (context) => const AuthScreen(),
+              '/home': (context) => const HomeScreen(),
+              '/diary': (context) => const DiaryScreen(),
+              '/facility/search': (context) => const FacilitySearchScreen(),
+              '/map/search': (context) => const MapSearchScreen(),
+              '/setting': (context) => const SettingScreen(),
+              '/video/search': (context) => const VideoSearchScreen(),
+              '/bookmark': (context) => const BookmarkScreen(),
+            },
+          );
         },
-      )
+      ),
     );
   }
 }
