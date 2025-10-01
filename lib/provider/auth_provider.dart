@@ -13,6 +13,14 @@ class AuthProvider extends ChangeNotifier {
   String? _accessToken;
   String? _refreshToken;
   String? _errorMessage;
+  
+  // 중복 확인 상태
+  bool _isCheckingLoginId = false;
+  bool _isCheckingEmail = false;
+  bool? _loginIdAvailable;
+  bool? _emailAvailable;
+  String? _loginIdCheckMessage;
+  String? _emailCheckMessage;
 
   // Getters
   bool get isAuthenticated => _isAuthenticated;
@@ -21,6 +29,14 @@ class AuthProvider extends ChangeNotifier {
   String? get accessToken => _accessToken;
   String? get refreshToken => _refreshToken;
   String? get errorMessage => _errorMessage;
+  
+  // 중복 확인 상태 Getters
+  bool get isCheckingLoginId => _isCheckingLoginId;
+  bool get isCheckingEmail => _isCheckingEmail;
+  bool? get loginIdAvailable => _loginIdAvailable;
+  bool? get emailAvailable => _emailAvailable;
+  String? get loginIdCheckMessage => _loginIdCheckMessage;
+  String? get emailCheckMessage => _emailCheckMessage;
 
   // 에러 메시지 초기화
   void _clearError() {
@@ -170,5 +186,72 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // ID 중복 확인
+  Future<void> checkLoginIdDuplicate(String loginId) async {
+    if (loginId.isEmpty || loginId.length < 3) {
+      _loginIdAvailable = null;
+      _loginIdCheckMessage = null;
+      notifyListeners();
+      return;
+    }
+
+    try {
+      _isCheckingLoginId = true;
+      _loginIdCheckMessage = null;
+      notifyListeners();
+
+      final isAvailable = await _authService.checkLoginId(loginId);
+      _loginIdAvailable = isAvailable;
+      _loginIdCheckMessage = isAvailable ? '사용 가능한 아이디입니다.' : '이미 사용 중인 아이디입니다.';
+      
+      _isCheckingLoginId = false;
+      notifyListeners();
+    } catch (e) {
+      _loginIdAvailable = null;
+      _loginIdCheckMessage = 'ID 중복 확인 중 오류가 발생했습니다.';
+      _isCheckingLoginId = false;
+      notifyListeners();
+    }
+  }
+
+  // 이메일 중복 확인
+  Future<void> checkEmailDuplicate(String email) async {
+    if (email.isEmpty || !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      _emailAvailable = null;
+      _emailCheckMessage = null;
+      notifyListeners();
+      return;
+    }
+
+    try {
+      _isCheckingEmail = true;
+      _emailCheckMessage = null;
+      notifyListeners();
+
+      final isAvailable = await _authService.checkEmail(email);
+      _emailAvailable = isAvailable;
+      _emailCheckMessage = isAvailable ? '사용 가능한 이메일입니다.' : '이미 사용 중인 이메일입니다.';
+      
+      _isCheckingEmail = false;
+      notifyListeners();
+    } catch (e) {
+      _emailAvailable = null;
+      _emailCheckMessage = '이메일 중복 확인 중 오류가 발생했습니다.';
+      _isCheckingEmail = false;
+      notifyListeners();
+    }
+  }
+
+  // 중복 확인 상태 초기화
+  void clearDuplicateCheckStatus() {
+    _loginIdAvailable = null;
+    _emailAvailable = null;
+    _loginIdCheckMessage = null;
+    _emailCheckMessage = null;
+    _isCheckingLoginId = false;
+    _isCheckingEmail = false;
+    notifyListeners();
   }
 }

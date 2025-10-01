@@ -84,4 +84,48 @@ class AuthService {
       throw Exception('토큰 재발급 중 오류 발생: $e');
     }
   }
+
+  // ID 중복 확인
+  Future<bool> checkLoginId(String loginId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$AuthUrl/check-loginId?loginId=$loginId'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return true; // 사용 가능
+      } else if (response.statusCode == 409) {
+        return false; // 중복됨
+      } else {
+        throw Exception('ID 중복 확인 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('ID 중복 확인 중 오류 발생: $e');
+    }
+  }
+
+  // 이메일 중복 확인
+  Future<bool> checkEmail(String email) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$AuthUrl/check-email?email=$email'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return true; // 사용 가능
+      } else if (response.statusCode == 409) {
+        return false; // 중복됨
+      } else {
+        throw Exception('이메일 중복 확인 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('이메일 중복 확인 중 오류 발생: $e');
+    }
+  }
 }

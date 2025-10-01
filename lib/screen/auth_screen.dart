@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:gukminexdiary/provider/auth_provider.dart';
@@ -13,22 +14,31 @@ class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
   final _idController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _nicknameController = TextEditingController();
   final _emailController = TextEditingController();
   
   String _selectedLanguage = '한국어';
   bool _keepLoggedIn = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isSignupMode = false;
 
   final List<String> _languages = ['한국어', 'English', '日本語', '中文'];
+  
+  // 중복 확인을 위한 Timer
+  Timer? _loginIdTimer;
+  Timer? _emailTimer;
 
   @override
   void dispose() {
     _idController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _nicknameController.dispose();
     _emailController.dispose();
+    _loginIdTimer?.cancel();
+    _emailTimer?.cancel();
     super.dispose();
   }
 
@@ -37,6 +47,54 @@ class _AuthScreenState extends State<AuthScreen> {
       _isSignupMode = !_isSignupMode;
       _formKey.currentState?.reset();
     });
+    
+    // 중복 확인 상태 초기화
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.clearDuplicateCheckStatus();
+  }
+
+  // ID 중복 확인 (debounce)
+  void _checkLoginIdDuplicate(String loginId) {
+    _loginIdTimer?.cancel();
+    _loginIdTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        authProvider.checkLoginIdDuplicate(loginId);
+      }
+    });
+  }
+
+  // 이메일 중복 확인 (debounce)
+  void _checkEmailDuplicate(String email) {
+    _emailTimer?.cancel();
+    _emailTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        authProvider.checkEmailDuplicate(email);
+      }
+    });
+  }
+
+  // 회원가입 버튼 활성화 조건 확인
+  bool _canSignup(AuthProvider authProvider) {
+    // 모든 필수 필드가 입력되었는지 확인
+    final isAllFieldsFilled = _idController.text.trim().isNotEmpty &&
+        _passwordController.text.isNotEmpty &&
+        _confirmPasswordController.text.isNotEmpty &&
+        _nicknameController.text.trim().isNotEmpty &&
+        _emailController.text.trim().isNotEmpty;
+
+    // 비밀번호가 일치하는지 확인
+    final isPasswordMatch = _passwordController.text == _confirmPasswordController.text;
+
+    // 중복 확인이 완료되었는지 확인
+    final isDuplicateCheckComplete = authProvider.loginIdAvailable == true &&
+        authProvider.emailAvailable == true;
+
+    // 로딩 중이 아닌지 확인
+    final isNotLoading = !authProvider.isLoading;
+
+    return isAllFieldsFilled && isPasswordMatch && isDuplicateCheckComplete && isNotLoading;
   }
 
   Future<void> _handleLogin() async {
@@ -68,6 +126,28 @@ class _AuthScreenState extends State<AuthScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // 중복 확인 상태 검증
+    if (authProvider.loginIdAvailable != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('아이디 중복 확인을 완료해주세요.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
+    if (authProvider.emailAvailable != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('이메일 중복 확인을 완료해주세요.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final success = await authProvider.signup(
       loginId: _idController.text.trim(),
       password: _passwordController.text,
@@ -86,6 +166,7 @@ class _AuthScreenState extends State<AuthScreen> {
         setState(() {
           _isSignupMode = false;
         });
+        authProvider.clearDuplicateCheckStatus();
       }
     } else {
       if (mounted) {
@@ -137,11 +218,36 @@ class _AuthScreenState extends State<AuthScreen> {
                     // 아이디 입력
                     TextFormField(
                       controller: _idController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: '아이디',
-                        prefixIcon: Icon(Icons.person),
-                        border: OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.person),
+                        border: const OutlineInputBorder(),
+                        suffixIcon: _isSignupMode ? Consumer<AuthProvider>(
+                          builder: (context, authProvider, child) {
+                            if (authProvider.isCheckingLoginId) {
+                              return const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: Padding(
+                                  padding: EdgeInsets.all(12.0),
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              );
+                            } else if (authProvider.loginIdAvailable == true) {
+                              return const Icon(Icons.check_circle, color: Colors.green);
+                            } else if (authProvider.loginIdAvailable == false) {
+                              return const Icon(Icons.cancel, color: Colors.red);
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ) : null,
                       ),
+                      onChanged: _isSignupMode ? (value) {
+                        setState(() {
+                          // 버튼 상태 업데이트를 위해 setState 호출
+                        });
+                        _checkLoginIdDuplicate(value.trim());
+                      } : null,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return '아이디를 입력해주세요';
@@ -149,7 +255,31 @@ class _AuthScreenState extends State<AuthScreen> {
                         if (value.length < 3) {
                           return '아이디는 3자 이상이어야 합니다';
                         }
+                        if (_isSignupMode) {
+                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                          if (authProvider.loginIdAvailable == false) {
+                            return '이미 사용 중인 아이디입니다';
+                          }
+                        }
                         return null;
+                      },
+                    ),
+                    // 아이디 중복 확인 메시지
+                    if (_isSignupMode) Consumer<AuthProvider>(
+                      builder: (context, authProvider, child) {
+                        if (authProvider.loginIdCheckMessage != null) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              authProvider.loginIdCheckMessage!,
+                              style: TextStyle(
+                                color: authProvider.loginIdAvailable == true ? Colors.green : Colors.red,
+                                fontSize: 12,
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
                       },
                     ),
                     const SizedBox(height: 16),
@@ -161,7 +291,34 @@ class _AuthScreenState extends State<AuthScreen> {
                       decoration: InputDecoration(
                         labelText: '비밀번호',
                         prefixIcon: const Icon(Icons.lock),
-                        suffixIcon: IconButton(
+                        suffixIcon: _isSignupMode ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 비밀번호 일치 상태 아이콘 (회원가입 모드에서만)
+                            if (_confirmPasswordController.text.isNotEmpty && _passwordController.text.isNotEmpty)
+                              Icon(
+                                _confirmPasswordController.text == _passwordController.text
+                                    ? Icons.check_circle
+                                    : Icons.cancel,
+                                color: _confirmPasswordController.text == _passwordController.text
+                                    ? Colors.green
+                                    : Colors.red,
+                                size: 20,
+                              ),
+                            const SizedBox(width: 8),
+                            // 비밀번호 표시/숨김 토글
+                            IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                          ],
+                        ) : IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility : Icons.visibility_off,
                           ),
@@ -173,6 +330,15 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                         border: const OutlineInputBorder(),
                       ),
+                      onChanged: _isSignupMode ? (value) {
+                        setState(() {
+                          // 상태 업데이트를 위해 setState 호출
+                        });
+                        // 비밀번호가 변경되면 비밀번호 확인 필드도 다시 검증
+                        if (_confirmPasswordController.text.isNotEmpty) {
+                          _formKey.currentState?.validate();
+                        }
+                      } : null,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return '비밀번호를 입력해주세요';
@@ -187,6 +353,63 @@ class _AuthScreenState extends State<AuthScreen> {
                     
                     // 회원가입 모드일 때만 표시
                     if (_isSignupMode) ...[
+                      // 비밀번호 확인 입력
+                      TextFormField(
+                        controller: _confirmPasswordController,
+                        obscureText: _obscureConfirmPassword,
+                        decoration: InputDecoration(
+                          labelText: '비밀번호 확인',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // 비밀번호 일치 상태 아이콘
+                              if (_confirmPasswordController.text.isNotEmpty)
+                                Icon(
+                                  _confirmPasswordController.text == _passwordController.text
+                                      ? Icons.check_circle
+                                      : Icons.cancel,
+                                  color: _confirmPasswordController.text == _passwordController.text
+                                      ? Colors.green
+                                      : Colors.red,
+                                  size: 20,
+                                ),
+                              const SizedBox(width: 8),
+                              // 비밀번호 표시/숨김 토글
+                              IconButton(
+                                icon: Icon(
+                                  _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscureConfirmPassword = !_obscureConfirmPassword;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          border: const OutlineInputBorder(),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            // 상태 업데이트를 위해 setState 호출
+                          });
+                          // 비밀번호 확인이 변경되면 다시 검증
+                          if (_passwordController.text.isNotEmpty) {
+                            _formKey.currentState?.validate();
+                          }
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return '비밀번호 확인을 입력해주세요';
+                          }
+                          if (value != _passwordController.text) {
+                            return '비밀번호가 일치하지 않습니다';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
                       // 닉네임 입력
                       TextFormField(
                         controller: _nicknameController,
@@ -195,6 +418,11 @@ class _AuthScreenState extends State<AuthScreen> {
                           prefixIcon: Icon(Icons.badge),
                           border: OutlineInputBorder(),
                         ),
+                        onChanged: (value) {
+                          setState(() {
+                            // 버튼 상태 업데이트를 위해 setState 호출
+                          });
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return '닉네임을 입력해주세요';
@@ -211,11 +439,36 @@ class _AuthScreenState extends State<AuthScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: '이메일',
-                          prefixIcon: Icon(Icons.email),
-                          border: OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.email),
+                          border: const OutlineInputBorder(),
+                          suffixIcon: Consumer<AuthProvider>(
+                            builder: (context, authProvider, child) {
+                              if (authProvider.isCheckingEmail) {
+                                return const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(12.0),
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                );
+                              } else if (authProvider.emailAvailable == true) {
+                                return const Icon(Icons.check_circle, color: Colors.green);
+                              } else if (authProvider.emailAvailable == false) {
+                                return const Icon(Icons.cancel, color: Colors.red);
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
                         ),
+                        onChanged: (value) {
+                          setState(() {
+                            // 버튼 상태 업데이트를 위해 setState 호출
+                          });
+                          _checkEmailDuplicate(value.trim());
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return '이메일을 입력해주세요';
@@ -223,7 +476,29 @@ class _AuthScreenState extends State<AuthScreen> {
                           if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                             return '올바른 이메일 형식을 입력해주세요';
                           }
+                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                          if (authProvider.emailAvailable == false) {
+                            return '이미 사용 중인 이메일입니다';
+                          }
                           return null;
+                        },
+                      ),
+                      // 이메일 중복 확인 메시지
+                      Consumer<AuthProvider>(
+                        builder: (context, authProvider, child) {
+                          if (authProvider.emailCheckMessage != null) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                authProvider.emailCheckMessage!,
+                                style: TextStyle(
+                                  color: authProvider.emailAvailable == true ? Colors.green : Colors.red,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
                         },
                       ),
                       const SizedBox(height: 16),
@@ -299,9 +574,15 @@ class _AuthScreenState extends State<AuthScreen> {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: authProvider.isLoading ? null : (_isSignupMode ? _handleSignup : _handleLogin),
+                        onPressed: authProvider.isLoading 
+                            ? null 
+                            : (_isSignupMode 
+                                ? (_canSignup(authProvider) ? _handleSignup : null)
+                                : _handleLogin),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: _isSignupMode && !_canSignup(authProvider) 
+                              ? Colors.grey 
+                              : Colors.blue,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
