@@ -46,6 +46,7 @@ dependencies:
   geolocator: ^10.0.1
   permission_handler: ^11.0.1
   geolocator_android: 4.6.0
+  body_part_selector: ^0.2.0
   
 dev_dependencies:
   flutter_test:
