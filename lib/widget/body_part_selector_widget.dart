@@ -45,45 +45,7 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
-              
-              // 신체 방향 선택 버튼들
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedBodySideIndex = (selectedBodySideIndex - 1 + selectedBodySides.length) % selectedBodySides.length;
-                      });
-                    },
-                    icon: const Icon(Icons.arrow_back_ios),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      _getBodySideName(selectedBodySides[selectedBodySideIndex]),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedBodySideIndex = (selectedBodySideIndex + 1) % selectedBodySides.length;
-                      });
-                    },
-                    icon: const Icon(Icons.arrow_forward_ios),
-                  ),
-                ],
-              ),
-              
+              Divider(),
               const SizedBox(height: 16),
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.4,
@@ -116,25 +78,68 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                         },
                       ),
                     ),
-                    
+                    VerticalDivider(),
                     // 오른쪽: 근육 선택 섹션
-                    if (_getSelectedBodyParts().isNotEmpty)
-                      Expanded(
-                        flex: 1,
-                        child: _MuscleSelectorWidget(
-                          selectedBodyParts: _getSelectedBodyParts(), 
-                          onMusclesSelected: (muscles) {
-                            setState(() {
-                              selectedMuscles = muscles;
-                            });
-                            widget.onMusclesSelected?.call(muscles);
-                          },
-                        ),
+                    // if (_getSelectedBodyParts().isNotEmpty)
+                    Expanded(
+                      flex: 1,
+                      child: _MuscleSelectorWidget(
+                        selectedBodyParts: _getSelectedBodyParts(), 
+                        onMusclesSelected: (muscles) {
+                          setState(() {
+                            selectedMuscles = muscles;
+                          });
+                          widget.onMusclesSelected?.call(muscles);
+                        },
                       ),
+                    ),
                   ],
                 ),
               ),
-              
+               // 신체 방향 선택 버튼들
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedBodySideIndex = (selectedBodySideIndex - 1 + selectedBodySides.length) % selectedBodySides.length;
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_back_ios),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _getBodySideName(selectedBodySides[selectedBodySideIndex]),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedBodySideIndex = (selectedBodySideIndex + 1) % selectedBodySides.length;
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_forward_ios),
+                      ),
+                    ],
+                  ),
+                  SizedBox()
+                ],
+              ),
+              )
             ],
           ),
         ),
@@ -217,8 +222,8 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -237,7 +242,11 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
           const SizedBox(height: 16),
           Expanded(
             child: muscles.isEmpty
-                ? Center(
+                ? Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -256,74 +265,143 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
                       ],
                     ),
                   )
-                : ListView.builder(
+                : Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ListView.builder(
                     itemCount: muscles.length,
                     itemBuilder: (context, index) {
                       final muscle = muscles[index];
                       final isSelected = selectedMuscles.contains(muscle);
                       
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          title: Text(
-                            muscle.name,
-                            style: TextStyle(
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? Theme.of(context).primaryColor : null,
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.grey[300]!,
+                              width: 1,
                             ),
                           ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          // borderRadius: BorderRadius.circular(10),
+                        ),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: 
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                muscle.description,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
+                              SizedBox(
+                                width: 24,
+                                child: Checkbox(
+                                  value: isSelected,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      if (value == true) {
+                                        selectedMuscles.add(muscle);
+                                      } else {
+                                        selectedMuscles.remove(muscle);
+                                      }
+                                    });
+                                    widget.onMusclesSelected(selectedMuscles);
+                                  },
                                 ),
-                                child: Text(
-                                  MuscleData.getKoreanBodyPartName(muscle.bodyPart),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(context).primaryColor,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                              ),
+                              Text(
+                                muscle.name,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  color: isSelected ? Theme.of(context).primaryColor : null,
                                 ),
                               ),
                             ],
                           ),
-                          trailing: Checkbox(
-                            value: isSelected,
-                            onChanged: (value) {
-                              setState(() {
-                                if (value == true) {
-                                  selectedMuscles.add(muscle);
-                                } else {
-                                  selectedMuscles.remove(muscle);
-                                }
-                              });
-                              widget.onMusclesSelected(selectedMuscles);
-                            },
+                          Text(
+                            muscle.description,
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
-                          onTap: () {
-                            setState(() {
-                              if (selectedMuscles.contains(muscle)) {
-                                selectedMuscles.remove(muscle);
-                              } else {
-                                selectedMuscles.add(muscle);
-                              }
-                            });
-                            widget.onMusclesSelected(selectedMuscles);
-                          },
-                        ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              MuscleData.getKoreanBodyPartName(muscle.bodyPart),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],),
+                        // ListTile(
+                        //   title: Text(
+                        //     muscle.name,
+                        //     style: TextStyle(
+                        //       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        //       color: isSelected ? Theme.of(context).primaryColor : null,
+                        //     ),
+                        //   ),
+                        //   subtitle: Column(
+                        //     crossAxisAlignment: CrossAxisAlignment.start,
+                        //     children: [
+                        //       Text(
+                        //         muscle.description,
+                        //         style: Theme.of(context).textTheme.bodySmall,
+                        //       ),
+                        //       const SizedBox(height: 4),
+                        //       Container(
+                        //         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        //         decoration: BoxDecoration(
+                        //           color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        //           borderRadius: BorderRadius.circular(12),
+                        //         ),
+                        //         child: Text(
+                        //           MuscleData.getKoreanBodyPartName(muscle.bodyPart),
+                        //           style: TextStyle(
+                        //             fontSize: 12,
+                        //             color: Theme.of(context).primaryColor,
+                        //             fontWeight: FontWeight.w500,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   ),
+                        //   trailing: Checkbox(
+                        //     value: isSelected,
+                        //     onChanged: (value) {
+                        //       setState(() {
+                        //         if (value == true) {
+                        //           selectedMuscles.add(muscle);
+                        //         } else {
+                        //           selectedMuscles.remove(muscle);
+                        //         }
+                        //       });
+                        //       widget.onMusclesSelected(selectedMuscles);
+                        //     },
+                        //   ),
+                        //   onTap: () {
+                        //     setState(() {
+                        //       if (selectedMuscles.contains(muscle)) {
+                        //         selectedMuscles.remove(muscle);
+                        //       } else {
+                        //         selectedMuscles.add(muscle);
+                        //       }
+                        //     });
+                        //     widget.onMusclesSelected(selectedMuscles);
+                        //   },
+                        // ),
                       );
                     },
                   ),
+                ),
           ),
           
           // 선택된 근육 요약

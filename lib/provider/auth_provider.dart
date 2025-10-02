@@ -119,7 +119,10 @@ class AuthProvider extends ChangeNotifier {
       final tokenResponse = await _authService.login(request);
       await _saveTokens(tokenResponse.accessToken, tokenResponse.refreshToken);
       
+      // 로그인 성공 시 사용자 정보도 저장
       _isAuthenticated = true;
+      print('로그인 성공 - 토큰 저장 완료');
+      
       _isLoading = false;
       notifyListeners();
       return true;
@@ -172,10 +175,25 @@ class AuthProvider extends ChangeNotifier {
       await _loadTokens();
       
       if (_accessToken != null && _refreshToken != null) {
-        // 토큰이 있으면 유효성 검사 (선택사항)
-        _isAuthenticated = true;
+        // 토큰이 있으면 서버에 유효성 검사
+        try {
+          // 토큰 재발급을 시도해서 유효성 확인
+          final isValid = await refreshTokens();
+          if (isValid) {
+            _isAuthenticated = true;
+            print('토큰 유효성 확인 성공 - 로그인 상태 유지');
+          } else {
+            _isAuthenticated = false;
+            print('토큰 유효성 확인 실패 - 로그아웃 처리');
+          }
+        } catch (e) {
+          print('토큰 유효성 검사 중 오류: $e');
+          _isAuthenticated = false;
+          await _clearTokens();
+        }
       } else {
         _isAuthenticated = false;
+        print('저장된 토큰 없음 - 비로그인 상태');
       }
       
       _isLoading = false;
