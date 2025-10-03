@@ -26,7 +26,7 @@ class _MuscleSelectorScreenState extends State<MuscleSelectorScreen> {
           print('bodyParts: $bodyParts');
           setState(() {
             selectedBodyParts = bodyParts;
-            selectedMuscles.clear();
+            // selectedMuscles.clear();
           });
         },
         onMusclesSelected: (muscles) {

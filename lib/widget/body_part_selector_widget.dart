@@ -63,7 +63,7 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
 
                           setState(() {
                             selectedBodyParts = bodyParts;
-                            selectedMuscles.clear();
+                            // selectedMuscles.clear();
                           });
                           
                           // BodyParts 객체에서 선택된 부위들을 문자열 리스트로 변환 (true가 선택된 것)
