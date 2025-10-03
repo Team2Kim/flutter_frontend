@@ -356,17 +356,37 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
                     itemBuilder: (context, index) {
                       final bodyPartOrigin = selectedBodyPartsMusclesMap[index].keys.first;
                       final bodyPart = MuscleData.getKoreanBodyPartName(bodyPartOrigin);
+                      final muscleList = selectedBodyPartsMusclesMap[index][bodyPartOrigin];
+                      final allSelected = muscleList!.every((muscle) => selectedMuscles.contains(muscle));
                       print('bodyPart: $bodyPart');
-                      print('selectedBodyPartsMusclesMap[index]: ${selectedBodyPartsMusclesMap[index][bodyPartOrigin]}');
+                      print('selectedBodyPartsMusclesMap[index]: ${muscleList}');
                       return ExpansionTile(
-                        title: Text(bodyPart),
+                        title: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              width: 24,
+                              child: Checkbox(value: allSelected, onChanged: (value) {
+                                setState(() {
+                                  if (value == true) {
+                                    selectedMuscles.addAll(muscleList);
+                                  } else {
+                                    selectedMuscles.removeWhere((muscle) => muscleList.contains(muscle));
+                                  }
+                                  widget.onMusclesSelected(selectedMuscles);
+                                });
+                              }),
+                            ),
+                            Text(bodyPart),
+                          ],
+                        ),
                         children: [
                           ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: selectedBodyPartsMusclesMap[index][bodyPartOrigin]!.length,
+                            itemCount: muscleList!.length,
                             itemBuilder: (context, ind) {
-                              final muscle = selectedBodyPartsMusclesMap[index][bodyPartOrigin]![ind];
+                              final muscle = muscleList[ind];
                               final isSelected = selectedMuscles.contains(muscle);
                               return Container(
                                   padding: const EdgeInsets.all(8),
