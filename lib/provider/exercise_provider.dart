@@ -10,6 +10,12 @@ class ExerciseProvider extends ChangeNotifier {
   List<ExerciseModelResponse> get exercises => _exercises;
   List<ExerciseModelResponse> get bookmarks => _bookmarks;
 
+  // List<String> _selectedBodyParts = [];
+  // List<String> get selectedBodyParts => _selectedBodyParts;
+
+  // List<String> _selectedMuscles = [];
+  // List<String> get selectedMuscles => _selectedMuscles;
+
   bool get lastPage => _lastPage;
   bool get isLoading => _isLoading;
 
@@ -23,6 +29,16 @@ class ExerciseProvider extends ChangeNotifier {
     _exercises.addAll(exercises);
     notifyListeners();
   }
+
+  // void setSelectedBodyParts(List<String> selectedBodyParts) {
+  //   _selectedBodyParts = selectedBodyParts;
+  //   notifyListeners();
+  // }
+
+  // void setSelectedMuscles(List<String> selectedMuscles) {
+  //   _selectedMuscles = selectedMuscles;
+  //   notifyListeners();
+  // }
 
   Future<void> getExercisesData(String keyword) async {
     if (_lastPage || _isLoading) return;

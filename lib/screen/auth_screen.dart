@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:gukminexdiary/provider/auth_provider.dart';
 
@@ -40,6 +41,22 @@ class _AuthScreenState extends State<AuthScreen> {
     _loginIdTimer?.cancel();
     _emailTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _checkKeepLoggedIn();
+  }
+
+  void _checkKeepLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    _keepLoggedIn = prefs.getBool('keepLoggedIn') ?? false;
+    if (_keepLoggedIn) {
+      _idController.text = prefs.getString('loginId') ?? '';
+      _passwordController.text = prefs.getString('password') ?? '';
+      _handleLogin();
+    }
   }
 
   void _toggleMode() {
@@ -107,6 +124,14 @@ class _AuthScreenState extends State<AuthScreen> {
     );
 
     if (success) {
+      if (_keepLoggedIn) {
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setBool('keepLoggedIn', true);
+        prefs.setString('accessToken', authProvider.accessToken ?? '');
+        prefs.setString('refreshToken', authProvider.refreshToken ?? '');
+        prefs.setString('loginId', _idController.text.trim());
+        prefs.setString('password', _passwordController.text);
+      }
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
       }
@@ -161,7 +186,7 @@ class _AuthScreenState extends State<AuthScreen> {
           const SnackBar(
             content: Text('회원가입이 완료되었습니다. 로그인해주세요.'),
             backgroundColor: Colors.green,
-          ),
+          )
         );
         setState(() {
           _isSignupMode = false;

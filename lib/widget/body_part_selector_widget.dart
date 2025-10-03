@@ -60,6 +60,7 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                         unselectedColor: Colors.grey,
                         side: selectedBodySides[selectedBodySideIndex],
                         onSelectionUpdated: (bodyParts) {
+
                           setState(() {
                             selectedBodyParts = bodyParts;
                             selectedMuscles.clear();
@@ -70,10 +71,16 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                           final bodyPartsMap = bodyParts.toMap();
                           for (var part in bodyPartsMap.keys) {
                             if (bodyPartsMap[part] == true) {
-                              selectedParts.add(part);
+                              if (part == 'abdomen') {
+                                selectedParts.add('lowerBody');
+                              } else if (part == 'lowerBody') {
+                                selectedParts.add('abdomen');
+                              } else {
+                                selectedParts.add(part);
+                              }
                             }
                           }
-                          
+                          print('selectedParts: $selectedParts');
                           widget.onBodyPartsSelected?.call(selectedParts);
                         },
                       ),
@@ -139,7 +146,53 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                   SizedBox()
                 ],
               ),
-              )
+              ),
+              // 선택된 근육 요약
+          if (selectedMuscles.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '선택된 근육 (${selectedMuscles.length}개)',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: selectedMuscles.map((muscle) {
+                      return Chip(
+                        label: Text(
+                          muscle.name,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                        deleteIcon: Icon(
+                          Icons.close,
+                          size: 16,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        onDeleted: () {
+                          setState(() {
+                            selectedMuscles.remove(muscle);
+                          });
+                          // widget.onMusclesSelected(selectedMuscles);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
             ],
           ),
         ),
@@ -154,7 +207,13 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
     final bodyParts = selectedBodyParts.toMap().keys.toList();
     for (var part in bodyParts) {
       if (selectedBodyParts.toMap()[part] == true) {
-        selectedParts.add(part);
+        if (part == 'abdomen') {
+          selectedParts.add('lowerBody');
+        } else if (part == 'lowerBody') {
+          selectedParts.add('abdomen');
+          } else {
+          selectedParts.add(part);
+        }
       }
     }
     print('selectedParts: $selectedParts');
@@ -403,53 +462,6 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
                   ),
                 ),
           ),
-          
-          // 선택된 근육 요약
-          if (selectedMuscles.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '선택된 근육 (${selectedMuscles.length}개)',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: selectedMuscles.map((muscle) {
-                      return Chip(
-                        label: Text(
-                          muscle.name,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
-                        deleteIcon: Icon(
-                          Icons.close,
-                          size: 16,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        onDeleted: () {
-                          setState(() {
-                            selectedMuscles.remove(muscle);
-                          });
-                          widget.onMusclesSelected(selectedMuscles);
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );
