@@ -4,6 +4,8 @@ import 'package:gukminexdiary/provider/exercise_provider.dart';
 import 'package:gukminexdiary/provider/bookmark_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:gukminexdiary/widget/video_card.dart';
+import 'package:gukminexdiary/widget/body_part_selector_widget.dart';
+import 'package:gukminexdiary/model/muscle_model.dart';
 
 class VideoSearchScreen extends StatefulWidget {
   const VideoSearchScreen({super.key});
@@ -12,13 +14,25 @@ class VideoSearchScreen extends StatefulWidget {
   State<VideoSearchScreen> createState() => _VideoSearchScreenState();
 }
 
-class _VideoSearchScreenState extends State<VideoSearchScreen> {
+class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProviderStateMixin {
+  final PageController _pageController = PageController();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ScrollController _muscleScrollController = ScrollController();
+  late TabController _tabController;
+  
+  // 1페이지 (기존 검색) 상태
   bool _isFilterExpanded = false; // 필터 섹션 접기/펼치기 상태
   bool _isLoadingMore = false; // 추가 로딩 상태
   bool _lastPage = false;
   
+  // 2페이지 (근육별 검색) 상태
+  List<MuscleModel> _selectedMuscles = [];
+  List<MuscleModel> _muscleSearchResults = [];
+  bool _isMuscleLoading = false;
+  bool _isMuscleLoadingMore = false;
+  bool _muscleLastPage = false;
+  bool _isMuscleExpanded = false;
   // 필터 상태 관리
   Map<String, bool> _targetFilters = {
     '유아기': false,
@@ -67,7 +81,9 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _scrollController.addListener(_onScroll);
+    _muscleScrollController.addListener(_onMuscleScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final exerciseProvider = context.read<ExerciseProvider>();
       final bookmarkProvider = context.read<BookmarkProvider>();
@@ -76,13 +92,23 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
     });
   }
 
-  // 스크롤 감지 로직
+  // 스크롤 감지 로직 (1페이지)
   void _onScroll() {
     if (_lastPage || _isLoadingMore) return;
     
     final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 200) {
       _loadMoreData();
+    }
+  }
+
+  // 스크롤 감지 로직 (2페이지 - 근육별 검색)
+  void _onMuscleScroll() {
+    if (_muscleLastPage || _isMuscleLoadingMore) return;
+    
+    final position = _muscleScrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 200) {
+      _loadMoreMuscleData();
     }
   }
 
@@ -163,7 +189,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
     });
   }
 
-  // 검색 실행
+  // 검색 실행 (1페이지)
   void _performSearch() {
     // 여기에 검색 로직을 구현할 수 있습니다
     _lastPage = false;
@@ -173,20 +199,74 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
     print('검색어: ${_searchController.text}');
   }
 
-  void _printSelectedFilters(String category, Map<String, bool> filters) {
-    List<String> selected = filters.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key)
-        .toList();
-    if (selected.isNotEmpty) {
-      print('$category: ${selected.join(', ')}');
+  // 근육별 검색 실행 (2페이지)
+  Future<void> _performMuscleSearch() async {
+    if (_selectedMuscles.isEmpty) return;
+    
+    setState(() {
+      _isMuscleLoading = true;
+      _muscleLastPage = false;
+      _muscleSearchResults.clear();
+    });
+
+    try {
+      // TODO: 근육별 검색 API 호출
+      // final exerciseProvider = context.read<ExerciseProvider>();
+      // await exerciseProvider.getExercisesByMuscle(_selectedMuscles, 0);
+      // _muscleSearchResults = exerciseProvider.muscleExercises;
+      
+      // 임시로 빈 결과 설정
+      _muscleSearchResults = [];
+    } catch (e) {
+      print('근육별 검색 실패: $e');
+    } finally {
+      setState(() {
+        _isMuscleLoading = false;
+      });
     }
   }
 
+  // 근육별 검색 추가 데이터 로드
+  Future<void> _loadMoreMuscleData() async {
+    if (_isMuscleLoadingMore || _muscleLastPage) return;
+    
+    setState(() {
+      _isMuscleLoadingMore = true;
+    });
+
+    try {
+      // TODO: 근육별 검색 추가 데이터 로드 API 호출
+      // final exerciseProvider = context.read<ExerciseProvider>();
+      // await exerciseProvider.getMoreExercisesByMuscle(_selectedMuscles, page);
+      // _muscleSearchResults.addAll(exerciseProvider.muscleExercises);
+      
+      // 임시로 마지막 페이지로 설정
+      _muscleLastPage = true;
+    } catch (e) {
+      print('근육별 검색 추가 데이터 로드 실패: $e');
+    } finally {
+      setState(() {
+        _isMuscleLoadingMore = false;
+      });
+    }
+  }
+
+  // 선택된 근육 변경 시 호출
+  void _onMusclesSelected(List<MuscleModel> selectedMuscles) {
+    setState(() {
+      _selectedMuscles = selectedMuscles;
+    });
+    _performMuscleSearch();
+  }
+
+
   @override
   void dispose() {
+    _tabController.dispose();
+    _pageController.dispose();
     _searchController.dispose();
     _scrollController.dispose();
+    _muscleScrollController.dispose();
     super.dispose();
   }
 
@@ -198,119 +278,276 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> {
         title: '영상 검색',
         automaticallyImplyLeading: true,
       ),
-      body: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(10),
+      body: Column(
+        children: [
+          // 탭 바
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(color: Colors.grey[300]!),
+              ),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              onTap: (index) {
+                _pageController.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+              tabs: const [
+                Tab(text: '전체 검색'),
+                Tab(text: '근육별 검색'),
+              ],
+              labelColor: Colors.black,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Colors.blue,
+            ),
           ),
-          child: Column(
-            children: [
-              // 검색창
-              Container(
+          // 페이지뷰
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _tabController.index = index;
+                });
+              },
+              children: [
+                _buildGeneralSearchPage(exerciseProvider),
+                _buildMuscleSearchPage(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 1페이지: 기존 전체 검색 페이지
+  Widget _buildGeneralSearchPage(ExerciseProvider exerciseProvider) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          // 검색창
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _searchController,
+                    decoration: const InputDecoration(
+                      hintText: '검색어를 입력해주세요.',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _performSearch,
+                  icon: const Icon(Icons.search),
+                  label: const Text('검색'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[800],
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // 필터 토글 버튼
+          Container(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _isFilterExpanded = !_isFilterExpanded;
+                });
+              },
+              icon: Icon(_isFilterExpanded ? Icons.expand_less : Icons.expand_more),
+              label: Text(_isFilterExpanded ? '조건 검색 접기' : '조건 검색 펼치기'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[200],
+                foregroundColor: Colors.black87,
+                elevation: 0,
+              ),
+            ),
+          ),
+          
+          // 필터 섹션 (접기/펼치기 가능)
+          if (_isFilterExpanded) ...[
+            const SizedBox(height: 16),
+            Expanded(
+              child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          hintText: '검색어를 입력해주세요.',
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: _performSearch,
-                      icon: const Icon(Icons.search),
-                      label: const Text('검색'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[800],
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildFilterSection('대상', _targetFilters, true),
+                      const Divider(),
+                      _buildFilterSection('체력항목', _fitnessFilters, false),
+                      const Divider(),
+                      _buildFilterSection('운동부위', _bodyPartFilters, false),
+                      const Divider(),
+                      _buildFilterSection('운동도구', _equipmentFilters, false),
+                      const Divider(),
+                      _buildFilterSection('질환', _conditionFilters, false),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              
-              // 필터 토글 버튼
+            ),
+            const SizedBox(height: 16),
+          ],
+          
+          // 영상 목록
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount: exerciseProvider.exercises.length + (_isLoadingMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                // 로딩 인디케이터 표시
+                if (index == exerciseProvider.exercises.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                
+                final exercise = exerciseProvider.exercises[index];
+                return VideoCard(exercise: exercise);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 2페이지: 근육별 검색 페이지
+  Widget _buildMuscleSearchPage() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Stack(
+        children: [
+          // 검색 결과
+          Column(
+            children: [
               Container(
+                height: 50,
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _isFilterExpanded = !_isFilterExpanded;
-                    });
-                  },
-                  icon: Icon(_isFilterExpanded ? Icons.expand_less : Icons.expand_more),
-                  label: Text(_isFilterExpanded ? '조건 검색 접기' : '조건 검색 펼치기'),
-                  style: ElevatedButton.styleFrom(
+                child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
                     backgroundColor: Colors.grey[200],
                     foregroundColor: Colors.black87,
                     elevation: 0,
                   ),
-                ),
-              ),
-              
-              // 필터 섹션 (접기/펼치기 가능)
-              if (_isFilterExpanded) ...[
-                const SizedBox(height: 16),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildFilterSection('대상', _targetFilters, true),
-                          const Divider(),
-                          _buildFilterSection('체력항목', _fitnessFilters, false),
-                          const Divider(),
-                          _buildFilterSection('운동부위', _bodyPartFilters, false),
-                          const Divider(),
-                          _buildFilterSection('운동도구', _equipmentFilters, false),
-                          const Divider(),
-                          _buildFilterSection('질환', _conditionFilters, false),
-                        ],
-                      ),
-                    ),
+                  onPressed: () {
+                    setState(() {
+                      _isMuscleExpanded = !_isMuscleExpanded;
+                    });
+                  }, 
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('근육 선택'),
+                      Icon(_isMuscleExpanded ? Icons.expand_less : Icons.expand_more),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
-              
-              // 영상 목록
+              ),
               Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: exerciseProvider.exercises.length + (_isLoadingMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    // 로딩 인디케이터 표시
-                    if (index == exerciseProvider.exercises.length) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-                    
-                    final exercise = exerciseProvider.exercises[index];
-                    return VideoCard(exercise: exercise);
-                  },
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: _isMuscleLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _muscleSearchResults.isEmpty
+                          ? const Center(
+                              child: Text(
+                                '근육을 선택하면 해당하는 운동 영상을 찾아드립니다.',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              controller: _muscleScrollController,
+                              itemCount: _muscleSearchResults.length + (_isMuscleLoadingMore ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                if (index == _muscleSearchResults.length) {
+                                  return const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16.0),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+                                }
+                                
+                                // TODO: 실제 운동 데이터로 변경
+                                // final exercise = _muscleSearchResults[index];
+                                // return VideoCard(exercise: exercise);
+                                
+                                // 임시로 빈 카드 표시
+                                return Container(
+                                  margin: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey[300]!),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text('운동 영상이 여기에 표시됩니다.'),
+                                );
+                              },
+                            ),
                 ),
               ),
           ],
-        ),
-      )
+          ),
+          if (_isMuscleExpanded) ...[
+            const SizedBox(height: 16),
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 50, 16, 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: BodyPartSelectorWidget(
+                onMusclesSelected: _onMusclesSelected,
+              ),
+            ),
+          ]
+        ],
+      ),
     );
   }
 }
