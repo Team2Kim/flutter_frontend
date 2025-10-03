@@ -10,7 +10,7 @@ class MuscleSelectorScreen extends StatefulWidget {
   State<MuscleSelectorScreen> createState() => _MuscleSelectorScreenState();
 }
 
-class _MuscleSelectorScreenState extends State<MuscleSelectorScreen> {
+class _MuscleSelectorScreenState extends State<MuscleSelectorScreen> { 
   List<String> selectedBodyParts = [];
   List<MuscleModel> selectedMuscles = [];
 
