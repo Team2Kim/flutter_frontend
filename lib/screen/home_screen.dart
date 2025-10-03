@@ -112,24 +112,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                Card(
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/muscle/selector');
-                    },
-                  child:
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Icon(Icons.accessibility_new, size: 50,),
-                          Text('근육 선택', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),),
             Image.asset('assets/images/main_logo.png', width: 100, height: 100),

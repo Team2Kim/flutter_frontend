@@ -192,6 +192,7 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                             onDeleted: () {
                               setState(() {
                                 selectedMuscles.remove(muscle);
+                                widget.onMusclesSelected?.call(selectedMuscles);
                               });
                               // widget.onMusclesSelected(selectedMuscles);
                             },

@@ -2,6 +2,7 @@ import 'package:gukminexdiary/model/exercise_model.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:gukminexdiary/config/api_config.dart';
+import 'package:gukminexdiary/data/muscle_data.dart';
 
 class ExerciseService {
   final String baseUrl = ApiConfig.baseUrl;
@@ -105,6 +106,86 @@ class ExerciseService {
   Future<http.Response> getExercisesDataFromAPI(int page, int size, String? keyword) async {
     final response = await http.get(
       Uri.parse(keyword != null ? '$exerciseEndpoint?size=$size&page=$page&keyword=$keyword' : '$exerciseEndpoint?size=$size&page=$page '),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+    return response;
+  }
+
+  // 근육별 검색 API 호출
+  Future<List<ExerciseModelResponse>> getExercisesByMuscle(List<String> muscleNames, int page, int size) async {
+    final response = await getExercisesByMuscleFromAPI(muscleNames, page, size);
+    print('근육별 검색 API 응답 상태 코드: ${response.statusCode}');
+    print('근육별 검색 API 응답 헤더: ${response.headers}');
+    print('근육별 검색 API 응답 본문: ${response.body}');
+    
+    if (response.statusCode == 200) {
+      if (response.body.isEmpty) {
+        print('API 응답이 비어있습니다.');
+        return [];
+      }
+      
+      try {
+        final data = jsonDecode(response.body);
+        print('파싱된 JSON 데이터: $data');
+        final json = data['content'];
+        
+        // API 응답이 List인지 Map인지 확인
+        if (json is List) {
+          return json.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+        } else if (json is Map<String, dynamic>) {
+          // 만약 응답이 Map이고 data 필드에 List가 있다면
+          if (json.containsKey('data') && json['data'] is List) {
+            final dataList = json['data'] as List;
+            return dataList.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+          }
+          // 만약 응답이 Map이고 exercises 필드에 List가 있다면
+          else if (json.containsKey('exercises') && json['exercises'] is List) {
+            final exercisesList = json['exercises'] as List;
+            return exercisesList.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+          }
+          // 만약 응답이 Map이고 items 필드에 List가 있다면
+          else if (json.containsKey('items') && json['items'] is List) {
+            final itemsList = json['items'] as List;
+            return itemsList.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+          }
+          // 단일 객체인 경우
+          else {
+            return [ExerciseModelResponse.fromJson(json)];
+          }
+        }
+        
+        throw Exception('Unexpected response format');
+      } catch (e) {
+        print('JSON 파싱 오류: $e');
+        return [];
+      }
+    } else {
+      print('API 호출 실패: ${response.statusCode}');
+      throw Exception('Failed to load muscle exercises: ${response.statusCode}');
+    }
+  }
+
+  Future<http.Response> getExercisesByMuscleFromAPI(List<String> muscleNames, int page, int size) async {
+    // 근육 이름들을 서버 형식으로 변환
+    final serverMuscleNames = muscleNames.map((name) => MuscleData.getServerMuscleName(name)).toList();
+    final musclesParam = serverMuscleNames.join(',');
+    print('앱 근육 이름들: $muscleNames');
+    print('서버 근육 이름들: $serverMuscleNames');
+    print('쿼리 파라미터: $musclesParam');
+    
+    final uri = Uri.parse('$baseUrl/exercises/by-muscle')
+        .replace(queryParameters: {
+          'muscles': musclesParam,
+          'page': page.toString(),
+          'size': size.toString(),
+        });
+    
+    print('API 호출 URL: $uri');
+    
+    final response = await http.get(
+      uri,
       headers: {
         'Content-Type': 'application/json',
       },

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:gukminexdiary/widget/video_card.dart';
 import 'package:gukminexdiary/widget/body_part_selector_widget.dart';
 import 'package:gukminexdiary/model/muscle_model.dart';
+import 'package:gukminexdiary/model/exercise_model.dart';
 
 class VideoSearchScreen extends StatefulWidget {
   const VideoSearchScreen({super.key});
@@ -28,11 +29,13 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   
   // 2페이지 (근육별 검색) 상태
   List<MuscleModel> _selectedMuscles = [];
-  List<MuscleModel> _muscleSearchResults = [];
+  List<ExerciseModelResponse> _muscleSearchResults = [];
   bool _isMuscleLoading = false;
   bool _isMuscleLoadingMore = false;
   bool _muscleLastPage = false;
   bool _isMuscleExpanded = false;
+  BodyPartSelectorWidget? _bodyPartSelectorWidget;
+
   // 필터 상태 관리
   Map<String, bool> _targetFilters = {
     '유아기': false,
@@ -89,6 +92,9 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
       final bookmarkProvider = context.read<BookmarkProvider>();
       await exerciseProvider.getExercisesData('');
       await bookmarkProvider.getBookmarks();
+      _bodyPartSelectorWidget = BodyPartSelectorWidget(
+        onMusclesSelected: _onMusclesSelected,
+      );
     });
   }
 
@@ -201,7 +207,15 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
 
   // 근육별 검색 실행 (2페이지)
   Future<void> _performMuscleSearch() async {
-    if (_selectedMuscles.isEmpty) return;
+    
+    if (_selectedMuscles.isEmpty) {
+      setState(() {
+        _muscleLastPage = false;
+        _muscleSearchResults.clear();
+      });
+    
+      return;
+    }
     
     setState(() {
       _isMuscleLoading = true;
@@ -210,13 +224,17 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
     });
 
     try {
-      // TODO: 근육별 검색 API 호출
-      // final exerciseProvider = context.read<ExerciseProvider>();
-      // await exerciseProvider.getExercisesByMuscle(_selectedMuscles, 0);
-      // _muscleSearchResults = exerciseProvider.muscleExercises;
+      // 근육별 검색 API 호출
+      final exerciseProvider = context.read<ExerciseProvider>();
+      final muscleNames = _selectedMuscles.map((muscle) => muscle.name).toList();
+      print('선택된 근육들로 검색 시작: $muscleNames');
       
-      // 임시로 빈 결과 설정
-      _muscleSearchResults = [];
+      // 기존 근육별 검색 결과 초기화
+      exerciseProvider.resetMuscleExercises();
+      
+      await exerciseProvider.getExercisesByMuscle(muscleNames, 0);
+      _muscleSearchResults = exerciseProvider.muscleExercises;
+      print('검색 결과 개수: ${_muscleSearchResults.length}');
     } catch (e) {
       print('근육별 검색 실패: $e');
     } finally {
@@ -235,13 +253,11 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
     });
 
     try {
-      // TODO: 근육별 검색 추가 데이터 로드 API 호출
-      // final exerciseProvider = context.read<ExerciseProvider>();
-      // await exerciseProvider.getMoreExercisesByMuscle(_selectedMuscles, page);
-      // _muscleSearchResults.addAll(exerciseProvider.muscleExercises);
-      
-      // 임시로 마지막 페이지로 설정
-      _muscleLastPage = true;
+      // 근육별 검색 추가 데이터 로드 API 호출
+      final exerciseProvider = context.read<ExerciseProvider>();
+      await exerciseProvider.getMoreExercisesByMuscle();
+      _muscleSearchResults = exerciseProvider.muscleExercises;
+      _muscleLastPage = exerciseProvider.muscleLastPage;
     } catch (e) {
       print('근육별 검색 추가 데이터 로드 실패: $e');
     } finally {
@@ -253,6 +269,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
 
   // 선택된 근육 변경 시 호출
   void _onMusclesSelected(List<MuscleModel> selectedMuscles) {
+    print('근육 선택 변경: ${selectedMuscles.map((m) => m.name).toList()}');
     setState(() {
       _selectedMuscles = selectedMuscles;
     });
@@ -513,39 +530,28 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
                                   );
                                 }
                                 
-                                // TODO: 실제 운동 데이터로 변경
-                                // final exercise = _muscleSearchResults[index];
-                                // return VideoCard(exercise: exercise);
-                                
-                                // 임시로 빈 카드 표시
-                                return Container(
-                                  margin: const EdgeInsets.all(8),
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey[300]!),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text('운동 영상이 여기에 표시됩니다.'),
-                                );
+                            // 실제 운동 데이터로 VideoCard 표시
+                            final exercise = _muscleSearchResults[index];
+                            return VideoCard(exercise: exercise);
                               },
                             ),
                 ),
               ),
           ],
           ),
-          if (_isMuscleExpanded) ...[
-            const SizedBox(height: 16),
-            Container(
+          Offstage(
+            offstage: !_isMuscleExpanded,
+            child: Container(
               margin: const EdgeInsets.fromLTRB(16, 50, 16, 16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: BodyPartSelectorWidget(
-                onMusclesSelected: _onMusclesSelected,
-              ),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
             ),
-          ]
+            child: BodyPartSelectorWidget(
+              onMusclesSelected: _onMusclesSelected,
+            ),
+          ),
+          ),
         ],
       ),
     );
