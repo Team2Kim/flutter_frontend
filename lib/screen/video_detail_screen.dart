@@ -535,7 +535,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                     const SizedBox(height: 16),
                     
                     _buildInfoRow('카테고리', widget.exercise.fitnessFactorName ?? '', Color.fromARGB(255, 255, 255, 255)),
-                    _buildInfoRow('운동 부위', widget.exercise.bodyPart ?? '', Color.fromARGB(255, 255, 255, 255)),
+                    _buildInfoRow('운동 부위', widget.exercise.muscleName ?? '', Color.fromARGB(255, 255, 255, 255)),
                     _buildInfoRow('대상 그룹', widget.exercise.targetGroup ?? '', Color.fromARGB(255, 255, 255, 255)),
                     _buildInfoRow('영상 길이', _formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), Color.fromARGB(255, 255, 255, 255)),
                     // _buildInfoRow('언어', widget.exercise.language),

@@ -67,7 +67,7 @@ class ExerciseModelResponse {
       fitnessFactorName: json['fitnessFactorName'],
       fitnessLevelName: json['fitnessLevelName'],
       bodyPart: json['bodyPart'],
-      muscleName: json['muscleName'],
+      muscleName: json['muscles'].map((muscle) => muscle['name']).join(', '),
       exerciseTool: json['exerciseTool'],
       videoLengthSeconds: json['videoLengthSeconds'],
       resolution: json['resolution'],

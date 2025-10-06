@@ -52,85 +52,89 @@ class VideoCard extends StatelessWidget {
                           child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CachedNetworkImage(
-                              imageUrl: "${exercise.imageUrl}/${exercise.imageFileName}", 
-                              imageBuilder: (context, imageProvider) => Container(
-                                width: 100,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
-                                ),
-                              ),
-                              placeholder: (context, url) => Container(
-                                width: 100,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: Colors.grey[300],
-                                ),
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                width: 100,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: Colors.grey[300],
-                                ),
-                                child: const Icon(
-                                  Icons.error,
-                                  color: Colors.red,
-                                ),
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Column(children: [
-                                   Text(_formatTitleLength(exercise.title), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,), textAlign: TextAlign.start,),
-                                ],),
-                                Consumer<BookmarkProvider>(
-                                  builder: (context, bookmarkProvider, child) {
-                                    final isBookmarked = bookmarkProvider.isBookmarked(exercise);
-                                    return IconButton(
-                                      onPressed: () async {
-                                        bookmarkProvider.toggleBookmark(exercise);
-                                      },
-                                      icon: Icon(
-                                        isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                                        color: isBookmarked ? Colors.blue : Colors.grey,
-                                      ),
-                                    );
-                                  },
+                                CachedNetworkImage(
+                                  imageUrl: "${exercise.imageUrl}/${exercise.imageFileName}", 
+                                  imageBuilder: (context, imageProvider) => Container(
+                                    width: 100,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                    ),
+                                  ),
+                                  placeholder: (context, url) => Container(
+                                    width: 100,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      color: Colors.grey[300],
+                                    ),
+                                    child: const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) => Container(
+                                    width: 100,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      color: Colors.grey[300],
+                                    ),
+                                    child: const Icon(
+                                      Icons.error,
+                                      color: Colors.red,
+                                    ),
+                                  ),
                                 ),
+                                SizedBox(height: 4),
+                                Text(_formatVideoLength(exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500,), textAlign: TextAlign.start,),
                               ],
                             ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(children: [
+                                      Text(_formatTitleLength(exercise.title), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,), textAlign: TextAlign.start,),
+                                    ],),
+                                    Consumer<BookmarkProvider>(
+                                      builder: (context, bookmarkProvider, child) {
+                                        final isBookmarked = bookmarkProvider.isBookmarked(exercise);
+                                        return IconButton(
+                                          onPressed: () async {
+                                            bookmarkProvider.toggleBookmark(exercise);
+                                          },
+                                          icon: Icon(
+                                            isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                            color: isBookmarked ? Colors.blue : Colors.grey,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                  // Text(_formatVideoLength(exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14,),),
+                                  Text("${exercise.targetGroup ?? ''} 대상 ${exercise.fitnessFactorName ?? ''} 운동", style: TextStyle(fontSize: 14,),),
+                                ],),
+                              ],
+                            )
                           ]
                         ),
                     ),
                     const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(children: [
-                          Text("영상 길이", style: TextStyle(fontSize: 14,),),
-                          Text(_formatVideoLength(exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14,),),
-                        ],),
-                        Column(children: [  
-                          Text("체력 항목", style: TextStyle(fontSize: 14,),),
-                          Text(exercise.fitnessFactorName ?? '', style: TextStyle(fontSize: 14,),),
-                        ],),
-                        Column(children: [
-                          Text("운동 대상", style: TextStyle(fontSize: 14,),),
-                          Text(exercise.targetGroup ?? '', style: TextStyle(fontSize: 14,),),
-                        ],),
-                        Column(children: [
-                          Text("운동 부위", style: TextStyle(fontSize: 14,),),
-                          Text(exercise.bodyPart ?? '', style: TextStyle(fontSize: 14,),),
-                        ],),
+                      children: [    
+                        Text("운동 부위", style: TextStyle(fontSize: 14,),),
+                        Text(exercise.muscleName?.length != null && exercise.muscleName!.length > 20 ? exercise.muscleName!.substring(0, 20) + "..." : exercise.muscleName ?? '', style: TextStyle(fontSize: 14,),),
                       ],
                     ),  
                   ],

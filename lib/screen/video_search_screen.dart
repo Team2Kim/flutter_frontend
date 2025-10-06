@@ -500,7 +500,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
               ),
               Expanded(
                 child: Container(
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
