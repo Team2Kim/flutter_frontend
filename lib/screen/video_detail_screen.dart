@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
+import 'package:gukminexdiary/widget/add_dialog_widget.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoDetailScreen extends StatefulWidget {
@@ -16,7 +17,6 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
   VideoPlayerController? _controller;
   bool _isVideoInitialized = false;
   bool _isFullScreen = false;
-  double _volume = 1.0;
   bool _isMuted = false;
 
   @override
@@ -53,29 +53,14 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
     });
   }
 
-  void _seekTo(Duration position) {
-    if (_controller != null) {
-      _controller!.seekTo(position);
-    }
-  }
-
-  void _toggleMute() {
-    setState(() {
-      if (_isMuted) {
-        _controller!.setVolume(_volume);
-        _isMuted = false;
-      } else {
-        _controller!.setVolume(0.0);
-        _isMuted = true;
-      }
-    });
-  }
-
   void _setVolume(double volume) {
     setState(() {
-      _volume = volume;
-      if (!_isMuted) {
+      if (volume == 0.0) {
+        _controller!.setVolume(0.0);
+        _isMuted = true;
+      } else {
         _controller!.setVolume(volume);
+        _isMuted = false;
       }
     });
   }
@@ -574,6 +559,28 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // 운동 기록 추가 버튼
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  AddExerciseDialog.show(context, widget.exercise);
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('운동 일지에 추가하기'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),

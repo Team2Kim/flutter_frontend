@@ -58,6 +58,29 @@ class ExerciseModelResponse {
   });
 
   factory ExerciseModelResponse.fromJson(Map<String, dynamic> json) {
+    // muscles 필드를 안전하게 처리
+    String? parsedMuscleName;
+    print(json);
+    if (json['muscles'] != null && json['muscles'] is List) {
+      final musclesList = json['muscles'] as List;
+      if (musclesList.isNotEmpty) {
+        // 첫 번째 요소가 문자열인지 객체인지 확인
+        if (musclesList.first is String) {
+          // 문자열 배열: ["위팔두갈래근", "상완근"]
+          parsedMuscleName = musclesList
+              .map((muscle) => muscle.toString())
+              .where((name) => name.isNotEmpty)
+              .join(', ');
+        } else if (musclesList.first is Map) {
+          // 객체 배열: [{name: "위팔두갈래근"}, {name: "상완근"}]
+          parsedMuscleName = musclesList
+              .map((muscle) => muscle['name']?.toString() ?? '')
+              .where((name) => name.isNotEmpty)
+              .join(', ');
+        }
+      }
+    }
+
     return ExerciseModelResponse(
       exerciseId: json['exerciseId'] ?? 0,
       title: json['title'] ?? '',
@@ -67,7 +90,7 @@ class ExerciseModelResponse {
       fitnessFactorName: json['fitnessFactorName'],
       fitnessLevelName: json['fitnessLevelName'],
       bodyPart: json['bodyPart'],
-      muscleName: json['muscles'].map((muscle) => muscle['name']).join(', '),
+      muscleName: parsedMuscleName,
       exerciseTool: json['exerciseTool'],
       videoLengthSeconds: json['videoLengthSeconds'],
       resolution: json['resolution'],

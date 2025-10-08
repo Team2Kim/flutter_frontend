@@ -10,4 +10,5 @@ class ApiConfig {
   static const String settingEndpoint = '$baseUrl/setting';
   static const String videoEndpoint = '$baseUrl/video';
   static const String bookmarkEndpoint = '$baseUrl/bookmarks';
+  static const String journalsEndpoint = '$baseUrl/journals';
 }

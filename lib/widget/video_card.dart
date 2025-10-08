@@ -4,17 +4,20 @@ import 'package:gukminexdiary/screen/video_detail_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gukminexdiary/provider/bookmark_provider.dart';
+import 'package:gukminexdiary/widget/add_dialog_widget.dart';
 
-class VideoCard extends StatelessWidget {
+class VideoCard extends StatefulWidget {
   const VideoCard({super.key, required this.exercise});
   final ExerciseModelResponse exercise;
 
   @override
-  Widget build(BuildContext context) {
-    return _buildVideoCard(context, exercise);
-  }
+  State<VideoCard> createState() => _VideoCardState();
+}
 
-  Widget _buildVideoCard(BuildContext context, ExerciseModelResponse exercise) {
+class _VideoCardState extends State<VideoCard> {
+  bool _istouched = false;
+  @override
+  Widget build(BuildContext context) {
     return Container (
           decoration: BoxDecoration(
             color: Colors.white,
@@ -32,12 +35,9 @@ class VideoCard extends StatelessWidget {
             padding: const EdgeInsets.all(15),
             child: InkWell(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => VideoDetailScreen(exercise: exercise),
-                  ),
-                );
+                setState(() {
+                  _istouched = !_istouched;
+                });
               },
               child: Container(
                 width: double.infinity,
@@ -56,7 +56,7 @@ class VideoCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CachedNetworkImage(
-                                  imageUrl: "${exercise.imageUrl}/${exercise.imageFileName}", 
+                                  imageUrl: "${widget.exercise.imageUrl}/${widget.exercise.imageFileName}", 
                                   imageBuilder: (context, imageProvider) => Container(
                                     width: 100,
                                     height: 50,
@@ -90,7 +90,7 @@ class VideoCard extends StatelessWidget {
                                   ),
                                 ),
                                 SizedBox(height: 4),
-                                Text(_formatVideoLength(exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500,), textAlign: TextAlign.start,),
+                                Text(_formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500,), textAlign: TextAlign.start,),
                               ],
                             ),
                             Column(
@@ -100,14 +100,14 @@ class VideoCard extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Column(children: [
-                                      Text(_formatTitleLength(exercise.title), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,), textAlign: TextAlign.start,),
+                                      Text(_formatTitleLength(widget.exercise.title), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,), textAlign: TextAlign.start,),
                                     ],),
                                     Consumer<BookmarkProvider>(
                                       builder: (context, bookmarkProvider, child) {
-                                        final isBookmarked = bookmarkProvider.isBookmarked(exercise);
+                                        final isBookmarked = bookmarkProvider.isBookmarked(widget.exercise);
                                         return IconButton(
                                           onPressed: () async {
-                                            bookmarkProvider.toggleBookmark(exercise);
+                                            bookmarkProvider.toggleBookmark(widget.exercise);
                                           },
                                           icon: Icon(
                                             isBookmarked ? Icons.bookmark : Icons.bookmark_border,
@@ -122,7 +122,7 @@ class VideoCard extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                   // Text(_formatVideoLength(exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14,),),
-                                  Text("${exercise.targetGroup ?? ''} 대상 ${exercise.fitnessFactorName ?? ''} 운동", style: TextStyle(fontSize: 14,),),
+                                  Text("${widget.exercise.targetGroup ?? ''} 대상 ${widget.exercise.fitnessFactorName ?? ''} 운동", style: TextStyle(fontSize: 14,),),
                                 ],),
                               ],
                             )
@@ -134,9 +134,63 @@ class VideoCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [    
                         Text("운동 부위", style: TextStyle(fontSize: 14,),),
-                        Text(exercise.muscleName?.length != null && exercise.muscleName!.length > 20 ? exercise.muscleName!.substring(0, 20) + "..." : exercise.muscleName ?? '', style: TextStyle(fontSize: 14,),),
+                        Text(widget.exercise.muscleName?.length != null && widget.exercise.muscleName!.length > 20 ? widget.exercise.muscleName!.substring(0, 20) + "..." : widget.exercise.muscleName ?? '', style: TextStyle(fontSize: 14,),),
                       ],
                     ),  
+                    _istouched ? 
+                    Container(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                            onPressed: () {
+                              AddExerciseDialog.show(context, widget.exercise);
+                            }, 
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              backgroundColor: const Color.fromARGB(255, 131, 193, 255),
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                              Icon(Icons.fitness_center, size: 18,),
+                              SizedBox(width: 4),
+                              Text("운동 기록하기"),
+                            ],)),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VideoDetailScreen(exercise: widget.exercise),
+                                  ),
+                                );
+                              }, 
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 176, 255, 179),
+                                foregroundColor: const Color.fromARGB(255, 44, 44, 44),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                Icon(Icons.video_library, size: 18,),
+                                SizedBox(width: 4),
+                                Text("영상 보러가기"),
+                              ],)),
+                          ),  
+                      ],
+                      ) 
+                    ) : const SizedBox()
                   ],
                 )                   
               ),

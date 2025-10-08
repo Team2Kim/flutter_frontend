@@ -84,7 +84,7 @@ class _MyAppState extends State<MyApp> {
               '/setting': (context) => const SettingScreen(),
               '/video/search': (context) => const VideoSearchScreen(),
               '/bookmark': (context) => const BookmarkScreen(),
-              '/muscle/selector': (context) => const MuscleSelectorScreen(),
+              // '/muscle/selector': (context) => const MuscleSelectorScreen(),
             },
           );
         },
