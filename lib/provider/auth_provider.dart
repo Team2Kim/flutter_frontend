@@ -64,6 +64,8 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
     await prefs.remove('refresh_token');
+    await prefs.remove('loginId');
+    await prefs.remove('password');
     _accessToken = null;
     _refreshToken = null;
   }
