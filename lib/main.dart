@@ -15,6 +15,7 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gukminexdiary/screen/bookmark_screen.dart';
 import 'package:gukminexdiary/screen/muscle_selector_screen.dart';
+import 'package:gukminexdiary/screen/api_test_screen.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -85,6 +86,7 @@ class _MyAppState extends State<MyApp> {
               '/video/search': (context) => const VideoSearchScreen(),
               '/bookmark': (context) => const BookmarkScreen(),
               '/muscle/selector': (context) => const MuscleSelectorScreen(),
+              '/api/test': (context) => const ApiTestScreen(),
             },
           );
         },

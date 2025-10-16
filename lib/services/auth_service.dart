@@ -36,6 +36,8 @@ class AuthService {
   // 로그인
   Future<TokenResponse> login(LoginRequest request) async {
     try {
+      print(request.toJson());
+      print('$AuthUrl/login');
       final response = await http.post(
         Uri.parse('$AuthUrl/login'),
         headers: {
