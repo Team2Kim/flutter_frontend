@@ -4,6 +4,7 @@ import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/services/dailylog_service.dart';
 import 'package:gukminexdiary/model/dailylog_model.dart';
 import 'package:gukminexdiary/screen/video_detail_screen.dart';
+import 'package:gukminexdiary/screen/workout_analysis_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -324,6 +325,87 @@ class _DiaryScreenState extends State<DiaryScreen> {
     }
   }
 
+  // AI 분석 실행
+  Future<void> _analyzeWorkout() async {
+    if (_currentLog == null || _currentLog!.exercises.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('분석할 운동이 없습니다'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      // 로딩 다이얼로그 표시
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('AI 분석 중...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // AI 분석 요청
+      final analysis = await _dailyLogService.analyzeWorkoutLog(_currentLog!);
+
+      // 로딩 다이얼로그 닫기
+      if (mounted) Navigator.pop(context);
+
+      // 분석 결과 화면으로 이동
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WorkoutAnalysisScreen(
+              analysis: analysis,
+              date: _formatDate(_selectedDate),
+            ),
+          ),
+        );
+      }
+
+      // 실패한 경우 에러 메시지
+      if (!analysis.success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('AI 분석 실패: ${analysis.message ?? "알 수 없는 오류"}'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // 로딩 다이얼로그 닫기
+      if (mounted) Navigator.pop(context);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('분석 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -510,33 +592,55 @@ class _DiaryScreenState extends State<DiaryScreen> {
               if (_currentLog != null && _currentLog!.exercises.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(children: [
-                        Icon(Icons.fitness_center, size: 18, color: Colors.blue.shade700),
-                        const SizedBox(width: 6),
-                        Text(
-                          '오늘의 운동',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade800,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(children: [
+                            Icon(Icons.fitness_center, size: 18, color: Colors.blue.shade700),
+                            const SizedBox(width: 6),
+                            Text(
+                              '오늘의 운동',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                          ],),
+                          
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade700,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/video/search');
+                            },
+                            child: Text('운동 추가하기', style: TextStyle(fontSize: 13, color: Colors.white),),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      // AI 분석 버튼
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _analyzeWorkout,
+                          icon: Icon(Icons.psychology, size: 18, color: Colors.white),
+                          label: Text('AI 분석하기', style: TextStyle(fontSize: 14, color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple.shade600,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
                         ),
-                      ],),
-                      
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/video/search');
-                        },
-                        child: Text('운동 추가하기', style: TextStyle(fontSize: 13, color: Colors.white),),
                       ),
                     ],
                   ),

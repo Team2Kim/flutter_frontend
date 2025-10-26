@@ -2,10 +2,18 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:gukminexdiary/config/api_config.dart';
 import 'package:gukminexdiary/model/dailylog_model.dart';
+import 'package:gukminexdiary/model/workout_analysis_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DailyLogService {
   final String _baseUrl = ApiConfig.journalsEndpoint;
+  final String _analysisUrl = '${ApiConfig.workoutLogEndpoint}/analyze';
+
+  // muscleName (쉼표로 구분된 문자열)을 배열로 변환하는 헬퍼
+  List<String> _parseMusclesToList(String? muscleName) {
+    if (muscleName == null || muscleName.isEmpty) return [];
+    return muscleName.split(',').map((m) => m.trim()).where((m) => m.isNotEmpty).toList();
+  }
 
   // 헤더에 토큰 추가하는 헬퍼 메서드
   Future<Map<String, String>> _getHeaders() async {
@@ -208,6 +216,66 @@ class DailyLogService {
         throw Exception('해당 운동 기록을 찾을 수 없습니다.');
       } else {
         throw Exception('운동 기록 삭제 중 오류가 발생했습니다: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('네트워크 오류: ${e.toString()}');
+    }
+  }
+
+  // 8. AI 운동 분석 요청
+  Future<WorkoutAnalysisResponse> analyzeWorkoutLog(
+    DailyLogModelResponse dailyLog, {
+    String model = 'gpt-4o-mini',
+  }) async {
+    try {
+      final headers = await _getHeaders();
+
+      // DailyLogModelResponse를 API 요청 형태로 변환
+      final requestBody = {
+        'logId': dailyLog.logId,
+        'date': dailyLog.date,
+        'memo': dailyLog.memo,
+        'exercises': dailyLog.exercises.map((exercise) {
+          // muscleName을 배열로 변환
+          final muscles = _parseMusclesToList(exercise.exercise.muscleName);
+          
+          return {
+            'logExerciseId': exercise.logExerciseId,
+            'exercise': {
+              'exerciseId': exercise.exercise.exerciseId,
+              'title': exercise.exercise.title,
+              'muscles': muscles,
+              'videoUrl': exercise.exercise.videoUrl,
+              'trainingName': exercise.exercise.trainingName,
+              'exerciseTool': exercise.exercise.exerciseTool,
+              'targetGroup': exercise.exercise.targetGroup,
+              'fitnessFactorName': exercise.exercise.fitnessFactorName,
+              'fitnessLevelName': exercise.exercise.fitnessLevelName,
+              'trainingPlaceName': exercise.exercise.trainingPlaceName,
+            },
+            'intensity': exercise.intensity,
+            'exerciseTime': exercise.exerciseTime,
+          };
+        }).toList(),
+      };
+
+      final response = await http.post(
+        Uri.parse('$_analysisUrl?model=$model'),
+        headers: headers,
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData =
+            jsonDecode(utf8.decode(response.bodyBytes));
+        return WorkoutAnalysisResponse.fromJson(jsonData);
+      } else {
+        final Map<String, dynamic> jsonData =
+            jsonDecode(utf8.decode(response.bodyBytes));
+        return WorkoutAnalysisResponse.fromJson(jsonData);
       }
     } catch (e) {
       if (e is Exception) {
