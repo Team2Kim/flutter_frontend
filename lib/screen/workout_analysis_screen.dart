@@ -32,10 +32,10 @@ class WorkoutAnalysisScreen extends StatelessWidget {
             // AI 분석 결과
             if (analysis.success && analysis.aiAnalysis != null) ...[
               _buildAIAnalysis(),
-              const SizedBox(height: 20),
             ],
 
             // 기본 통계
+            const SizedBox(height: 10),
             if (analysis.basicAnalysis != null) ...[
               _buildBasicAnalysis(context),
               const SizedBox(height: 20),
@@ -98,54 +98,99 @@ class WorkoutAnalysisScreen extends StatelessWidget {
   }
 
   Widget _buildAIAnalysis() {
-    final ScrollController _scrollController = ScrollController();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 운동 평가
+        if (analysis.aiAnalysis!.workoutEvaluation != null)
+          _buildAISection(
+            '운동 평가',
+            analysis.aiAnalysis!.workoutEvaluation!,
+            Icons.assessment,
+            Colors.purple,
+          ),
+
+        const SizedBox(height: 5),
+
+        // 타겟 근육
+        if (analysis.aiAnalysis!.targetMuscles != null)
+          _buildAISection(
+            '타겟 근육 분석',
+            analysis.aiAnalysis!.targetMuscles!,
+            Icons.fitness_center,
+            Colors.blue,
+          ),
+
+        const SizedBox(height: 5),
+
+        // 추천 사항
+        if (analysis.aiAnalysis!.recommendations != null)
+          _buildAISection(
+            '추천 사항',
+            _formatRecommendations(analysis.aiAnalysis!.recommendations!),
+            Icons.lightbulb_outline,
+            Colors.orange,
+          ),
+      ],
+    );
+  }
+
+  String _formatRecommendations(AIRecommendations recommendations) {
+    final StringBuffer buffer = StringBuffer();
+    if (recommendations.nextWorkout != null) {
+      buffer.writeln('${recommendations.nextWorkout}');
+    }
+    if (recommendations.improvements != null) {
+      buffer.writeln('\n${recommendations.improvements}');
+    }
+    return buffer.toString();
+  }
+
+  Widget _buildAISection(String title, String content, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.purple.shade50, Colors.white],
+          colors: [color.withOpacity(0.1), Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.purple.shade200),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.psychology, color: Colors.purple.shade700, size: 22),
+              Icon(icon, color: color, size: 20),
               const SizedBox(width: 8),
               Text(
-                'AI 분석 결과',
+                title,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.purple.shade700,
+                  color: color,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 5),
-          Scrollbar(
-            controller: _scrollController,
-            child: SingleChildScrollView(
-              child: Container(
-                height: 400,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.purple.shade100),
-                ),
-                child: SelectableText(
-                  analysis.aiAnalysis!,
-                  style: const TextStyle(fontSize: 14, height: 1.6),
-                ),
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            child: Container(
+              height: 100,
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: color.withOpacity(0.2)),
               ),
-            )
-          )
+              child: SelectableText(
+                content,
+                style: const TextStyle(fontSize: 14, height: 1.6),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -312,8 +357,7 @@ class WorkoutAnalysisScreen extends StatelessWidget {
   }
 
   Widget _buildStatCard(String label, String value, IconData icon) {
-    return Expanded(
-      child: Container(
+    return  Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -342,8 +386,7 @@ class WorkoutAnalysisScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildRecommendations(

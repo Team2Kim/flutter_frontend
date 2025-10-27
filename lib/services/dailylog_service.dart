@@ -269,6 +269,8 @@ class DailyLogService {
       );
 
       if (response.statusCode == 200) {
+        print(response.body);
+        print(jsonDecode(response.body));
         final Map<String, dynamic> jsonData =
             jsonDecode(utf8.decode(response.bodyBytes));
         return WorkoutAnalysisResponse.fromJson(jsonData);

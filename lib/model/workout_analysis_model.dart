@@ -1,6 +1,6 @@
 class WorkoutAnalysisResponse {
   final bool success;
-  final String? aiAnalysis;
+  final AIAnalysis? aiAnalysis;
   final String? message;
   final BasicAnalysis? basicAnalysis;
   final String? model;
@@ -18,7 +18,9 @@ class WorkoutAnalysisResponse {
   factory WorkoutAnalysisResponse.fromJson(Map<String, dynamic> json) {
     return WorkoutAnalysisResponse(
       success: json['success'] ?? false,
-      aiAnalysis: json['ai_analysis'],
+      aiAnalysis: json['ai_analysis'] != null
+          ? AIAnalysis.fromJson(json['ai_analysis'])
+          : null,
       message: json['message'],
       basicAnalysis: json['basic_analysis'] != null
           ? BasicAnalysis.fromJson(json['basic_analysis'])
@@ -31,11 +33,65 @@ class WorkoutAnalysisResponse {
   Map<String, dynamic> toJson() {
     return {
       'success': success,
-      'ai_analysis': aiAnalysis,
+      'ai_analysis': aiAnalysis?.toJson(),
       'message': message,
       'basic_analysis': basicAnalysis?.toJson(),
       'model': model,
       'date': date,
+    };
+  }
+}
+
+class AIAnalysis {
+  final String? workoutEvaluation;
+  final String? targetMuscles;
+  final AIRecommendations? recommendations;
+
+  AIAnalysis({
+    this.workoutEvaluation,
+    this.targetMuscles,
+    this.recommendations,
+  });
+
+  factory AIAnalysis.fromJson(Map<String, dynamic> json) {
+    return AIAnalysis(
+      workoutEvaluation: json['workout_evaluation'],
+      targetMuscles: json['target_muscles'],
+      recommendations: json['recommendations'] != null
+          ? AIRecommendations.fromJson(json['recommendations'])
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'workout_evaluation': workoutEvaluation,
+      'target_muscles': targetMuscles,
+      'recommendations': recommendations?.toJson(),
+    };
+  }
+}
+
+class AIRecommendations {
+  final String? nextWorkout;
+  final String? improvements;
+
+  AIRecommendations({
+    this.nextWorkout,
+    this.improvements,
+  });
+
+  factory AIRecommendations.fromJson(Map<String, dynamic> json) {
+    return AIRecommendations(
+      nextWorkout: json['next_workout'],
+      improvements: json['improvements'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'next_workout': nextWorkout,
+      'improvements': improvements,
     };
   }
 }
