@@ -580,17 +580,18 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
               child: SizeTransition(
                 sizeFactor: _muscleSizeAnimation,
                 axisAlignment: -1.0,
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(16, 50, 16, 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
+                child: IgnorePointer(
+                  ignoring: !_isMuscleExpanded,
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 50, 16, 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: BodyPartSelectorWidget(
+                      onMusclesSelected: _onMusclesSelected,
+                    ),
                   ),
-                  child: _isMuscleExpanded
-                      ? BodyPartSelectorWidget(
-                          onMusclesSelected: _onMusclesSelected,
-                        )
-                      : const SizedBox.shrink(),
                 ),
               ),
             ),
