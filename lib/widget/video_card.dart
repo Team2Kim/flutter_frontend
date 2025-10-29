@@ -20,7 +20,7 @@ class _VideoCardState extends State<VideoCard> {
   Widget build(BuildContext context) {
     return Container (
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.white70,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Container(
@@ -136,61 +136,71 @@ class _VideoCardState extends State<VideoCard> {
                         Text("운동 부위", style: TextStyle(fontSize: 14,),),
                         Text(widget.exercise.muscleName?.length != null && widget.exercise.muscleName!.length > 20 ? widget.exercise.muscleName!.substring(0, 20) + "..." : widget.exercise.muscleName ?? '', style: TextStyle(fontSize: 14,),),
                       ],
-                    ),  
-                    _istouched ? 
-                    Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                            onPressed: () {
-                              AddExerciseDialog.show(context, widget.exercise);
-                            }, 
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              backgroundColor: const Color.fromARGB(255, 131, 193, 255),
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                              Icon(Icons.fitness_center, size: 18,),
-                              SizedBox(width: 4),
-                              Text("운동 기록하기"),
-                            ],)),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => VideoDetailScreen(exercise: widget.exercise),
-                                  ),
-                                );
-                              }, 
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 176, 255, 179),
-                                foregroundColor: const Color.fromARGB(255, 44, 44, 44),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                    ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 100),
+                      curve: Curves.easeInOut,
+                      child: _istouched
+                          ? Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                Icon(Icons.video_library, size: 18,),
-                                SizedBox(width: 4),
-                                Text("영상 보러가기"),
-                              ],)),
-                          ),  
-                      ],
-                      ) 
-                    ) : const SizedBox()
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        AddExerciseDialog.show(context, widget.exercise);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        backgroundColor: const Color.fromARGB(255, 131, 193, 255),
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      child: const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.fitness_center, size: 18),
+                                          SizedBox(width: 4),
+                                          Text("운동 기록하기"),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => VideoDetailScreen(exercise: widget.exercise),
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color.fromARGB(255, 176, 255, 179),
+                                        foregroundColor: const Color.fromARGB(255, 44, 44, 44),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.video_library, size: 18),
+                                          SizedBox(width: 4),
+                                          Text("영상 보러가기"),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const SizedBox(height: 0),
+                    )
                   ],
                 )                   
               ),

@@ -35,6 +35,8 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   bool _muscleLastPage = false;
   bool _isMuscleExpanded = false;
   BodyPartSelectorWidget? _bodyPartSelectorWidget;
+  late AnimationController _muscleAnimationController;
+  late Animation<double> _muscleSizeAnimation;
 
   // 필터 상태 관리
   Map<String, bool> _targetFilters = {
@@ -85,6 +87,14 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _muscleAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _muscleSizeAnimation = CurvedAnimation(
+      parent: _muscleAnimationController,
+      curve: Curves.decelerate,
+    );
     _scrollController.addListener(_onScroll);
     _muscleScrollController.addListener(_onMuscleScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -284,6 +294,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
     _searchController.dispose();
     _scrollController.dispose();
     _muscleScrollController.dispose();
+    _muscleAnimationController.dispose();
     super.dispose();
   }
 
@@ -347,7 +358,11 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   Widget _buildGeneralSearchPage(ExerciseProvider exerciseProvider) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.yellow.shade100],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -464,7 +479,11 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   Widget _buildMuscleSearchPage() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.red.shade100],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Stack(
@@ -487,6 +506,11 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
                   onPressed: () {
                     setState(() {
                       _isMuscleExpanded = !_isMuscleExpanded;
+                      if (_isMuscleExpanded) {
+                        _muscleAnimationController.forward();
+                      } else {
+                        _muscleAnimationController.reverse();
+                      }
                     });
                   }, 
                   child: Row(
@@ -502,7 +526,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: _isMuscleLoading
@@ -513,7 +537,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
                                 '근육을 선택하면 해당하는 운동 영상을 찾아드립니다.',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: Colors.grey,
+                                  color: Colors.black,
                                 ),
                               ),
                             )
@@ -539,19 +563,28 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
               ),
           ],
           ),
-          Offstage(
-            offstage: !_isMuscleExpanded,
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(16, 50, 16, 16),
-              decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
+          ClipRect(
+            child: Align(
+              alignment: Alignment.topCenter,
+              heightFactor: 1.0,
+              child: SizeTransition(
+                sizeFactor: _muscleSizeAnimation,
+                axisAlignment: -1.0,
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(16, 50, 16, 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: _isMuscleExpanded
+                      ? BodyPartSelectorWidget(
+                          onMusclesSelected: _onMusclesSelected,
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ),
             ),
-            child: BodyPartSelectorWidget(
-              onMusclesSelected: _onMusclesSelected,
-            ),
-          ),
-          ),
+          )
         ],
       ),
     );

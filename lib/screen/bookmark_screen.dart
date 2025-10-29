@@ -156,6 +156,11 @@ final TextEditingController _searchController = TextEditingController();
       ),
       body: Container(
           decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.purple.shade100],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
             color: Colors.grey[100],
             borderRadius: BorderRadius.circular(10),
           ),

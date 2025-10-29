@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widget/body_part_selector_widget.dart';
 import '../model/muscle_model.dart';
 import '../data/muscle_data.dart';
+import '../widget/custom_appbar.dart';
 
 class MuscleSelectorScreen extends StatefulWidget {
   const MuscleSelectorScreen({super.key});
@@ -17,11 +18,19 @@ class _MuscleSelectorScreenState extends State<MuscleSelectorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('근육 선택'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      appBar: const CustomAppbar(
+        title: '근육 검색',
+        automaticallyImplyLeading: true,
       ),
-      body: BodyPartSelectorWidget(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.white, Colors.red.shade100],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: BodyPartSelectorWidget(
         onBodyPartsSelected: (bodyParts) {
           print('bodyParts: $bodyParts');
           setState(() {
@@ -35,13 +44,14 @@ class _MuscleSelectorScreenState extends State<MuscleSelectorScreen> {
           });
         },
       ),
+      ),
       bottomNavigationBar: _buildBottomBar(),
     );
   }
 
   Widget _buildBottomBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 60, top: 16),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         boxShadow: [

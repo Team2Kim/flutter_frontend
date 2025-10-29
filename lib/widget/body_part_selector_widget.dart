@@ -122,7 +122,7 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -153,7 +153,7 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: 
@@ -318,15 +318,16 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
           Text(
             '${muscles.length}개의 근육이 있습니다',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
+              color: Colors.black,
             ),
           ),
           const SizedBox(height: 16),
           Expanded(
             child: muscles.isEmpty
                 ? Container(
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Column(
@@ -349,7 +350,7 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
                   )
                 : Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: ListView.builder(
