@@ -414,9 +414,14 @@ class _DiaryScreenState extends State<DiaryScreen> {
         automaticallyImplyLeading: true,
       ),
       body: Container(
+        height: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          gradient: LinearGradient(
+            colors: [Colors.white, Colors.green.shade100],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
           borderRadius: BorderRadius.circular(10),
         ),
         child: SingleChildScrollView(
@@ -589,7 +594,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
               const SizedBox(height: 15),
 
               // 운동 목록 헤더
-              if (_currentLog != null && _currentLog!.exercises.isNotEmpty)
+              
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                   child: Column(
@@ -619,13 +624,14 @@ class _DiaryScreenState extends State<DiaryScreen> {
                               ),
                             ),
                             onPressed: () {
-                              Navigator.pushNamed(context, '/video/search');
+                              Navigator.pushNamed(context, '/video/search/name');
                             },
                             child: Text('운동 추가하기', style: TextStyle(fontSize: 13, color: Colors.white),),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
+                      if (_currentLog != null && _currentLog!.exercises.isNotEmpty)
                       // AI 분석 버튼
                       SizedBox(
                         width: double.infinity,

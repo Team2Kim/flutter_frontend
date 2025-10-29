@@ -81,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Card( 
                           child: InkWell(
                             onTap: () {
-                              Navigator.pushNamed(context, '/video/search');
+                              Navigator.pushNamed(context, '/video/search/name');
                             },
                             child: Container(
                                 decoration: BoxDecoration(
@@ -110,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Card(
                       child: InkWell(
                           onTap: () {
-                            Navigator.pushNamed(context, '/muscle/selector');
+                            Navigator.pushNamed(context, '/video/search/muscle');
                           },
                         child:
                           Container(

@@ -65,7 +65,11 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
       ),
       body: Container(
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.blue.shade100],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Column(

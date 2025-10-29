@@ -9,8 +9,9 @@ import 'package:gukminexdiary/model/muscle_model.dart';
 import 'package:gukminexdiary/model/exercise_model.dart';
 
 class VideoSearchScreen extends StatefulWidget {
-  const VideoSearchScreen({super.key});
-
+  final bool lastPage;
+  const VideoSearchScreen({super.key, required this.lastPage});
+  
   @override
   State<VideoSearchScreen> createState() => _VideoSearchScreenState();
 }
@@ -98,6 +99,15 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
     _scrollController.addListener(_onScroll);
     _muscleScrollController.addListener(_onMuscleScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (widget.lastPage) {
+        _lastPage = true;
+        _tabController.index = 1;
+        _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      } else {
+        _lastPage = false;
+        _tabController.index = 0;
+        _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      }
       final exerciseProvider = context.read<ExerciseProvider>();
       final bookmarkProvider = context.read<BookmarkProvider>();
       await exerciseProvider.getExercisesData('');

@@ -173,7 +173,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                 },
               ),
              Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
               child: 
               Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -202,7 +202,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                       _searchByCurrentLocation();
                                     },
                                     icon: const Icon(Icons.location_on),
-                                    label: const Text('내 위치로 검색'),
+                                    label: const Text('내 위치로 검색', style: TextStyle(fontSize: 12)),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color.fromARGB(255, 30, 229, 113),
                                       foregroundColor: Colors.black,
@@ -225,7 +225,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                                     _searchByfocusLocation();
                                   },
                                   icon: const Icon(Icons.my_location),
-                                  label: const Text('현 위치로 검색'),
+                                  label: const Text('현 위치로 검색', style: TextStyle(fontSize: 12)),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue[600],
                                     foregroundColor: Colors.white,

@@ -32,45 +32,50 @@ class FacilityCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: const Color.fromARGB(255, 237, 255, 255),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Row(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(_buildFacilityName(location.name), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                          const Icon(Icons.video_library, size: 36,),
+                          Text(location.name, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+                          // const Icon(Icons.video_library, size: 36,),
                         ],
                       ),
-                    ),
+                    )),
                     const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                            children: [
-                              Text('주소: ${location.roadAddress ?? ''} (${_buildDistance(location.distance)})', style: TextStyle(fontSize: 14,),),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                            Text('운영여부:', style: TextStyle(fontSize: 14,),),
-                            Text(location.status ?? '', style: TextStyle(fontSize: 14,),),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                            Text('TEL:', style: TextStyle(fontSize: 14,),),
-                            Text(location.phoneNumber ?? '', style: TextStyle(fontSize: 14,),),
-                            ],
-                          ),
-                      ],),
+                    SingleChildScrollView(
+                      child : Container(
+                        padding: const EdgeInsets.only(left: 10, right: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              children: [
+                                Text('주소: ${location.roadAddress ?? ''} (${_buildDistance(location.distance)})', style: TextStyle(fontSize: 14,),),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                              Text('운영여부:', style: TextStyle(fontSize: 14,),),
+                              Text(location.status ?? '', style: TextStyle(fontSize: 14,),),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                              Text('TEL:', style: TextStyle(fontSize: 14,),),
+                              Text(location.phoneNumber ?? '', style: TextStyle(fontSize: 14,),),
+                              ],
+                            ),
+                        ],),
+                      )
                     )
                     
                   ],
@@ -82,7 +87,7 @@ class FacilityCard extends StatelessWidget {
   }
 
   String _buildFacilityName(String name) {
-    if (name.length > 14) {
+    if (name.length > 9) {
       return '${name.substring(0, 14)}...';
     }
     return name;
