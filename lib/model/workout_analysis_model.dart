@@ -46,11 +46,15 @@ class AIAnalysis {
   final String? workoutEvaluation;
   final String? targetMuscles;
   final AIRecommendations? recommendations;
+  final List<String>? nextTargetMuscles;
+  final String? encouragement;
 
   AIAnalysis({
     this.workoutEvaluation,
     this.targetMuscles,
     this.recommendations,
+    this.nextTargetMuscles,
+    this.encouragement,
   });
 
   factory AIAnalysis.fromJson(Map<String, dynamic> json) {
@@ -60,6 +64,10 @@ class AIAnalysis {
       recommendations: json['recommendations'] != null
           ? AIRecommendations.fromJson(json['recommendations'])
           : null,
+      nextTargetMuscles: (json['next_target_muscles'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      encouragement: json['encouragement'],
     );
   }
 
@@ -68,6 +76,8 @@ class AIAnalysis {
       'workout_evaluation': workoutEvaluation,
       'target_muscles': targetMuscles,
       'recommendations': recommendations?.toJson(),
+      'next_target_muscles': nextTargetMuscles,
+      'encouragement': encouragement,
     };
   }
 }
@@ -75,16 +85,19 @@ class AIAnalysis {
 class AIRecommendations {
   final String? nextWorkout;
   final String? improvements;
+  final String? precautions;
 
   AIRecommendations({
     this.nextWorkout,
     this.improvements,
+    this.precautions,
   });
 
   factory AIRecommendations.fromJson(Map<String, dynamic> json) {
     return AIRecommendations(
       nextWorkout: json['next_workout'],
       improvements: json['improvements'],
+      precautions: json['precautions'],
     );
   }
 
@@ -92,6 +105,7 @@ class AIRecommendations {
     return {
       'next_workout': nextWorkout,
       'improvements': improvements,
+      'precautions': precautions,
     };
   }
 }

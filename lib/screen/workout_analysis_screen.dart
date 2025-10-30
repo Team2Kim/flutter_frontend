@@ -17,12 +17,20 @@ class WorkoutAnalysisScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppbar(
-        title: '운동 분석 결과',
+        title: 'AI 일지 분석 결과',
         automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(10),
-        child: Column(
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.green.shade100],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            )
+          ),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 날짜 정보
@@ -47,6 +55,7 @@ class WorkoutAnalysisScreen extends StatelessWidget {
           ],
         ),
       ),
+    )
     );
   }
 
@@ -131,6 +140,23 @@ class WorkoutAnalysisScreen extends StatelessWidget {
             Icons.lightbulb_outline,
             Colors.orange,
           ),
+
+        const SizedBox(height: 5),
+
+        // 다음 타겟 근육
+        if (analysis.aiAnalysis!.nextTargetMuscles != null && analysis.aiAnalysis!.nextTargetMuscles!.isNotEmpty)
+          _buildNextTargetMuscles(analysis.aiAnalysis!.nextTargetMuscles!),
+
+        const SizedBox(height: 5),
+
+        // 격려 메시지
+        if (analysis.aiAnalysis!.encouragement != null)
+          _buildAISection(
+            '격려 메시지',
+            analysis.aiAnalysis!.encouragement!,
+            Icons.favorite,
+            Colors.pink,
+          ),
       ],
     );
   }
@@ -142,6 +168,9 @@ class WorkoutAnalysisScreen extends StatelessWidget {
     }
     if (recommendations.improvements != null) {
       buffer.writeln('\n${recommendations.improvements}');
+    }
+    if (recommendations.precautions != null) {
+      buffer.writeln('\n주의사항:\n${recommendations.precautions}');
     }
     return buffer.toString();
   }
@@ -438,6 +467,63 @@ class WorkoutAnalysisScreen extends StatelessWidget {
               ),
             );
           }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNextTargetMuscles(List<String> muscles) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade100.withOpacity(0.3), Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.fitness_center, color: Colors.blue, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                '다음 훈련 타겟 근육',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: muscles.map((muscle) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Text(
+                  muscle,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue.shade800,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ],
       ),
     );

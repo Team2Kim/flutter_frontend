@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
+import 'package:provider/provider.dart';
 import '../services/api_test_service.dart';
+import '../provider/auth_provider.dart';
 
 class ApiTestScreen extends StatefulWidget {
   const ApiTestScreen({super.key});
@@ -13,7 +15,6 @@ class ApiTestScreen extends StatefulWidget {
 class _ApiTestScreenState extends State<ApiTestScreen> {
   final ApiTestService _apiService = ApiTestService();
   final TextEditingController _dateController = TextEditingController(text: '2025-10-08');
-  final TextEditingController _tokenController = TextEditingController();
   
   Map<String, dynamic>? _response;
   bool _isLoading = false;
@@ -22,14 +23,16 @@ class _ApiTestScreenState extends State<ApiTestScreen> {
   @override
   void dispose() {
     _dateController.dispose();
-    _tokenController.dispose();
     super.dispose();
   }
 
   Future<void> _testJournalsApi() async {
-    if (_tokenController.text.isEmpty) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final accessToken = authProvider.accessToken;
+
+    if (accessToken == null || accessToken.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Access Token을 입력해주세요')),
+        const SnackBar(content: Text('로그인이 필요합니다. Access Token이 없습니다.')),
       );
       return;
     }
@@ -42,7 +45,7 @@ class _ApiTestScreenState extends State<ApiTestScreen> {
     try {
       final response = await _apiService.getJournalsByDate(
         date: _dateController.text,
-        accessToken: _tokenController.text,
+        accessToken: accessToken,
       );
 
       setState(() {
@@ -334,23 +337,59 @@ class _ApiTestScreenState extends State<ApiTestScreen> {
             child: Column(
               children: [
                 if (_selectedApi == 'journals') ...[
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: authProvider.isAuthenticated 
+                              ? Colors.green.shade50 
+                              : Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: authProvider.isAuthenticated 
+                                ? Colors.green 
+                                : Colors.red,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              authProvider.isAuthenticated 
+                                  ? Icons.check_circle 
+                                  : Icons.error,
+                              color: authProvider.isAuthenticated 
+                                  ? Colors.green 
+                                  : Colors.red,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                authProvider.isAuthenticated 
+                                    ? '로그인됨 (Access Token 사용)' 
+                                    : '로그인이 필요합니다',
+                                style: TextStyle(
+                                  color: authProvider.isAuthenticated 
+                                      ? Colors.green.shade900 
+                                      : Colors.red.shade900,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: _dateController,
                     decoration: const InputDecoration(
                       labelText: '날짜 (YYYY-MM-DD)',
                       border: OutlineInputBorder(),
                       prefixIcon: Icon(Icons.calendar_today),
+                      hintText: '예: 2025-10-08',
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _tokenController,
-                    decoration: const InputDecoration(
-                      labelText: 'Access Token',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.key),
-                    ),
-                    obscureText: true,
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
