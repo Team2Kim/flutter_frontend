@@ -32,7 +32,7 @@ class _VideoCardState extends State<VideoCard> {
                 ),
               ),
             ),
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(10),
             child: InkWell(
               onTap: () {
                 setState(() {
@@ -99,9 +99,16 @@ class _VideoCardState extends State<VideoCard> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Column(children: [
-                                      Text(_formatTitleLength(widget.exercise.title), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,), textAlign: TextAlign.start,),
-                                    ],),
+                                    Container(
+                                      width: 150,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Text(
+                                          widget.exercise.title, 
+                                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,), 
+                                          textAlign: TextAlign.end,),
+                                      ),
+                                    ),
                                     Consumer<BookmarkProvider>(
                                       builder: (context, bookmarkProvider, child) {
                                         final isBookmarked = bookmarkProvider.isBookmarked(widget.exercise);

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:gukminexdiary/model/workout_analysis_model.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 
-class WorkoutAnalysisScreen extends StatelessWidget {
+class WorkoutAnalysisScreen extends StatefulWidget {
   final WorkoutAnalysisResponse analysis;
   final String date;
 
@@ -12,6 +12,15 @@ class WorkoutAnalysisScreen extends StatelessWidget {
     required this.analysis,
     required this.date,
   });
+
+
+  @override
+  State<WorkoutAnalysisScreen> createState() => _WorkoutAnalysisScreenState();
+}
+
+class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -36,27 +45,70 @@ class WorkoutAnalysisScreen extends StatelessWidget {
             // 날짜 정보
             _buildDateInfo(),
             const SizedBox(height: 20),
-
+            Row(children: [
+              Expanded(
+                child: 
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(color: Colors.blue.shade100),
+                    ),
+                    gradient: LinearGradient(
+                      colors: _currentPage == 0 ? [Colors.blue.shade50, Colors.white] : [Colors.white, Colors.white],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      stops: [0.0, 0.5],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      _pageController.animateToPage(0, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+                    }, child: Text('AI 분석 결과', style: TextStyle(color: Colors.black),))),
+                ),
+                Expanded(child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      right: BorderSide(color: Colors.blue.shade100),
+                    ),
+                    gradient: LinearGradient(
+                      colors: _currentPage == 1 ? [Colors.white, Colors.blue.shade50] : [Colors.white, Colors.white],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      stops: [0.5, 1.0],
+                    ),  
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      _pageController.animateToPage(1, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+                    }, child: Text('기본 통계', style: TextStyle(color: Colors.black),))),
+                ),
+              ],),
             // AI 분석 결과
-            if (analysis.success && analysis.aiAnalysis != null) ...[
-              _buildAIAnalysis(),
-            ],
-
-            // 기본 통계
-            const SizedBox(height: 10),
-            if (analysis.basicAnalysis != null) ...[
-              _buildBasicAnalysis(context),
-              const SizedBox(height: 20),
-            ],
-
-            // 오류 메시지
-            if (!analysis.success && analysis.message != null)
-              _buildErrorMessage(),
+            Container(
+              height: MediaQuery.of(context).size.height,
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                children: [
+                if (widget.analysis.success && widget.analysis.aiAnalysis != null) ...[
+                  _buildAIAnalysis(),
+                ],
+                if (widget.analysis.basicAnalysis != null) ...[
+                  _buildBasicAnalysis(context),
+                ],
+              ],),
+            ),
+            
           ],
         ),
       ),
-    )
-    );
+    ));
   }
 
   Widget _buildDateInfo() {
@@ -76,14 +128,14 @@ class WorkoutAnalysisScreen extends StatelessWidget {
           Icon(Icons.calendar_today, color: Colors.blue.shade700, size: 20),
           const SizedBox(width: 10),
           Text(
-            date,
+            widget.date,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.blue.shade700,
             ),
           ),
-          if (analysis.model != null) ...[
+          if (widget.analysis.model != null) ...[
             const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -92,7 +144,7 @@ class WorkoutAnalysisScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                '모델: ${analysis.model}',
+                '모델: ${widget.analysis.model}',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.blue.shade700,
@@ -107,14 +159,21 @@ class WorkoutAnalysisScreen extends StatelessWidget {
   }
 
   Widget _buildAIAnalysis() {
-    return Column(
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white60,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 운동 평가
-        if (analysis.aiAnalysis!.workoutEvaluation != null)
+        if (widget.analysis.aiAnalysis!.workoutEvaluation != null)
           _buildAISection(
             '운동 평가',
-            analysis.aiAnalysis!.workoutEvaluation!,
+            widget.analysis.aiAnalysis!.workoutEvaluation!,
             Icons.assessment,
             Colors.purple,
           ),
@@ -122,10 +181,10 @@ class WorkoutAnalysisScreen extends StatelessWidget {
         const SizedBox(height: 5),
 
         // 타겟 근육
-        if (analysis.aiAnalysis!.targetMuscles != null)
+        if (widget.analysis.aiAnalysis!.targetMuscles != null)
           _buildAISection(
             '타겟 근육 분석',
-            analysis.aiAnalysis!.targetMuscles!,
+            widget.analysis.aiAnalysis!.targetMuscles!,
             Icons.fitness_center,
             Colors.blue,
           ),
@@ -133,10 +192,10 @@ class WorkoutAnalysisScreen extends StatelessWidget {
         const SizedBox(height: 5),
 
         // 추천 사항
-        if (analysis.aiAnalysis!.recommendations != null)
+        if (widget.analysis.aiAnalysis!.recommendations != null)
           _buildAISection(
             '추천 사항',
-            _formatRecommendations(analysis.aiAnalysis!.recommendations!),
+            _formatRecommendations(widget.analysis.aiAnalysis!.recommendations!),
             Icons.lightbulb_outline,
             Colors.orange,
           ),
@@ -144,20 +203,21 @@ class WorkoutAnalysisScreen extends StatelessWidget {
         const SizedBox(height: 5),
 
         // 다음 타겟 근육
-        if (analysis.aiAnalysis!.nextTargetMuscles != null && analysis.aiAnalysis!.nextTargetMuscles!.isNotEmpty)
-          _buildNextTargetMuscles(analysis.aiAnalysis!.nextTargetMuscles!),
+        if (widget.analysis.aiAnalysis!.nextTargetMuscles != null && widget.analysis.aiAnalysis!.nextTargetMuscles!.isNotEmpty)
+          _buildNextTargetMuscles(widget.analysis.aiAnalysis!.nextTargetMuscles!),
 
         const SizedBox(height: 5),
 
-        // 격려 메시지
-        if (analysis.aiAnalysis!.encouragement != null)
+        // 격려 메시지  
+        if (widget.analysis.aiAnalysis!.encouragement != null)
           _buildAISection(
             '격려 메시지',
-            analysis.aiAnalysis!.encouragement!,
+            widget.analysis.aiAnalysis!.encouragement!,
             Icons.favorite,
-            Colors.pink,
-          ),
-      ],
+              Colors.pink,
+            ),
+        ],
+      ),
     );
   }
 
@@ -180,12 +240,12 @@ class WorkoutAnalysisScreen extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.1), Colors.white],
+          colors: [Colors.blue.shade50, Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: Colors.transparent),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,12 +286,12 @@ class WorkoutAnalysisScreen extends StatelessWidget {
   }
 
   Widget _buildBasicAnalysis(BuildContext context) {
-    final stats = analysis.basicAnalysis!.statistics;
+    final stats = widget.analysis.basicAnalysis!.statistics;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: Colors.white60,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -255,8 +315,8 @@ class WorkoutAnalysisScreen extends StatelessWidget {
           const SizedBox(height: 12),
 
           // 요약
-          if (analysis.basicAnalysis!.summary.isNotEmpty)
-            _buildSection('요약', [Text(analysis.basicAnalysis!.summary)], null),
+          if (widget.analysis.basicAnalysis!.summary.isNotEmpty)
+            _buildSection('요약', [Text(widget.analysis.basicAnalysis!.summary)], null),
 
           const SizedBox(height: 16),
 
@@ -333,10 +393,10 @@ class WorkoutAnalysisScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           // 추천 사항
-          if (analysis.basicAnalysis!.recommendations.isNotEmpty)
+          if (widget.analysis.basicAnalysis!.recommendations.isNotEmpty)
             _buildRecommendations(
               '추천',
-              analysis.basicAnalysis!.recommendations,
+              widget.analysis.basicAnalysis!.recommendations,
               Icons.lightbulb_outline,
               Colors.blue,
             ),
@@ -344,10 +404,10 @@ class WorkoutAnalysisScreen extends StatelessWidget {
           const SizedBox(height: 12),
 
           // 경고 사항
-          if (analysis.basicAnalysis!.warnings.isNotEmpty)
+          if (widget.analysis.basicAnalysis!.warnings.isNotEmpty)
             _buildRecommendations(
               '주의사항',
-              analysis.basicAnalysis!.warnings,
+              widget.analysis.basicAnalysis!.warnings,
               Icons.warning_amber_outlined,
               Colors.orange,
             ),
@@ -543,7 +603,7 @@ class WorkoutAnalysisScreen extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '오류: ${analysis.message}',
+              '오류: ${widget.analysis.message}',
               style: TextStyle(color: Colors.red.shade700),
             ),
           ),

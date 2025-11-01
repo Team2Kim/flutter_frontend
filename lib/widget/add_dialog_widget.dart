@@ -140,9 +140,6 @@ class AddExerciseDialog {
                   );
                   return;
                 }
-
-                timeController.dispose();
-                Navigator.pop(context);
                 
                 // 부모 context 사용 (다이얼로그 context가 아닌)
                 await _addExerciseToLog(
@@ -153,6 +150,8 @@ class AddExerciseDialog {
                   exerciseTime,
                   selectedDate,
                 );
+
+                Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,

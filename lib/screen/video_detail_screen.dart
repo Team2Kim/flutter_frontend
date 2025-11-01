@@ -280,17 +280,17 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
         title: '운동 영상',
         automaticallyImplyLeading: true,
       ),
-      backgroundColor: const Color.fromARGB(255, 68, 134, 255),
       body: _isFullScreen 
           ? _buildFullScreenVideo()
           : SingleChildScrollView(
               child: 
               Container(
-                margin: const EdgeInsets.all(10),
-                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(101, 255, 255, 255),
-                  borderRadius: BorderRadius.circular(12),
+                  gradient: LinearGradient(
+                    colors: [Colors.white, Colors.green.shade100],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
                 child: 
               Column(
@@ -496,14 +496,13 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                      ),
              ),
             
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             
             if (!_isFullScreen) ...[
-              const SizedBox(height: 20),
               
               // 운동 정보 섹션
               Card(
-              color: const Color.fromARGB(255, 183, 206, 255),
+              color: const Color.fromARGB(75, 255, 255, 255),
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -531,11 +530,11 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
               ),
             ),
             
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             
             // 운동 설명 섹션
             Card(
-              color: const Color.fromARGB(255, 183, 206, 255),
+              color: const Color.fromARGB(75, 255, 255, 255),
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
