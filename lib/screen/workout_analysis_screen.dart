@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gukminexdiary/model/workout_analysis_model.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
+import 'package:gukminexdiary/provider/exercise_provider.dart';
+import 'package:gukminexdiary/widget/video_card_mini.dart';
+import 'package:provider/provider.dart';
 
 class WorkoutAnalysisScreen extends StatefulWidget {
   final WorkoutAnalysisResponse analysis;
@@ -21,6 +24,10 @@ class WorkoutAnalysisScreen extends StatefulWidget {
 class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  
+  // 다음 타겟 근육 운동 목록 관련 상태
+  Map<String, bool> _isVideoListExpanded = {}; // 각 근육 목록의 펼침 상태
+  Map<String, bool> _isVideoLoading = {}; // 각 근육 목록의 로딩 상태
 
   @override
   Widget build(BuildContext context) {
@@ -29,17 +36,16 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
         title: 'AI 일지 분석 결과',
         automaticallyImplyLeading: true,
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.white, Colors.green.shade100],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )
-          ),
-          child: Column(
+      body: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.white, Colors.green.shade100],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          )
+        ),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 날짜 정보
@@ -85,9 +91,9 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
                     }, child: Text('기본 통계', style: TextStyle(color: Colors.black),))),
                 ),
               ],),
+            const SizedBox(height: 10),
             // AI 분석 결과
-            Container(
-              height: MediaQuery.of(context).size.height,
+            Expanded(
               child: PageView(
                 controller: _pageController,
                 onPageChanged: (index) {
@@ -97,10 +103,10 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
                 },
                 children: [
                 if (widget.analysis.success && widget.analysis.aiAnalysis != null) ...[
-                  _buildAIAnalysis(),
+                  SingleChildScrollView(child: _buildAIAnalysis()),
                 ],
                 if (widget.analysis.basicAnalysis != null) ...[
-                  _buildBasicAnalysis(context),
+                  SingleChildScrollView(child: _buildBasicAnalysis(context)),
                 ],
               ],),
             ),
@@ -108,7 +114,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
           ],
         ),
       ),
-    ));
+    );
   }
 
   Widget _buildDateInfo() {
@@ -533,6 +539,8 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
   }
 
   Widget _buildNextTargetMuscles(List<String> muscles) {
+    final musclesKey = muscles.join(',');
+    
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -584,8 +592,131 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
               );
             }).toList(),
           ),
+          const SizedBox(height: 12),
+          // 영상 목록 보기 버튼
+          ElevatedButton.icon(
+            onPressed: () async {
+              setState(() {
+                _isVideoListExpanded[musclesKey] = !(_isVideoListExpanded[musclesKey] ?? false);
+              });
+              
+              // 영상 목록을 펼칠 때만 검색 실행
+              if (_isVideoListExpanded[musclesKey] == true) {
+                await _loadExercisesForMuscles(muscles);
+              }
+            },
+            icon: Icon(
+              _isVideoListExpanded[musclesKey] == true 
+                ? Icons.expand_less 
+                : Icons.expand_more,
+            ),
+            label: Text(
+              _isVideoListExpanded[musclesKey] == true 
+                ? '영상 목록 숨기기' 
+                : '추천 영상 보기',
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.shade50,
+              foregroundColor: Colors.blue.shade800,
+              elevation: 0,
+            ),
+          ),
+          // 영상 목록
+          if (_isVideoListExpanded[musclesKey] == true) ...[
+            const SizedBox(height: 12),
+            _buildExerciseList(muscles),
+          ],
         ],
       ),
+    );
+  }
+
+  Future<void> _loadExercisesForMuscles(List<String> muscles) async {
+    final musclesKey = muscles.join(',');
+    
+    // 이미 로딩 중이면 중복 실행 방지
+    if (_isVideoLoading[musclesKey] == true) return;
+    
+    setState(() {
+      _isVideoLoading[musclesKey] = true;
+    });
+    
+    try {
+      final exerciseProvider = context.read<ExerciseProvider>();
+      // 근육별 검색을 위해 기존 muscleExercises 초기화하지 않고 별도로 관리
+      // 새로운 검색을 위해 reset하고 검색 실행
+      exerciseProvider.resetMuscleExercises();
+      await exerciseProvider.getExercisesByMuscle(muscles, 0);
+    } catch (e) {
+      print('근육별 운동 검색 실패: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('운동 영상을 불러오는데 실패했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isVideoLoading[musclesKey] = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildExerciseList(List<String> muscles) {
+    final musclesKey = muscles.join(',');
+    
+    return Consumer<ExerciseProvider>(
+      builder: (context, exerciseProvider, child) {
+        if (_isVideoLoading[musclesKey] == true) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        
+        final exercises = exerciseProvider.muscleExercises;
+        
+        if (exercises.isEmpty) {
+          return Container(
+            height: 100,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Center(
+              child: Text(
+                '해당 근육에 대한 운동 영상을 찾을 수 없습니다.',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          );
+        }
+        
+        return Container(
+          constraints: const BoxConstraints(maxHeight: 400),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.blue.withOpacity(0.2)),
+          ),
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: const ClampingScrollPhysics(),
+            itemCount: exercises.length,
+            itemBuilder: (context, index) {
+              final exercise = exercises[index];
+              return VideoCardMini(exercise: exercise);
+            },
+          ),
+        );
+      },
     );
   }
 
