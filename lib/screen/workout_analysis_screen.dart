@@ -21,13 +21,88 @@ class WorkoutAnalysisScreen extends StatefulWidget {
   State<WorkoutAnalysisScreen> createState() => _WorkoutAnalysisScreenState();
 }
 
-class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
+class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with TickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   
   // 다음 타겟 근육 운동 목록 관련 상태
   Map<String, bool> _isVideoListExpanded = {}; // 각 근육 목록의 펼침 상태
   Map<String, bool> _isVideoLoading = {}; // 각 근육 목록의 로딩 상태
+  Map<String, int> _currentPageMap = {}; // 각 근육 목록의 현재 페이지
+  Map<String, bool> _hasMoreData = {}; // 각 근육 목록의 추가 데이터 존재 여부
+  Map<String, ScrollController> _scrollControllers = {}; // 각 근육 목록의 스크롤 컨트롤러
+  List<String> _selectedMuscles = []; // 근육 목록
+  static const int _pageSize = 10; // 한 번에 가져올 데이터 개수
+  
+  // 섹션 접기/펼치기 상태 (기본적으로 모두 펼쳐져 있음)
+  Map<String, bool> _isSectionExpanded = {
+    '운동 평가': true,
+    '타겟 근육 분석': true,
+    '추천 사항': true,
+    '격려 메시지': true,
+  };
+  
+  // 애니메이션 관련 상태
+  double _workoutEvaluationOpacity = 0.0;
+  double _targetMusclesOpacity = 0.0;
+  double _recommendationsOpacity = 0.0;
+  double _nextTargetMusclesOpacity = 0.0;
+  double _encouragementOpacity = 0.0;
+  
+  @override
+  void initState() {
+    super.initState();
+    // 화면이 나타난 후 애니메이션 시작
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startAnimations();
+    });
+  }
+  
+  @override
+  void dispose() {
+    // 모든 ScrollController 정리
+    for (var controller in _scrollControllers.values) {
+      controller.dispose();
+    }
+    _scrollControllers.clear();
+    _pageController.dispose();
+    super.dispose();
+  }
+  
+  void _startAnimations() {
+    // 각 섹션을 순차적으로 나타나게 함
+    // 운동 평가 -> 타겟 근육 분석 -> 추천 사항 -> 다음 타겟 근육 -> 격려 메시지
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted && widget.analysis.aiAnalysis?.workoutEvaluation != null) {
+        setState(() => _workoutEvaluationOpacity = 1.0);
+      }
+    });
+    
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted && widget.analysis.aiAnalysis?.targetMuscles != null) {
+        setState(() => _targetMusclesOpacity = 1.0);
+      }
+    });
+    
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted && widget.analysis.aiAnalysis?.recommendations != null) {
+        setState(() => _recommendationsOpacity = 1.0);
+      }
+    });
+    
+    Future.delayed(const Duration(milliseconds: 700), () {
+      if (mounted && widget.analysis.aiAnalysis?.nextTargetMuscles != null && 
+          widget.analysis.aiAnalysis!.nextTargetMuscles!.isNotEmpty) {
+        setState(() => _nextTargetMusclesOpacity = 1.0);
+      }
+    });
+    
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (mounted && widget.analysis.aiAnalysis?.encouragement != null) {
+        setState(() => _encouragementOpacity = 1.0);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,16 +131,18 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
                 child: 
                 Container(
                   decoration: BoxDecoration(
-                    border: Border(
+                    border: _currentPage == 0 ? Border(
                       left: BorderSide(color: Colors.blue.shade100),
-                    ),
+                        top: BorderSide(color: Colors.blue.shade100),
+                        bottom: BorderSide(color: Colors.blue.shade100),
+                      ) : Border.all(color: Colors.blue.shade50),
                     gradient: LinearGradient(
                       colors: _currentPage == 0 ? [Colors.blue.shade50, Colors.white] : [Colors.white, Colors.white],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      stops: [0.0, 0.5],
+                      stops: [0.5, 0.7],
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(12), bottomLeft: Radius.circular(12)),
                   ),
                   child: TextButton(
                     onPressed: () {
@@ -74,16 +151,18 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
                 ),
                 Expanded(child: Container(
                   decoration: BoxDecoration(
-                    border: Border(
+                    border: _currentPage == 1 ? Border(
                       right: BorderSide(color: Colors.blue.shade100),
-                    ),
+                      top: BorderSide(color: Colors.blue.shade100),
+                      bottom: BorderSide(color: Colors.blue.shade100),
+                    ) : Border.all(color: Colors.blue.shade50),
                     gradient: LinearGradient(
                       colors: _currentPage == 1 ? [Colors.white, Colors.blue.shade50] : [Colors.white, Colors.white],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      stops: [0.5, 1.0],
+                      stops: const [0.3, 0.5],
                     ),  
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.only(topRight: Radius.circular(12), bottomRight: Radius.circular(12)),
                   ),
                   child: TextButton(
                     onPressed: () {
@@ -110,7 +189,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
                 ],
               ],),
             ),
-            
+            SizedBox(height: 40),
           ],
         ),
       ),
@@ -177,51 +256,76 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
       children: [
         // 운동 평가
         if (widget.analysis.aiAnalysis!.workoutEvaluation != null)
-          _buildAISection(
-            '운동 평가',
-            widget.analysis.aiAnalysis!.workoutEvaluation!,
-            Icons.assessment,
-            Colors.purple,
+          AnimatedOpacity(
+            opacity: _workoutEvaluationOpacity,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+            child: _buildAISection(
+              '운동 평가',
+              widget.analysis.aiAnalysis!.workoutEvaluation!,
+              Icons.assessment,
+              Colors.purple,
+            ),
           ),
 
         const SizedBox(height: 5),
 
         // 타겟 근육
         if (widget.analysis.aiAnalysis!.targetMuscles != null)
-          _buildAISection(
-            '타겟 근육 분석',
-            widget.analysis.aiAnalysis!.targetMuscles!,
-            Icons.fitness_center,
-            Colors.blue,
+          AnimatedOpacity(
+            opacity: _targetMusclesOpacity,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+            child: _buildAISection(
+              '타겟 근육 분석',
+              widget.analysis.aiAnalysis!.targetMuscles!,
+              Icons.fitness_center,
+              Colors.blue,
+            ),
           ),
 
         const SizedBox(height: 5),
 
         // 추천 사항
         if (widget.analysis.aiAnalysis!.recommendations != null)
-          _buildAISection(
-            '추천 사항',
-            _formatRecommendations(widget.analysis.aiAnalysis!.recommendations!),
-            Icons.lightbulb_outline,
-            Colors.orange,
+          AnimatedOpacity(
+            opacity: _recommendationsOpacity,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+            child: _buildAISection(
+              '추천 사항',
+              _formatRecommendations(widget.analysis.aiAnalysis!.recommendations!),
+              Icons.lightbulb_outline,
+              Colors.orange,
+            ),
           ),
 
         const SizedBox(height: 5),
 
         // 다음 타겟 근육
         if (widget.analysis.aiAnalysis!.nextTargetMuscles != null && widget.analysis.aiAnalysis!.nextTargetMuscles!.isNotEmpty)
-          _buildNextTargetMuscles(widget.analysis.aiAnalysis!.nextTargetMuscles!),
+          AnimatedOpacity(
+            opacity: _nextTargetMusclesOpacity,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+            child: _buildNextTargetMuscles(widget.analysis.aiAnalysis!.nextTargetMuscles!),
+          ),
 
         const SizedBox(height: 5),
 
         // 격려 메시지  
         if (widget.analysis.aiAnalysis!.encouragement != null)
-          _buildAISection(
-            '격려 메시지',
-            widget.analysis.aiAnalysis!.encouragement!,
-            Icons.favorite,
+          AnimatedOpacity(
+            opacity: _encouragementOpacity,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+            child: _buildAISection(
+              '격려 메시지',
+              widget.analysis.aiAnalysis!.encouragement!,
+              Icons.favorite,
               Colors.pink,
             ),
+          ),
         ],
       ),
     );
@@ -242,53 +346,81 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
   }
 
   Widget _buildAISection(String title, String content, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue.shade50, Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.transparent),
-      ),
-      child: Column(
+    final isExpanded = _isSectionExpanded[title] ?? true;
+    
+    return 
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          SingleChildScrollView(
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isSectionExpanded[title] = !isExpanded;
+              });
+            },
+            borderRadius: BorderRadius.circular(12),
             child: Container(
-              height: 100,
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: color.withOpacity(0.2)),
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade50, Colors.white],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.transparent),
               ),
-              child: SelectableText(
-                content,
-                style: const TextStyle(fontSize: 14, height: 1.6),
+              child: Row(
+                children: [
+                  Icon(icon, color: color, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                    color: color,
+                    size: 24,
+                  ),
+                ],
               ),
             ),
           ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: isExpanded
+                ? Column(
+                    children: [
+                      const SizedBox(height: 6),
+                      SingleChildScrollView(
+                        child: Container(
+                          height: 100,
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: color.withOpacity(0.2)),
+                          ),
+                          child: SelectableText(
+                            content,
+                            style: const TextStyle(fontSize: 14, height: 1.6),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildBasicAnalysis(BuildContext context) {
@@ -539,7 +671,12 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
   }
 
   Widget _buildNextTargetMuscles(List<String> muscles) {
-    final musclesKey = muscles.join(',');
+    // 초기화: 첫 렌더링 시 모든 근육을 선택된 상태로 설정
+    if (_selectedMuscles.isEmpty) {
+      _selectedMuscles = List.from(muscles);
+    }
+    
+    final selectedMusclesKey = _selectedMuscles.join(',');
     
     return Container(
       padding: const EdgeInsets.all(8),
@@ -555,10 +692,10 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
               Icon(Icons.fitness_center, color: Colors.blue, size: 20),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(
                 '다음 훈련 타겟 근육',
                 style: TextStyle(
@@ -574,44 +711,103 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
             spacing: 8,
             runSpacing: 8,
             children: muscles.map((muscle) {
-              return Container(
+              return 
+              TextButton(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                ),
+                onPressed: () {
+                setState(() {
+                  // 기존 선택된 근육 키 저장
+                  final oldSelectedKey = _selectedMuscles.join(',');
+                  
+                  if (_selectedMuscles.contains(muscle)) {
+                    _selectedMuscles.remove(muscle);
+                  } else {
+                    _selectedMuscles.add(muscle);
+                  }
+                  
+                  // 선택된 근육이 변경되면 기존 상태 초기화
+                  final newSelectedKey = _selectedMuscles.join(',');
+                  if (oldSelectedKey != newSelectedKey) {
+                    _scrollControllers[oldSelectedKey]?.dispose();
+                    _scrollControllers.remove(oldSelectedKey);
+                    _currentPageMap.remove(oldSelectedKey);
+                    _hasMoreData.remove(oldSelectedKey);
+                    _isVideoListExpanded.remove(oldSelectedKey);
+                  }
+                  
+                  // 선택된 근육이 있으면 검색 실행
+                  if (_selectedMuscles.isNotEmpty) {
+                    _loadExercisesForMuscles(_selectedMuscles, isInitial: true);
+                  } else {
+                    // 선택된 근육이 없으면 데이터 초기화
+                    final exerciseProvider = context.read<ExerciseProvider>();
+                    exerciseProvider.resetMuscleExercises();
+                  }
+                });
+              }, child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: _selectedMuscles.contains(muscle) ? Colors.blue.withOpacity(0.1) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  border: Border.all(color: _selectedMuscles.contains(muscle) ? Colors.blue.withOpacity(0.3) : Colors.grey.withOpacity(0.3)),
                 ),
                 child: Text(
                   muscle,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Colors.blue.shade800,
+                    color: _selectedMuscles.contains(muscle) ? Colors.blue.shade800 : Colors.grey.shade800,
                   ),
                 ),
-              );
+              ));
             }).toList(),
           ),
           const SizedBox(height: 12),
           // 영상 목록 보기 버튼
           ElevatedButton.icon(
             onPressed: () async {
+              if (_selectedMuscles.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('최소 1개 이상의 근육을 선택해주세요.'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                return;
+              }
+              
+              final wasExpanded = _isVideoListExpanded[selectedMusclesKey] ?? false;
               setState(() {
-                _isVideoListExpanded[musclesKey] = !(_isVideoListExpanded[musclesKey] ?? false);
+                _isVideoListExpanded[selectedMusclesKey] = !wasExpanded;
               });
               
-              // 영상 목록을 펼칠 때만 검색 실행
-              if (_isVideoListExpanded[musclesKey] == true) {
-                await _loadExercisesForMuscles(muscles);
+              // 영상 목록을 펼칠 때만 검색 실행 (초기 검색)
+              if (!wasExpanded) {
+                // ScrollController 초기화
+                _scrollControllers[selectedMusclesKey]?.dispose();
+                _scrollControllers[selectedMusclesKey] = ScrollController();
+                _scrollControllers[selectedMusclesKey]!.addListener(() {
+                  _onScroll(selectedMusclesKey, _selectedMuscles);
+                });
+                // 페이지 및 상태 초기화
+                _currentPageMap[selectedMusclesKey] = 0;
+                _hasMoreData[selectedMusclesKey] = true;
+                await _loadExercisesForMuscles(_selectedMuscles, isInitial: true);
+              } else {
+                // 접을 때 ScrollController 정리
+                _scrollControllers[selectedMusclesKey]?.dispose();
+                _scrollControllers.remove(selectedMusclesKey);
               }
             },
             icon: Icon(
-              _isVideoListExpanded[musclesKey] == true 
+              (_isVideoListExpanded[selectedMusclesKey] ?? false) == true 
                 ? Icons.expand_less 
                 : Icons.expand_more,
             ),
             label: Text(
-              _isVideoListExpanded[musclesKey] == true 
+              (_isVideoListExpanded[selectedMusclesKey] ?? false) == true 
                 ? '영상 목록 숨기기' 
                 : '추천 영상 보기',
             ),
@@ -622,20 +818,41 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
             ),
           ),
           // 영상 목록
-          if (_isVideoListExpanded[musclesKey] == true) ...[
+          if ((_isVideoListExpanded[selectedMusclesKey] ?? false) == true && _selectedMuscles.isNotEmpty) ...[
             const SizedBox(height: 12),
-            _buildExerciseList(muscles),
+            _buildExerciseList(_selectedMuscles),
           ],
         ],
       ),
     );
   }
 
-  Future<void> _loadExercisesForMuscles(List<String> muscles) async {
+  void _onScroll(String musclesKey, List<String> muscles) {
+    final scrollController = _scrollControllers[musclesKey];
+    if (scrollController == null) return;
+    
+    // 최하단에 도달했는지 확인 (스크롤 위치가 최대 스크롤 위치의 80% 이상일 때)
+    if (scrollController.position.pixels >= 
+        scrollController.position.maxScrollExtent * 0.8) {
+      // 더 불러올 데이터가 있고 로딩 중이 아닐 때만 추가 검색
+      if ((_hasMoreData[musclesKey] ?? true) && 
+          (_isVideoLoading[musclesKey] != true)) {
+        _loadExercisesForMuscles(muscles, isInitial: false);
+      }
+    }
+  }
+
+  Future<void> _loadExercisesForMuscles(List<String> muscles, {required bool isInitial}) async {
+    // 선택된 근육이 없으면 검색하지 않음
+    if (muscles.isEmpty) return;
+    
     final musclesKey = muscles.join(',');
     
     // 이미 로딩 중이면 중복 실행 방지
     if (_isVideoLoading[musclesKey] == true) return;
+    
+    // 추가 검색 시 더 이상 데이터가 없으면 리턴
+    if (!isInitial && (_hasMoreData[musclesKey] != true)) return;
     
     setState(() {
       _isVideoLoading[musclesKey] = true;
@@ -643,10 +860,37 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
     
     try {
       final exerciseProvider = context.read<ExerciseProvider>();
-      // 근육별 검색을 위해 기존 muscleExercises 초기화하지 않고 별도로 관리
-      // 새로운 검색을 위해 reset하고 검색 실행
-      exerciseProvider.resetMuscleExercises();
-      await exerciseProvider.getExercisesByMuscle(muscles, 0);
+      final currentPage = _currentPageMap[musclesKey] ?? 0;
+      
+      if (isInitial) {
+        // 초기 검색: 기존 데이터 초기화
+        exerciseProvider.resetMuscleExercises();
+        _currentPageMap[musclesKey] = 0;
+        _hasMoreData[musclesKey] = true;
+      }
+      
+      // 다음 페이지 검색
+      final nextPage = isInitial ? 0 : currentPage + 1;
+      final previousCount = exerciseProvider.muscleExercises.length;
+      await exerciseProvider.getExercisesByMuscle(muscles, nextPage);
+      
+      // 반환된 결과 확인
+      final exercises = exerciseProvider.muscleExercises;
+      final newCount = exercises.length - previousCount;
+      
+      // ExerciseProvider의 muscleLastPage 상태 확인
+      if (exerciseProvider.muscleLastPage) {
+        _hasMoreData[musclesKey] = false;
+      } else {
+        // 반환된 결과가 pageSize보다 적으면 더 이상 데이터가 없음
+        if (newCount < _pageSize) {
+          _hasMoreData[musclesKey] = false;
+        }
+      }
+      
+      // 페이지 업데이트
+      _currentPageMap[musclesKey] = nextPage;
+      
     } catch (e) {
       print('근육별 운동 검색 실패: $e');
       if (mounted) {
@@ -671,7 +915,11 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
     
     return Consumer<ExerciseProvider>(
       builder: (context, exerciseProvider, child) {
-        if (_isVideoLoading[musclesKey] == true) {
+        final exercises = exerciseProvider.muscleExercises;
+        final isLoading = _isVideoLoading[musclesKey] == true;
+        
+        // 초기 로딩 중이고 데이터가 없을 때만 전체 로딩 인디케이터 표시
+        if (isLoading && exercises.isEmpty) {
           return Container(
             padding: const EdgeInsets.all(20),
             child: const Center(
@@ -680,8 +928,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
           );
         }
         
-        final exercises = exerciseProvider.muscleExercises;
-        
+        // 데이터가 없을 때
         if (exercises.isEmpty) {
           return Container(
             height: 100,
@@ -699,6 +946,9 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
           );
         }
         
+        final scrollController = _scrollControllers[musclesKey];
+        final hasMore = _hasMoreData[musclesKey] ?? true;
+        
         return Container(
           constraints: const BoxConstraints(maxHeight: 400),
           decoration: BoxDecoration(
@@ -707,12 +957,26 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> {
             border: Border.all(color: Colors.blue.withOpacity(0.2)),
           ),
           child: ListView.builder(
+            controller: scrollController,
             shrinkWrap: true,
-            physics: const ClampingScrollPhysics(),
-            itemCount: exercises.length,
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: exercises.length + (isLoading || hasMore ? 1 : 0),
             itemBuilder: (context, index) {
-              final exercise = exercises[index];
-              return VideoCardMini(exercise: exercise);
+              // 마지막 아이템이고 로딩 중이거나 더 불러올 데이터가 있으면 로딩 인디케이터 표시
+              if (index == exercises.length) {
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(),
+                );
+              }
+              
+              if (index < exercises.length) {
+                final exercise = exercises[index];
+                return VideoCardMini(exercise: exercise);
+              }
+              
+              return const SizedBox.shrink();
             },
           ),
         );
