@@ -31,6 +31,7 @@ class ExerciseProvider extends ChangeNotifier {
   // 필터 상태 저장
   String? _currentTargetGroup;
   String? _currentFitnessFactorName;
+  String? _currentFitnessLevelName;
   String? _currentBodyPart;
   String? _currentExerciseTool;
   String? _currentDisease;
@@ -79,6 +80,7 @@ class ExerciseProvider extends ChangeNotifier {
     String keyword, {
     String? targetGroup,
     String? fitnessFactorName,
+    String? fitnessLevelName,
     String? bodyPart,
     String? exerciseTool,
     String? disease,
@@ -92,6 +94,7 @@ class ExerciseProvider extends ChangeNotifier {
       // 필터 상태 저장
       _currentTargetGroup = targetGroup;
       _currentFitnessFactorName = fitnessFactorName;
+      _currentFitnessLevelName = fitnessLevelName;
       _currentBodyPart = bodyPart;
       _currentExerciseTool = exerciseTool;
       _currentDisease = disease;
@@ -102,6 +105,7 @@ class ExerciseProvider extends ChangeNotifier {
         keyword: keyword,
         targetGroup: targetGroup,
         fitnessFactorName: fitnessFactorName,
+        fitnessLevelName: fitnessLevelName,
         bodyPart: bodyPart,
         exerciseTool: exerciseTool,
         disease: disease,
@@ -126,6 +130,7 @@ class ExerciseProvider extends ChangeNotifier {
     // 필터가 설정되어 있으면 필터 검색으로 추가 데이터 로드
     if (_currentTargetGroup != null ||
         _currentFitnessFactorName != null ||
+        _currentFitnessLevelName != null ||
         _currentBodyPart != null ||
         _currentExerciseTool != null ||
         _currentDisease != null) {
@@ -133,6 +138,7 @@ class ExerciseProvider extends ChangeNotifier {
         _keyword,
         targetGroup: _currentTargetGroup,
         fitnessFactorName: _currentFitnessFactorName,
+        fitnessLevelName: _currentFitnessLevelName,
         bodyPart: _currentBodyPart,
         exerciseTool: _currentExerciseTool,
         disease: _currentDisease,
@@ -151,6 +157,7 @@ class ExerciseProvider extends ChangeNotifier {
     // 필터 상태 초기화
     _currentTargetGroup = null;
     _currentFitnessFactorName = null;
+    _currentFitnessLevelName = null;
     _currentBodyPart = null;
     _currentExerciseTool = null;
     _currentDisease = null;

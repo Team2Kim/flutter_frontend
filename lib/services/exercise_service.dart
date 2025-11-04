@@ -119,6 +119,7 @@ class ExerciseService {
     String? keyword,
     String? targetGroup,
     String? fitnessFactorName,
+    String? fitnessLevelName,
     String? bodyPart,
     String? exerciseTool,
     String? disease,
@@ -129,6 +130,7 @@ class ExerciseService {
       keyword: keyword,
       targetGroup: targetGroup,
       fitnessFactorName: fitnessFactorName,
+      fitnessLevelName: fitnessLevelName,
       bodyPart: bodyPart,
       exerciseTool: exerciseTool,
       disease: disease,
@@ -175,6 +177,7 @@ class ExerciseService {
     String? keyword,
     String? targetGroup,
     String? fitnessFactorName,
+    String? fitnessLevelName,
     String? bodyPart,
     String? exerciseTool,
     String? disease,
@@ -193,6 +196,12 @@ class ExerciseService {
     if (fitnessFactorName != null && fitnessFactorName.isNotEmpty) {
       queryParams['fitnessFactorName'] = fitnessFactorName;
     }
+    if (fitnessLevelName != null && fitnessLevelName.isNotEmpty) {
+      queryParams['fitnessLevelName'] = fitnessLevelName;
+      print('fitnessLevelName이 쿼리 파라미터에 추가됨: $fitnessLevelName');
+    } else {
+      print('fitnessLevelName이 null이거나 비어있음: $fitnessLevelName');
+    }
     if (bodyPart != null && bodyPart.isNotEmpty) {
       queryParams['bodyPart'] = bodyPart;
     }
@@ -203,6 +212,7 @@ class ExerciseService {
       queryParams['disease'] = disease;
     }
     
+    print('최종 쿼리 파라미터: $queryParams');
     final uri = Uri.parse(exerciseEndpoint).replace(queryParameters: queryParams);
     print('필터 검색 API 호출 URL: $uri');
     
@@ -218,9 +228,9 @@ class ExerciseService {
   // 근육별 검색 API 호출
   Future<List<ExerciseModelResponse>> getExercisesByMuscle(List<String> muscleNames, int page, int size) async {
     final response = await getExercisesByMuscleFromAPI(muscleNames, page, size);
-    print('근육별 검색 API 응답 상태 코드: ${response.statusCode}');
-    print('근육별 검색 API 응답 헤더: ${response.headers}');
-    print('근육별 검색 API 응답 본문: ${response.body}');
+    // print('근육별 검색 API 응답 상태 코드: ${response.statusCode}');
+    // print('근육별 검색 API 응답 헤더: ${response.headers}');
+    // print('근육별 검색 API 응답 본문: ${response.body}');
     
     if (response.statusCode == 200) {
       if (response.body.isEmpty) {

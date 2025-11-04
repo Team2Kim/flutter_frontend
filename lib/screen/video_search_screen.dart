@@ -41,6 +41,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   // 필터 상태 관리 (단일 선택만 가능)
   String? _selectedTargetGroup; // 대상 (targetGroup)
   String? _selectedFitnessFactorName; // 체력항목 (fitnessFactorName)
+  String? _selectedFitnessLevelName; // 운동 난이도 (fitnessLevelName)
   String? _selectedBodyPart; // 운동부위 (bodyPart)
   String? _selectedExerciseTool; // 운동도구 (exerciseTool)
   String? _selectedDisease; // 질환 (disease)
@@ -48,6 +49,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   // 필터 옵션 리스트
   final List<String> _targetOptions = ['유아기', '유소년', '청소년', '성인', '어르신'];
   final List<String> _fitnessOptions = ['근력/근지구력', '심폐지구력', '민첩성/순발력', '유연성', '평형성', '협응력'];
+  final List<String> _fitnessLevelOptions = ['초급', '중급', '고급'];
   final List<String> _bodyPartOptions = ['몸통', '상체', '전신', '하체', '기타'];
   final List<String> _equipmentOptions = ['맨몸', '머신', '의자', '짐볼', '폼롤러', '탄력밴드', '기타'];
   final List<String> _conditionOptions = ['고혈압', '요통', '골다공증', '관절염', '우울증', '치매'];
@@ -171,6 +173,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
     setState(() {
       _selectedTargetGroup = null;
       _selectedFitnessFactorName = null;
+      _selectedFitnessLevelName = null;
       _selectedBodyPart = null;
       _selectedExerciseTool = null;
       _selectedDisease = null;
@@ -190,11 +193,13 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
         return _FilterDialog(
           selectedTargetGroup: _selectedTargetGroup,
           selectedFitnessFactorName: _selectedFitnessFactorName,
+          selectedFitnessLevelName: _selectedFitnessLevelName,
           selectedBodyPart: _selectedBodyPart,
           selectedExerciseTool: _selectedExerciseTool,
           selectedDisease: _selectedDisease,
           targetOptions: _targetOptions,
           fitnessOptions: _fitnessOptions,
+          fitnessLevelOptions: _fitnessLevelOptions,
           bodyPartOptions: _bodyPartOptions,
           equipmentOptions: _equipmentOptions,
           conditionOptions: _conditionOptions,
@@ -206,6 +211,11 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
           onFitnessFactorNameChanged: (value) {
             setState(() {
               _selectedFitnessFactorName = value;
+            });
+          },
+          onFitnessLevelNameChanged: (value) {
+            setState(() {
+              _selectedFitnessLevelName = value;
             });
           },
           onBodyPartChanged: (value) {
@@ -264,6 +274,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
       _searchController.text,
       targetGroup: _selectedTargetGroup,
       fitnessFactorName: _selectedFitnessFactorName,
+      fitnessLevelName: _selectedFitnessLevelName,
       bodyPart: _selectedBodyPart,
       exerciseTool: _selectedExerciseTool,
       disease: _selectedDisease,
@@ -273,6 +284,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
     print('필터 조건:');
     print('  - 대상: $_selectedTargetGroup');
     print('  - 체력항목: $_selectedFitnessFactorName');
+    print('  - 운동 난이도: $_selectedFitnessLevelName');
     print('  - 운동부위: $_selectedBodyPart');
     print('  - 운동도구: $_selectedExerciseTool');
     print('  - 질환: $_selectedDisease');
@@ -626,16 +638,19 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
 class _FilterDialog extends StatefulWidget {
   final String? selectedTargetGroup;
   final String? selectedFitnessFactorName;
+  final String? selectedFitnessLevelName;
   final String? selectedBodyPart;
   final String? selectedExerciseTool;
   final String? selectedDisease;
   final List<String> targetOptions;
   final List<String> fitnessOptions;
+  final List<String> fitnessLevelOptions;
   final List<String> bodyPartOptions;
   final List<String> equipmentOptions;
   final List<String> conditionOptions;
   final Function(String?) onTargetGroupChanged;
   final Function(String?) onFitnessFactorNameChanged;
+  final Function(String?) onFitnessLevelNameChanged;
   final Function(String?) onBodyPartChanged;
   final Function(String?) onExerciseToolChanged;
   final Function(String?) onDiseaseChanged;
@@ -645,16 +660,19 @@ class _FilterDialog extends StatefulWidget {
   const _FilterDialog({
     required this.selectedTargetGroup,
     required this.selectedFitnessFactorName,
+    required this.selectedFitnessLevelName,
     required this.selectedBodyPart,
     required this.selectedExerciseTool,
     required this.selectedDisease,
     required this.targetOptions,
     required this.fitnessOptions,
+    required this.fitnessLevelOptions,
     required this.bodyPartOptions,
     required this.equipmentOptions,
     required this.conditionOptions,
     required this.onTargetGroupChanged,
     required this.onFitnessFactorNameChanged,
+    required this.onFitnessLevelNameChanged,
     required this.onBodyPartChanged,
     required this.onExerciseToolChanged,
     required this.onDiseaseChanged,
@@ -669,6 +687,7 @@ class _FilterDialog extends StatefulWidget {
 class _FilterDialogState extends State<_FilterDialog> {
   late String? _currentTargetGroup;
   late String? _currentFitnessFactorName;
+  late String? _currentFitnessLevelName;
   late String? _currentBodyPart;
   late String? _currentExerciseTool;
   late String? _currentDisease;
@@ -678,6 +697,7 @@ class _FilterDialogState extends State<_FilterDialog> {
     super.initState();
     _currentTargetGroup = widget.selectedTargetGroup;
     _currentFitnessFactorName = widget.selectedFitnessFactorName;
+    _currentFitnessLevelName = widget.selectedFitnessLevelName;
     _currentBodyPart = widget.selectedBodyPart;
     _currentExerciseTool = widget.selectedExerciseTool;
     _currentDisease = widget.selectedDisease;
@@ -756,6 +776,17 @@ class _FilterDialogState extends State<_FilterDialog> {
                     ),
                     const Divider(height: 32),
                     _buildFilterSection(
+                      '운동 난이도',
+                      widget.fitnessLevelOptions,
+                      _currentFitnessLevelName,
+                      (value) {
+                        setState(() {
+                          _currentFitnessLevelName = value;
+                        });
+                      },
+                    ),
+                    const Divider(height: 32),
+                    _buildFilterSection(
                       '운동부위',
                       widget.bodyPartOptions,
                       _currentBodyPart,
@@ -809,6 +840,7 @@ class _FilterDialogState extends State<_FilterDialog> {
                       setState(() {
                         _currentTargetGroup = null;
                         _currentFitnessFactorName = null;
+                        _currentFitnessLevelName = null;
                         _currentBodyPart = null;
                         _currentExerciseTool = null;
                         _currentDisease = null;
@@ -831,6 +863,7 @@ class _FilterDialogState extends State<_FilterDialog> {
                           // 부모 위젯의 상태 업데이트
                           widget.onTargetGroupChanged(_currentTargetGroup);
                           widget.onFitnessFactorNameChanged(_currentFitnessFactorName);
+                          widget.onFitnessLevelNameChanged(_currentFitnessLevelName);
                           widget.onBodyPartChanged(_currentBodyPart);
                           widget.onExerciseToolChanged(_currentExerciseTool);
                           widget.onDiseaseChanged(_currentDisease);
