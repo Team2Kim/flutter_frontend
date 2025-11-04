@@ -27,6 +27,13 @@ class ExerciseProvider extends ChangeNotifier {
   bool _lastPage = false;
   bool _isLoading = false;
   String _keyword = '';
+  
+  // 필터 상태 저장
+  String? _currentTargetGroup;
+  String? _currentFitnessFactorName;
+  String? _currentBodyPart;
+  String? _currentExerciseTool;
+  String? _currentDisease;
 
 
   void setExercises(List<ExerciseModelResponse> exercises) {
@@ -68,8 +75,71 @@ class ExerciseProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> getExercisesDataWithFilters(
+    String keyword, {
+    String? targetGroup,
+    String? fitnessFactorName,
+    String? bodyPart,
+    String? exerciseTool,
+    String? disease,
+  }) async {
+    if (_lastPage || _isLoading) return;
+    
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      // 필터 상태 저장
+      _currentTargetGroup = targetGroup;
+      _currentFitnessFactorName = fitnessFactorName;
+      _currentBodyPart = bodyPart;
+      _currentExerciseTool = exerciseTool;
+      _currentDisease = disease;
+      
+      final exercises = await _exerciseService.getExercisesDataWithFilters(
+        _nowPage,
+        10,
+        keyword: keyword,
+        targetGroup: targetGroup,
+        fitnessFactorName: fitnessFactorName,
+        bodyPart: bodyPart,
+        exerciseTool: exerciseTool,
+        disease: disease,
+      );
+      print('페이지 $_nowPage 로드됨 (필터 적용), 데이터 개수: ${exercises.length}');
+      _nowPage++;
+      _keyword = keyword;
+      if (exercises.length < 10) {
+        _lastPage = true;
+      }
+      setExercises(exercises);
+    } catch (e) {
+      print('데이터 로드 실패: $e');
+      _nowPage--; // 실패시 페이지 번호 되돌리기
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> getMoreExercisesData() async {
-    getExercisesData(_keyword);
+    // 필터가 설정되어 있으면 필터 검색으로 추가 데이터 로드
+    if (_currentTargetGroup != null ||
+        _currentFitnessFactorName != null ||
+        _currentBodyPart != null ||
+        _currentExerciseTool != null ||
+        _currentDisease != null) {
+      await getExercisesDataWithFilters(
+        _keyword,
+        targetGroup: _currentTargetGroup,
+        fitnessFactorName: _currentFitnessFactorName,
+        bodyPart: _currentBodyPart,
+        exerciseTool: _currentExerciseTool,
+        disease: _currentDisease,
+      );
+    } else {
+      getExercisesData(_keyword);
+    }
   }
 
   void resetExercises() {
@@ -78,6 +148,12 @@ class ExerciseProvider extends ChangeNotifier {
     _isLoading = false;
     _exercises = [];
     _keyword = '';
+    // 필터 상태 초기화
+    _currentTargetGroup = null;
+    _currentFitnessFactorName = null;
+    _currentBodyPart = null;
+    _currentExerciseTool = null;
+    _currentDisease = null;
     notifyListeners();
   }
 

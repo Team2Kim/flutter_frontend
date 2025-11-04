@@ -113,6 +113,108 @@ class ExerciseService {
     return response;
   }
 
+  Future<List<ExerciseModelResponse>> getExercisesDataWithFilters(
+    int page,
+    int size, {
+    String? keyword,
+    String? targetGroup,
+    String? fitnessFactorName,
+    String? bodyPart,
+    String? exerciseTool,
+    String? disease,
+  }) async {
+    final response = await getExercisesDataWithFiltersFromAPI(
+      page,
+      size,
+      keyword: keyword,
+      targetGroup: targetGroup,
+      fitnessFactorName: fitnessFactorName,
+      bodyPart: bodyPart,
+      exerciseTool: exerciseTool,
+      disease: disease,
+    );
+    print(response.body);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final json = data['content'];
+      
+      // API 응답이 List인지 Map인지 확인
+      if (json is List) {
+        return json.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+      } else if (json is Map<String, dynamic>) {
+        // 만약 응답이 Map이고 data 필드에 List가 있다면
+        if (json.containsKey('data') && json['data'] is List) {
+          final dataList = json['data'] as List;
+          return dataList.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+        }
+        // 만약 응답이 Map이고 exercises 필드에 List가 있다면
+        else if (json.containsKey('exercises') && json['exercises'] is List) {
+          final exercisesList = json['exercises'] as List;
+          return exercisesList.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+        }
+        // 만약 응답이 Map이고 items 필드에 List가 있다면
+        else if (json.containsKey('items') && json['items'] is List) {
+          final itemsList = json['items'] as List;
+          return itemsList.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+        }
+        // 단일 객체인 경우
+        else {
+          return [ExerciseModelResponse.fromJson(json)];
+        }
+      }
+      
+      throw Exception('Unexpected response format');
+    } else {
+      throw Exception('Failed to load exercises: ${response.statusCode}');
+    }
+  }
+
+  Future<http.Response> getExercisesDataWithFiltersFromAPI(
+    int page,
+    int size, {
+    String? keyword,
+    String? targetGroup,
+    String? fitnessFactorName,
+    String? bodyPart,
+    String? exerciseTool,
+    String? disease,
+  }) async {
+    final queryParams = <String, String>{
+      'size': size.toString(),
+      'page': page.toString(),
+    };
+    
+    if (keyword != null && keyword.isNotEmpty) {
+      queryParams['keyword'] = keyword;
+    }
+    if (targetGroup != null && targetGroup.isNotEmpty) {
+      queryParams['targetGroup'] = targetGroup;
+    }
+    if (fitnessFactorName != null && fitnessFactorName.isNotEmpty) {
+      queryParams['fitnessFactorName'] = fitnessFactorName;
+    }
+    if (bodyPart != null && bodyPart.isNotEmpty) {
+      queryParams['bodyPart'] = bodyPart;
+    }
+    if (exerciseTool != null && exerciseTool.isNotEmpty) {
+      queryParams['exerciseTool'] = exerciseTool;
+    }
+    if (disease != null && disease.isNotEmpty) {
+      queryParams['disease'] = disease;
+    }
+    
+    final uri = Uri.parse(exerciseEndpoint).replace(queryParameters: queryParams);
+    print('필터 검색 API 호출 URL: $uri');
+    
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+    return response;
+  }
+
   // 근육별 검색 API 호출
   Future<List<ExerciseModelResponse>> getExercisesByMuscle(List<String> muscleNames, int page, int size) async {
     final response = await getExercisesByMuscleFromAPI(muscleNames, page, size);
