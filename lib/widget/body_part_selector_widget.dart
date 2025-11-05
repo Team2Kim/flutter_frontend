@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:body_part_selector/body_part_selector.dart';
 import '../model/muscle_model.dart';
 import '../data/muscle_data.dart';
+import 'muscle_description_dialog.dart';
 
 class BodyPartSelectorWidget extends StatefulWidget {
   final Function(List<String> selectedBodyParts)? onBodyPartsSelected;
@@ -358,8 +359,8 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
                     itemBuilder: (context, index) {
                       final bodyPartOrigin = selectedBodyPartsMusclesMap[index].keys.first;
                       final bodyPart = MuscleData.getKoreanBodyPartName(bodyPartOrigin);
-                      final muscleList = selectedBodyPartsMusclesMap[index][bodyPartOrigin];
-                      final allSelected = muscleList!.every((muscle) => selectedMuscles.contains(muscle));
+                      final muscleList = selectedBodyPartsMusclesMap[index][bodyPartOrigin] ?? [];
+                      final allSelected = muscleList.every((muscle) => selectedMuscles.contains(muscle));
                       print('bodyPart: $bodyPart');
                       print('selectedBodyPartsMusclesMap[index]: ${muscleList}');
                       return ExpansionTile(
@@ -386,7 +387,7 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
                           ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: muscleList!.length,
+                            itemCount: muscleList.length,
                             itemBuilder: (context, ind) {
                               final muscle = muscleList[ind];
                               final isSelected = selectedMuscles.contains(muscle);
@@ -425,13 +426,16 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
                                             },
                                           ),
                                         ),
-                                        Text(
-                                          muscle.name,
-                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                            color: isSelected ? Theme.of(context).primaryColor : null,
+                                        Expanded(
+                                          child: Text(
+                                            muscle.name,
+                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                              color: isSelected ? Theme.of(context).primaryColor : null,
+                                            ),
                                           ),
                                         ),
+                                      
                                       ],
                                     ),
                                     Text(
@@ -439,21 +443,40 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
                                       style: Theme.of(context).textTheme.bodySmall,
                                     ),
                                     const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        MuscleData.getKoreanBodyPartName(muscle.bodyPart),
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Theme.of(context).primaryColor,
-                                          fontWeight: FontWeight.w500,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          MuscleData.getKoreanBodyPartName(muscle.bodyPart),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                      TextButton(
+                                          onPressed: () {
+                                            MuscleDescriptionDialog.show(context, muscle.name);
+                                          },
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          child: const Text(
+                                            '자세히',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                        ),
+                                    ],)
+                                    
                                   ],)
                                 );
                             },

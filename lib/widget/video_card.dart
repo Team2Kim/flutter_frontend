@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gukminexdiary/provider/bookmark_provider.dart';
 import 'package:gukminexdiary/widget/add_dialog_widget.dart';
+import 'package:gukminexdiary/widget/muscle_description_dialog.dart';
 
 class VideoCard extends StatefulWidget {
   VideoCard({super.key, required this.exercise, this.selectedMuscleNames = const []});
@@ -170,37 +171,42 @@ class _VideoCardState extends State<VideoCard> {
                         itemCount: widget.exercise.muscleName?.split(',').length ?? 0,
                         itemBuilder: (context, index) {
                           final muscleName = widget.exercise.muscleName?.split(',');
-                          print(muscleName![index]);
-                          return 
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            margin: const EdgeInsets.only(right: 6),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.blue.withOpacity(0.2),
-                                width: 1,
-                              ),
-                              gradient: !widget.selectedMuscleNames.contains(muscleName![index]) ? LinearGradient(
-                                colors: [
-                                  Colors.blue.withOpacity(0.3),
-                                    Colors.blue.withOpacity(0.1),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  stops: [0.1, 0.4],
-                                ) :  LinearGradient(
-                                colors: [
-                                  Colors.green.withOpacity(0.3),
-                                    Colors.green.withOpacity(0.1),
+                          final currentMuscleName = muscleName![index].trim();
+                          // print(muscleName![index]);
+                          return InkWell(
+                            onTap: () {
+                              MuscleDescriptionDialog.show(context, currentMuscleName);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              margin: const EdgeInsets.only(right: 6),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.blue.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                                gradient: !widget.selectedMuscleNames.contains(currentMuscleName) ? LinearGradient(
+                                  colors: [
+                                    Colors.blue.withOpacity(0.3),
+                                      Colors.blue.withOpacity(0.1),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    stops: [0.1, 0.4],
+                                  ) :  LinearGradient(
+                                  colors: [
+                                    Colors.green.withOpacity(0.3),
+                                      Colors.green.withOpacity(0.1),
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   stops: [0.1, 0.4],
                                 ),
-                              borderRadius: BorderRadius.circular(10),
-                            ),  
-                            child: Text(widget.exercise.muscleName?.split(',')[index] ?? '', 
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black),)
+                                borderRadius: BorderRadius.circular(10),
+                              ),  
+                              child: Text(currentMuscleName, 
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black),)
+                            ),
                           );
                         },
                       ) : const Text('등록된 운동 부위가 없습니다.', 
@@ -281,12 +287,5 @@ class _VideoCardState extends State<VideoCard> {
 
   String _formatVideoLength(int videoLength) {
     return (videoLength~/60).toString().padLeft(2, '0') + ":" + (videoLength%60).toString().padLeft(2, '0');
-  }
-
-  String _formatTitleLength(String title) {
-    if (title.length > 12) {
-      return title.substring(0, 12) + "...";
-    }
-    return title;
   }
 }

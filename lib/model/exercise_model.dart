@@ -60,7 +60,7 @@ class ExerciseModelResponse {
   factory ExerciseModelResponse.fromJson(Map<String, dynamic> json) {
     // muscles 필드를 안전하게 처리
     String? parsedMuscleName;
-    print(json);
+    // print(json);
     if (json['muscles'] != null && json['muscles'] is List) {
       final musclesList = json['muscles'] as List;
       if (musclesList.isNotEmpty) {
@@ -70,7 +70,7 @@ class ExerciseModelResponse {
           parsedMuscleName = musclesList
               .map((muscle) => muscle.toString())
               .where((name) => name.isNotEmpty)
-              .join(', ');
+              .join(',');
         } else if (musclesList.first is Map) {
           // 객체 배열: [{name: "위팔두갈래근"}, {name: "상완근"}]
           parsedMuscleName = musclesList

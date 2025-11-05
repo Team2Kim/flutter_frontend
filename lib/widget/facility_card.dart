@@ -35,7 +35,14 @@ class FacilityCard extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 237, 255, 255),
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color.fromARGB(255, 254, 255, 237),
+                            Color.fromARGB(255, 255, 238, 200),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: SingleChildScrollView(
@@ -57,14 +64,7 @@ class FacilityCard extends StatelessWidget {
                           children: [
                             Column(
                               children: [
-                                Text('주소: ${location.roadAddress ?? ''} (${_buildDistance(location.distance)})', style: TextStyle(fontSize: 14,),),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                              Text('운영여부:', style: TextStyle(fontSize: 14,),),
-                              Text(location.status ?? '', style: TextStyle(fontSize: 14,),),
+                                Text('${location.roadAddress ?? ''} (${_buildDistance(location.distance)})', style: TextStyle(fontSize: 14,),),
                               ],
                             ),
                             Row(
@@ -76,8 +76,50 @@ class FacilityCard extends StatelessWidget {
                             ),
                         ],),
                       )
+                    ),
+                    SizedBox(height: 5),
+                    Container(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      height: 30,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[200]!),
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color.fromARGB(255, 244, 255, 237),
+                                  Color.fromARGB(255, 206, 255, 200),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(location.status ?? '', style: TextStyle(fontSize: 14,),),
+                          ),
+                          SizedBox(width: 5),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[200]!),
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color.fromARGB(255, 244, 255, 237),
+                                  Color.fromARGB(255, 206, 255, 200),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(location.categoryName ?? '', style: TextStyle(fontSize: 14,),),
+                          )
+                        ],
+                      ),
                     )
-                    
                   ],
                 )
               ),

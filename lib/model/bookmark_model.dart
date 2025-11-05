@@ -36,6 +36,7 @@ class BookmarkApiResponse {
   });
 
   factory BookmarkApiResponse.fromJson(Map<String, dynamic> json) {
+    
     return BookmarkApiResponse(
       content: (json['content'] as List)
           .map((item) => BookmarkApiItem.fromJson(item))
