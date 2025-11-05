@@ -161,7 +161,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
     String intensity = logExercise.intensity;
     final TextEditingController timeController = 
         TextEditingController(text: logExercise.exerciseTime.toString());
-
+    bool isProcessing = false;
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -253,14 +253,22 @@ class _DiaryScreenState extends State<DiaryScreen> {
             ),
           ),
           actions: [
-            TextButton(
+            isProcessing ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Color.fromARGB(255, 25, 118, 210)),
+              ),
+            ) : const SizedBox.shrink(),
+            isProcessing ? const SizedBox(width: 10) : TextButton(
               onPressed: () {
                 timeController.dispose();
                 Navigator.pop(context);
               },
               child: const Text('취소'),
             ),
-            ElevatedButton(
+            isProcessing ? const SizedBox(width: 10) : ElevatedButton(
               onPressed: () async {
                 final timeText = timeController.text.trim();
                 if (timeText.isEmpty) {
@@ -283,10 +291,13 @@ class _DiaryScreenState extends State<DiaryScreen> {
                   );
                   return;
                 }
-
+                setDialogState(() {
+                  isProcessing = true;
+                });
+                await _updateExercise(logExercise.logExerciseId, intensity, exerciseTime);
                 timeController.dispose();
                 Navigator.pop(context);
-                await _updateExercise(logExercise.logExerciseId, intensity, exerciseTime);
+                
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,

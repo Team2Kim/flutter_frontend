@@ -15,7 +15,7 @@ class AddExerciseDialog {
     String intensity = '중';
     final TextEditingController timeController = TextEditingController(text: '30');
     final parentContext = context; // 부모 context 저장
-
+    bool isProcessing = false;
     await showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -110,14 +110,22 @@ class AddExerciseDialog {
             ),
           ),
           actions: [
-            TextButton(
+            isProcessing ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Color.fromARGB(255, 25, 118, 210)),
+              ),
+            ) : const SizedBox.shrink(),
+            isProcessing ? const SizedBox(width: 10) : TextButton(
               onPressed: () {
                 timeController.dispose();
                 Navigator.pop(context);
               },
               child: const Text('취소'),
             ),
-            ElevatedButton(
+            isProcessing ? const SizedBox(width: 10) : ElevatedButton(
               onPressed: () async {
                 final timeText = timeController.text.trim();
                 if (timeText.isEmpty) {
@@ -140,7 +148,9 @@ class AddExerciseDialog {
                   );
                   return;
                 }
-                
+                setDialogState(() {
+                  isProcessing = true;
+                });
                 // 부모 context 사용 (다이얼로그 context가 아닌)
                 await _addExerciseToLog(
                   parentContext,
