@@ -7,8 +7,9 @@ import 'package:gukminexdiary/provider/bookmark_provider.dart';
 import 'package:gukminexdiary/widget/add_dialog_widget.dart';
 
 class VideoCard extends StatefulWidget {
-  const VideoCard({super.key, required this.exercise});
+  VideoCard({super.key, required this.exercise, this.selectedMuscleNames = const []});
   final ExerciseModelResponse exercise;
+  final List<String> selectedMuscleNames;
 
   @override
   State<VideoCard> createState() => _VideoCardState();
@@ -46,55 +47,79 @@ class _VideoCardState extends State<VideoCard> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Color.fromARGB(255, 237, 255, 255),
+                                Color.fromARGB(255, 200, 255, 200),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                             borderRadius: BorderRadius.circular(10),
-                            color: const Color.fromARGB(255, 237, 255, 255),
                           ),
                           child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CachedNetworkImage(
-                                  imageUrl: "${widget.exercise.imageUrl}/${widget.exercise.imageFileName}", 
-                                  imageBuilder: (context, imageProvider) => Container(
-                                    width: 100,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                Stack(children: [
+                                  CachedNetworkImage(
+                                    imageUrl: "${widget.exercise.imageUrl}/${widget.exercise.imageFileName}", 
+                                    imageBuilder: (context, imageProvider) => Container(
+                                      width: 80,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+                                      ),
+                                    ),
+                                    placeholder: (context, url) => Container(
+                                      width: 80,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.grey[300],
+                                      ),
+                                      child: const Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) => Container(
+                                      width: 80,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.grey[300],
+                                      ),
+                                      child: const Icon(
+                                        Icons.image_not_supported_outlined,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                   ),
-                                  placeholder: (context, url) => Container(
-                                    width: 100,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      color: Colors.grey[300],
+                                  Positioned(
+                                    bottom: 1,
+                                    left: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.5),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        _formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), 
+                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white), 
+                                        textAlign: TextAlign.start,),
+                                      ),
                                     ),
-                                    child: const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  ),
-                                  errorWidget: (context, url, error) => Container(
-                                    width: 100,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      color: Colors.grey[300],
-                                    ),
-                                    child: const Icon(
-                                      Icons.error,
-                                      color: Colors.red,
-                                    ),
-                                  ),
+                                  ],
                                 ),
-                                SizedBox(height: 4),
-                                Text(_formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500,), textAlign: TextAlign.start,),
                               ],
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                            SizedBox(width: 10),
+                            Expanded(child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -112,15 +137,16 @@ class _VideoCardState extends State<VideoCard> {
                                     Consumer<BookmarkProvider>(
                                       builder: (context, bookmarkProvider, child) {
                                         final isBookmarked = bookmarkProvider.isBookmarked(widget.exercise);
-                                        return IconButton(
+                                        return SizedBox(width: 30, height: 20, child: IconButton(
                                           onPressed: () async {
                                             bookmarkProvider.toggleBookmark(widget.exercise);
                                           },
                                           icon: Icon(
+                                            size: 20,
                                             isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                                             color: isBookmarked ? Colors.blue : Colors.grey,
                                           ),
-                                        );
+                                        ));
                                       },
                                     ),
                                   ],
@@ -132,17 +158,54 @@ class _VideoCardState extends State<VideoCard> {
                                   Text("${widget.exercise.targetGroup ?? ''} 대상 ${widget.exercise.fitnessFactorName ?? ''} 운동", style: TextStyle(fontSize: 14,),),
                                 ],),
                               ],
-                            )
+                            ))
                           ]
                         ),
                     ),
                     const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [    
-                        Text("운동 부위", style: TextStyle(fontSize: 14,),),
-                        Text(widget.exercise.muscleName?.length != null && widget.exercise.muscleName!.length > 20 ? widget.exercise.muscleName!.substring(0, 20) + "..." : widget.exercise.muscleName ?? '', style: TextStyle(fontSize: 14,),),
-                      ],
+                    SizedBox(
+                      height: 30,
+                      child: widget.exercise.muscleName?.split(',').length != null && widget.exercise.muscleName!.split(',').length > 0 ? ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: widget.exercise.muscleName?.split(',').length ?? 0,
+                        itemBuilder: (context, index) {
+                          final muscleName = widget.exercise.muscleName?.split(',');
+                          print(muscleName![index]);
+                          return 
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            margin: const EdgeInsets.only(right: 6),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.blue.withOpacity(0.2),
+                                width: 1,
+                              ),
+                              gradient: !widget.selectedMuscleNames.contains(muscleName![index]) ? LinearGradient(
+                                colors: [
+                                  Colors.blue.withOpacity(0.3),
+                                    Colors.blue.withOpacity(0.1),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  stops: [0.1, 0.4],
+                                ) :  LinearGradient(
+                                colors: [
+                                  Colors.green.withOpacity(0.3),
+                                    Colors.green.withOpacity(0.1),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  stops: [0.1, 0.4],
+                                ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),  
+                            child: Text(widget.exercise.muscleName?.split(',')[index] ?? '', 
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black),)
+                          );
+                        },
+                      ) : const Text('등록된 운동 부위가 없습니다.', 
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey),
+                        textAlign: TextAlign.left,),
                     ),
                     AnimatedSize(
                       duration: const Duration(milliseconds: 100),
@@ -217,7 +280,7 @@ class _VideoCardState extends State<VideoCard> {
   }
 
   String _formatVideoLength(int videoLength) {
-    return (videoLength~/60).toString() + "분 " + (videoLength%60).toString() + "초";
+    return (videoLength~/60).toString().padLeft(2, '0') + ":" + (videoLength%60).toString().padLeft(2, '0');
   }
 
   String _formatTitleLength(String title) {

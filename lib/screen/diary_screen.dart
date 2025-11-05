@@ -426,17 +426,23 @@ class _DiaryScreenState extends State<DiaryScreen> {
       ),
       body: Container(
         height: double.infinity,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Colors.white, Colors.green.shade100],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
-          borderRadius: BorderRadius.circular(10),
         ),
         child: SingleChildScrollView(
-          child: Column(
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white54,
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
             children: [
               const Text(
                 '운동일지',
@@ -447,6 +453,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
               // 주간 달력
               Container(
                 decoration: BoxDecoration(
+                  color: Colors.white,
                   border: Border.all(color: Colors.grey.shade300),
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -551,7 +558,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.shade200),
                 ),
@@ -713,6 +720,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
                         ),
             ],
           ),
+          )
         ),
       ),
     );

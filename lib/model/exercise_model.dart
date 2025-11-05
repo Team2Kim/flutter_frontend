@@ -76,7 +76,7 @@ class ExerciseModelResponse {
           parsedMuscleName = musclesList
               .map((muscle) => muscle['name']?.toString() ?? '')
               .where((name) => name.isNotEmpty)
-              .join(', ');
+              .join(',');
         }
       }
     }

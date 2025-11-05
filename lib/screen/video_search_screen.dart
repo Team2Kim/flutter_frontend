@@ -566,10 +566,8 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
               ),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
                   decoration: BoxDecoration(
                     color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: _isMuscleLoading
                       ? const Center(child: CircularProgressIndicator())
@@ -596,11 +594,11 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
                                   );
                                 }
                                 
-                            // 실제 운동 데이터로 VideoCard 표시
-                            final exercise = _muscleSearchResults[index];
-                            return VideoCard(exercise: exercise);
-                              },
-                            ),
+                              // 실제 운동 데이터로 VideoCard 표시
+                              final exercise = _muscleSearchResults[index];
+                              return VideoCard(exercise: exercise, selectedMuscleNames: _selectedMuscles.map((muscle) => muscle.name).toList());
+                          },
+                        ),
                 ),
               ),
           ],

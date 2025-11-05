@@ -182,7 +182,15 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
                 },
                 children: [
                 if (widget.analysis.success && widget.analysis.aiAnalysis != null) ...[
-                  SingleChildScrollView(child: _buildAIAnalysis()),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    child: SingleChildScrollView(child: _buildAIAnalysis()),
+                    decoration: BoxDecoration(
+                      color: Colors.white60,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                  ),
                 ],
                 if (widget.analysis.basicAnalysis != null) ...[
                   SingleChildScrollView(child: _buildBasicAnalysis(context)),
@@ -244,14 +252,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
   }
 
   Widget _buildAIAnalysis() {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white60,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 운동 평가
@@ -327,7 +328,6 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
             ),
           ),
         ],
-      ),
     );
   }
 
@@ -347,7 +347,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
 
   Widget _buildAISection(String title, String content, IconData icon, Color color) {
     final isExpanded = _isSectionExpanded[title] ?? true;
-    
+    final ScrollController scrollController = ScrollController();
     return 
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,21 +400,33 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
                 ? Column(
                     children: [
                       const SizedBox(height: 6),
-                      SingleChildScrollView(
-                        child: Container(
-                          height: 100,
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: color.withOpacity(0.2)),
-                          ),
-                          child: SelectableText(
-                            content,
-                            style: const TextStyle(fontSize: 14, height: 1.6),
+                      Scrollbar(
+                        thickness: 10,
+                        thumbVisibility: true,
+                        trackVisibility: true,
+                        controller: scrollController,
+                        child: SingleChildScrollView(
+                          controller: scrollController,
+                          child: Container(
+                            height: 100,
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white60,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: color.withOpacity(0.2)),
+                            ),
+                            child: SelectableText(
+                              content,
+                              style: const TextStyle(
+                                fontSize: 14, 
+                                height: 1.6, 
+                                color: Colors.black54, 
+                                fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
+                      )
                     ],
                   )
                 : const SizedBox.shrink(),
