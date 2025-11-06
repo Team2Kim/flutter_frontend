@@ -1,16 +1,19 @@
 import 'package:gukminexdiary/model/exercise_model.dart';
+import 'package:gukminexdiary/model/workout_analysis_model.dart';
 
 class DailyLogModelResponse {
   final int logId;
   final String date;
   final String? memo;
   final List<LogExercise> exercises;
+  final AIFeedback? feedback;
 
   DailyLogModelResponse({
     required this.logId,
     required this.date,
     this.memo,
     required this.exercises,
+    this.feedback,
   });
 
   factory DailyLogModelResponse.fromJson(Map<String, dynamic> json) {
@@ -21,6 +24,9 @@ class DailyLogModelResponse {
       exercises: (json['exercises'] as List?)
           ?.map((e) => LogExercise.fromJson(e))
           .toList() ?? [],
+      feedback: json['feedback'] != null
+          ? AIFeedback.fromJson(json['feedback'])
+          : null,
     );
   }
 
@@ -30,6 +36,7 @@ class DailyLogModelResponse {
       'date': date,
       'memo': memo,
       'exercises': exercises.map((e) => e.toJson()).toList(),
+      'feedback': feedback?.toJson(),
     };
   }
 }

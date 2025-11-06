@@ -213,3 +213,57 @@ class AnalysisStatistics {
   }
 }
 
+// AI 피드백 모델 (서버에 저장하기 위한 구조)
+class AIFeedback {
+  final String workoutEvaluation;
+  final String targetMuscles;
+  final AIRecommendations recommendations;
+  final List<String> nextTargetMuscles;
+  final String encouragement;
+
+  AIFeedback({
+    required this.workoutEvaluation,
+    required this.targetMuscles,
+    required this.recommendations,
+    required this.nextTargetMuscles,
+    required this.encouragement,
+  });
+
+  factory AIFeedback.fromJson(Map<String, dynamic> json) {
+    return AIFeedback(
+      workoutEvaluation: json['workout_evaluation'] ?? '',
+      targetMuscles: json['target_muscles'] ?? '',
+      recommendations: json['recommendations'] != null
+          ? AIRecommendations.fromJson(json['recommendations'])
+          : AIRecommendations(nextWorkout: '', improvements: '', precautions: ''),
+      nextTargetMuscles: (json['next_target_muscles'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      encouragement: json['encouragement'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'workout_evaluation': workoutEvaluation,
+      'target_muscles': targetMuscles,
+      'recommendations': recommendations.toJson(),
+      'next_target_muscles': nextTargetMuscles,
+      'encouragement': encouragement,
+    };
+  }
+
+  // AIAnalysis에서 AIFeedback으로 변환
+  factory AIFeedback.fromAIAnalysis(AIAnalysis analysis) {
+    return AIFeedback(
+      workoutEvaluation: analysis.workoutEvaluation ?? '',
+      targetMuscles: analysis.targetMuscles ?? '',
+      recommendations: analysis.recommendations ?? 
+          AIRecommendations(nextWorkout: '', improvements: '', precautions: ''),
+      nextTargetMuscles: analysis.nextTargetMuscles ?? [],
+      encouragement: analysis.encouragement ?? '',
+    );
+  }
+}
+

@@ -4,18 +4,22 @@ import 'package:gukminexdiary/model/workout_analysis_model.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/provider/exercise_provider.dart';
 import 'package:gukminexdiary/widget/video_card_mini.dart';
+import 'package:gukminexdiary/services/dailylog_service.dart';
 import 'package:provider/provider.dart';
 
 class WorkoutAnalysisScreen extends StatefulWidget {
-  final WorkoutAnalysisResponse analysis;
+  final WorkoutAnalysisResponse? analysis;
+  final AIFeedback? feedback;
   final String date;
+  final int? logId; // 다시 생성하기 위해 필요
 
   const WorkoutAnalysisScreen({
     super.key,
-    required this.analysis,
+    this.analysis,
+    this.feedback,
     required this.date,
+    this.logId,
   });
-
 
   @override
   State<WorkoutAnalysisScreen> createState() => _WorkoutAnalysisScreenState();
@@ -24,6 +28,9 @@ class WorkoutAnalysisScreen extends StatefulWidget {
 class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with TickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  final DailyLogService _dailyLogService = DailyLogService();
+  WorkoutAnalysisResponse? _currentAnalysis;
+  bool _isRegenerating = false;
   
   // 다음 타겟 근육 운동 목록 관련 상태
   Map<String, bool> _isVideoListExpanded = {}; // 각 근육 목록의 펼침 상태
@@ -52,10 +59,33 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
   @override
   void initState() {
     super.initState();
+    // analysis 또는 feedback에서 WorkoutAnalysisResponse 생성
+    _currentAnalysis = _getAnalysis();
     // 화면이 나타난 후 애니메이션 시작
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAnimations();
     });
+  }
+  
+  // analysis 또는 feedback에서 WorkoutAnalysisResponse 생성
+  WorkoutAnalysisResponse? _getAnalysis() {
+    if (widget.analysis != null) {
+      return widget.analysis;
+    } else if (widget.feedback != null) {
+      // AIFeedback을 WorkoutAnalysisResponse로 변환
+      final aiAnalysis = AIAnalysis(
+        workoutEvaluation: widget.feedback!.workoutEvaluation,
+        targetMuscles: widget.feedback!.targetMuscles,
+        recommendations: widget.feedback!.recommendations,
+        nextTargetMuscles: widget.feedback!.nextTargetMuscles,
+        encouragement: widget.feedback!.encouragement,
+      );
+      return WorkoutAnalysisResponse(
+        success: true,
+        aiAnalysis: aiAnalysis,
+      );
+    }
+    return null;
   }
   
   @override
@@ -70,38 +100,137 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
   }
   
   void _startAnimations() {
+    final analysis = _currentAnalysis;
+    if (analysis == null) return;
+    
     // 각 섹션을 순차적으로 나타나게 함
     // 운동 평가 -> 타겟 근육 분석 -> 추천 사항 -> 다음 타겟 근육 -> 격려 메시지
     Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted && widget.analysis.aiAnalysis?.workoutEvaluation != null) {
+      if (mounted && analysis.aiAnalysis?.workoutEvaluation != null) {
         setState(() => _workoutEvaluationOpacity = 1.0);
       }
     });
     
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted && widget.analysis.aiAnalysis?.targetMuscles != null) {
+      if (mounted && analysis.aiAnalysis?.targetMuscles != null) {
         setState(() => _targetMusclesOpacity = 1.0);
       }
     });
     
     Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted && widget.analysis.aiAnalysis?.recommendations != null) {
+      if (mounted && analysis.aiAnalysis?.recommendations != null) {
         setState(() => _recommendationsOpacity = 1.0);
       }
     });
     
     Future.delayed(const Duration(milliseconds: 700), () {
-      if (mounted && widget.analysis.aiAnalysis?.nextTargetMuscles != null && 
-          widget.analysis.aiAnalysis!.nextTargetMuscles!.isNotEmpty) {
+      if (mounted && analysis.aiAnalysis?.nextTargetMuscles != null && 
+          analysis.aiAnalysis!.nextTargetMuscles!.isNotEmpty) {
         setState(() => _nextTargetMusclesOpacity = 1.0);
       }
     });
     
     Future.delayed(const Duration(milliseconds: 900), () {
-      if (mounted && widget.analysis.aiAnalysis?.encouragement != null) {
+      if (mounted && analysis.aiAnalysis?.encouragement != null) {
         setState(() => _encouragementOpacity = 1.0);
       }
     });
+  }
+  
+  // 분석지 다시 생성하기
+  Future<void> _regenerateAnalysis() async {
+    if (widget.logId == null) return;
+    
+    setState(() {
+      _isRegenerating = true;
+    });
+    
+    try {
+      // 로딩 다이얼로그 표시
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('AI 분석 중...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      
+      // 일지 가져오기
+      final log = await _dailyLogService.getDailyLogByDate(widget.date);
+      if (log == null) {
+        if (mounted) Navigator.pop(context);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('일지를 찾을 수 없습니다')),
+          );
+        }
+        return;
+      }
+      
+      // AI 분석 요청
+      final analysis = await _dailyLogService.analyzeWorkoutLog(log);
+      
+      // 로딩 다이얼로그 닫기
+      if (mounted) Navigator.pop(context);
+      
+      // 분석 성공 시 피드백 저장
+      if (analysis.success && analysis.aiAnalysis != null) {
+        try {
+          final feedback = AIFeedback.fromAIAnalysis(analysis.aiAnalysis!);
+          await _dailyLogService.saveAIFeedback(log.logId, feedback);
+        } catch (e) {
+          print('피드백 저장 실패: $e');
+        }
+      }
+      
+      // 분석 결과로 업데이트
+      setState(() {
+        _currentAnalysis = analysis;
+        _isRegenerating = false;
+        // 애니메이션 재시작
+        _workoutEvaluationOpacity = 0.0;
+        _targetMusclesOpacity = 0.0;
+        _recommendationsOpacity = 0.0;
+        _nextTargetMusclesOpacity = 0.0;
+        _encouragementOpacity = 0.0;
+      });
+      
+      _startAnimations();
+      
+      if (!analysis.success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('AI 분석 실패: ${analysis.message ?? "알 수 없는 오류"}'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      setState(() {
+        _isRegenerating = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('분석 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -181,7 +310,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
                   });
                 },
                 children: [
-                if (widget.analysis.success && widget.analysis.aiAnalysis != null) ...[
+                if (_currentAnalysis != null && _currentAnalysis!.success && _currentAnalysis!.aiAnalysis != null) ...[
                   Container(
                     padding: const EdgeInsets.all(10),
                     child: SingleChildScrollView(child: _buildAIAnalysis()),
@@ -192,7 +321,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
                     ),
                   ),
                 ],
-                if (widget.analysis.basicAnalysis != null) ...[
+                if (_currentAnalysis != null && _currentAnalysis!.basicAnalysis != null) ...[
                   SingleChildScrollView(child: _buildBasicAnalysis(context)),
                 ],
               ],),
@@ -228,21 +357,41 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
               color: Colors.blue.shade700,
             ),
           ),
-          if (widget.analysis.model != null) ...[
+          // if (_currentAnalysis?.model != null) ...[
+          //   const Spacer(),
+          //   Container(
+          //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          //     decoration: BoxDecoration(
+          //       color: Colors.blue.shade100,
+          //       borderRadius: BorderRadius.circular(8),
+          //     ),
+          //     child: Text(
+          //       '모델: ${_currentAnalysis!.model}',
+          //       style: TextStyle(
+          //         fontSize: 12,
+          //         color: Colors.blue.shade700,
+          //         fontWeight: FontWeight.w500,
+          //       ),
+          //     ),
+          //   ),
+          // ],
+          // 저장된 피드백인 경우 다시 생성하기 버튼 표시
+          if (widget.feedback != null && widget.logId != null) ...[
             const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '모델: ${widget.analysis.model}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.blue.shade700,
-                  fontWeight: FontWeight.w500,
-                ),
+            ElevatedButton.icon(
+              onPressed: _isRegenerating ? null : _regenerateAnalysis,
+              icon: _isRegenerating 
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.refresh, size: 18),
+              label: const Text('다시 생성하기', style: TextStyle(fontSize: 13)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.purple.shade600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
             ),
           ],
@@ -252,18 +401,23 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
   }
 
   Widget _buildAIAnalysis() {
+    final analysis = _currentAnalysis;
+    if (analysis == null || analysis.aiAnalysis == null) {
+      return const Center(child: Text('분석 데이터가 없습니다'));
+    }
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 운동 평가
-        if (widget.analysis.aiAnalysis!.workoutEvaluation != null)
+        if (analysis.aiAnalysis!.workoutEvaluation != null)
           AnimatedOpacity(
             opacity: _workoutEvaluationOpacity,
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeInOut,
             child: _buildAISection(
               '운동 평가',
-              widget.analysis.aiAnalysis!.workoutEvaluation!,
+              analysis.aiAnalysis!.workoutEvaluation!,
               Icons.assessment,
               Colors.purple,
             ),
@@ -272,14 +426,14 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
         const SizedBox(height: 5),
 
         // 타겟 근육
-        if (widget.analysis.aiAnalysis!.targetMuscles != null)
+        if (analysis.aiAnalysis!.targetMuscles != null)
           AnimatedOpacity(
             opacity: _targetMusclesOpacity,
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeInOut,
             child: _buildAISection(
               '타겟 근육 분석',
-              widget.analysis.aiAnalysis!.targetMuscles!,
+              analysis.aiAnalysis!.targetMuscles!,
               Icons.fitness_center,
               Colors.blue,
             ),
@@ -288,14 +442,14 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
         const SizedBox(height: 5),
 
         // 추천 사항
-        if (widget.analysis.aiAnalysis!.recommendations != null)
+        if (analysis.aiAnalysis!.recommendations != null)
           AnimatedOpacity(
             opacity: _recommendationsOpacity,
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeInOut,
             child: _buildAISection(
               '추천 사항',
-              _formatRecommendations(widget.analysis.aiAnalysis!.recommendations!),
+              _formatRecommendations(analysis.aiAnalysis!.recommendations!),
               Icons.lightbulb_outline,
               Colors.orange,
             ),
@@ -304,25 +458,25 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
         const SizedBox(height: 5),
 
         // 다음 타겟 근육
-        if (widget.analysis.aiAnalysis!.nextTargetMuscles != null && widget.analysis.aiAnalysis!.nextTargetMuscles!.isNotEmpty)
+        if (analysis.aiAnalysis!.nextTargetMuscles != null && analysis.aiAnalysis!.nextTargetMuscles!.isNotEmpty)
           AnimatedOpacity(
             opacity: _nextTargetMusclesOpacity,
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeInOut,
-            child: _buildNextTargetMuscles(widget.analysis.aiAnalysis!.nextTargetMuscles!),
+            child: _buildNextTargetMuscles(analysis.aiAnalysis!.nextTargetMuscles!),
           ),
 
         const SizedBox(height: 5),
 
-        // 격려 메시지  
-        if (widget.analysis.aiAnalysis!.encouragement != null)
+        // 격려 메시지
+        if (analysis.aiAnalysis!.encouragement != null)
           AnimatedOpacity(
             opacity: _encouragementOpacity,
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeInOut,
             child: _buildAISection(
               '격려 메시지',
-              widget.analysis.aiAnalysis!.encouragement!,
+              analysis.aiAnalysis!.encouragement!,
               Icons.favorite,
               Colors.pink,
             ),
@@ -436,7 +590,12 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
   }
 
   Widget _buildBasicAnalysis(BuildContext context) {
-    final stats = widget.analysis.basicAnalysis!.statistics;
+    final analysis = _currentAnalysis;
+    if (analysis == null || analysis.basicAnalysis == null) {
+      return const Center(child: Text('기본 통계 데이터가 없습니다'));
+    }
+    
+    final stats = analysis.basicAnalysis!.statistics;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -465,8 +624,8 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
           const SizedBox(height: 12),
 
           // 요약
-          if (widget.analysis.basicAnalysis!.summary.isNotEmpty)
-            _buildSection('요약', [Text(widget.analysis.basicAnalysis!.summary)], null),
+          if (analysis.basicAnalysis!.summary.isNotEmpty)
+            _buildSection('요약', [Text(analysis.basicAnalysis!.summary)], null),
 
           const SizedBox(height: 16),
 
@@ -543,10 +702,10 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
           const SizedBox(height: 16),
 
           // 추천 사항
-          if (widget.analysis.basicAnalysis!.recommendations.isNotEmpty)
+          if (analysis.basicAnalysis!.recommendations.isNotEmpty)
             _buildRecommendations(
               '추천',
-              widget.analysis.basicAnalysis!.recommendations,
+              analysis.basicAnalysis!.recommendations,
               Icons.lightbulb_outline,
               Colors.blue,
             ),
@@ -554,10 +713,10 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
           const SizedBox(height: 12),
 
           // 경고 사항
-          if (widget.analysis.basicAnalysis!.warnings.isNotEmpty)
+          if (analysis.basicAnalysis!.warnings.isNotEmpty)
             _buildRecommendations(
               '주의사항',
-              widget.analysis.basicAnalysis!.warnings,
+              analysis.basicAnalysis!.warnings,
               Icons.warning_amber_outlined,
               Colors.orange,
             ),
@@ -996,28 +1155,6 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
     );
   }
 
-  Widget _buildErrorMessage() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: Colors.red.shade700),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              '오류: ${widget.analysis.message}',
-              style: TextStyle(color: Colors.red.shade700),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Color _getIntensityColor(String intensity) {
     switch (intensity) {

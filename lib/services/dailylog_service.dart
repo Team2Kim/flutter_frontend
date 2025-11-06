@@ -25,7 +25,7 @@ class DailyLogService {
     };
   }
 
-  // 1. 특정 날짜의 일지 조회
+  // 1. 특정 날짜의 일지 조회 (피드백 포함)
   Future<DailyLogModelResponse?> getDailyLogByDate(String date) async {
     try {
       final headers = await _getHeaders();
@@ -36,7 +36,26 @@ class DailyLogService {
   
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = jsonDecode(utf8.decode(response.bodyBytes));
-        return DailyLogModelResponse.fromJson(jsonData);
+        final log = DailyLogModelResponse.fromJson(jsonData);
+        
+        // 피드백이 응답에 포함되어 있지 않으면 별도로 조회
+        if (log.feedback == null) {
+          try {
+            final feedback = await getAIFeedback(log.logId);
+            return DailyLogModelResponse(
+              logId: log.logId,
+              date: log.date,
+              memo: log.memo,
+              exercises: log.exercises,
+              feedback: feedback,
+            );
+          } catch (e) {
+            // 피드백 조회 실패는 무시 (피드백이 없는 경우일 수 있음)
+            return log;
+          }
+        }
+        
+        return log;
       } else if (response.statusCode == 404) {
         // 해당 날짜에 일지가 없음
         return null;
@@ -278,6 +297,66 @@ class DailyLogService {
         final Map<String, dynamic> jsonData =
             jsonDecode(utf8.decode(response.bodyBytes));
         return WorkoutAnalysisResponse.fromJson(jsonData);
+      }
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('네트워크 오류: ${e.toString()}');
+    }
+  }
+
+  // 9. AI 피드백 저장
+  Future<void> saveAIFeedback(int logId, AIFeedback feedback) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$_baseUrl/$logId/feedback'),
+        headers: headers,
+        body: jsonEncode(feedback.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        // 성공
+        return;
+      } else if (response.statusCode == 401) {
+        throw Exception('인증에 실패했습니다. 다시 로그인해주세요.');
+      } else if (response.statusCode == 403) {
+        throw Exception('권한이 없습니다.');
+      } else if (response.statusCode == 404) {
+        throw Exception('해당 일지를 찾을 수 없습니다.');
+      } else {
+        throw Exception('피드백 저장 중 오류가 발생했습니다: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('네트워크 오류: ${e.toString()}');
+    }
+  }
+
+  // 10. AI 피드백 조회 (내부 사용)
+  Future<AIFeedback?> getAIFeedback(int logId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$_baseUrl/$logId/feedback'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = jsonDecode(utf8.decode(response.bodyBytes));
+        return AIFeedback.fromJson(jsonData);
+      } else if (response.statusCode == 404) {
+        // 피드백이 없음
+        return null;
+      } else if (response.statusCode == 401) {
+        throw Exception('인증에 실패했습니다. 다시 로그인해주세요.');
+      } else if (response.statusCode == 403) {
+        throw Exception('권한이 없습니다.');
+      } else {
+        throw Exception('피드백 조회 중 오류가 발생했습니다: ${response.statusCode}');
       }
     } catch (e) {
       if (e is Exception) {

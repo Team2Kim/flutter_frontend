@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/services/dailylog_service.dart';
 import 'package:gukminexdiary/model/dailylog_model.dart';
+import 'package:gukminexdiary/model/workout_analysis_model.dart';
 import 'package:gukminexdiary/screen/video_detail_screen.dart';
 import 'package:gukminexdiary/screen/workout_analysis_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -336,6 +337,24 @@ class _DiaryScreenState extends State<DiaryScreen> {
     }
   }
 
+  // 저장된 피드백 화면으로 이동
+  Future<void> _loadFeedbackScreen() async {
+    if (_currentLog == null || _currentLog!.feedback == null) return;
+    
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => WorkoutAnalysisScreen(
+            feedback: _currentLog!.feedback,
+            date: _formatDate(_selectedDate),
+            logId: _currentLog!.logId,
+          ),
+        ),
+      );
+    }
+  }
+
   // AI 분석 실행
   Future<void> _analyzeWorkout() async {
     if (_currentLog == null || _currentLog!.exercises.isEmpty) {
@@ -378,6 +397,20 @@ class _DiaryScreenState extends State<DiaryScreen> {
       // 로딩 다이얼로그 닫기
       if (mounted) Navigator.pop(context);
 
+      // 분석 성공 시 피드백 저장
+      if (analysis.success && analysis.aiAnalysis != null && _currentLog != null) {
+        try {
+          final feedback = AIFeedback.fromAIAnalysis(analysis.aiAnalysis!);
+          await _dailyLogService.saveAIFeedback(_currentLog!.logId, feedback);
+          
+          // 일지 다시 로드하여 피드백 포함
+          await _loadDailyLog();
+        } catch (e) {
+          // 피드백 저장 실패는 무시 (분석 결과는 표시)
+          print('피드백 저장 실패: $e');
+        }
+      }
+
       // 분석 결과 화면으로 이동
       if (mounted) {
         Navigator.push(
@@ -386,6 +419,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
             builder: (context) => WorkoutAnalysisScreen(
               analysis: analysis,
               date: _formatDate(_selectedDate),
+              logId: _currentLog?.logId,
             ),
           ),
         );
@@ -651,13 +685,26 @@ class _DiaryScreenState extends State<DiaryScreen> {
                       ),
                       const SizedBox(height: 10),
                       if (_currentLog != null && _currentLog!.exercises.isNotEmpty)
-                      // AI 분석 버튼
+                      // AI 분석 버튼 또는 분석지 불러오기 버튼
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: _analyzeWorkout,
-                          icon: Icon(Icons.psychology, size: 18, color: Colors.white),
-                          label: Text('AI 분석하기', style: TextStyle(fontSize: 14, color: Colors.white)),
+                          onPressed: _currentLog!.feedback != null 
+                              ? () => _loadFeedbackScreen()
+                              : _analyzeWorkout,
+                          icon: Icon(
+                            _currentLog!.feedback != null 
+                                ? Icons.description 
+                                : Icons.psychology, 
+                            size: 18, 
+                            color: Colors.white
+                          ),
+                          label: Text(
+                            _currentLog!.feedback != null 
+                                ? '분석지 불러오기' 
+                                : 'AI 분석하기', 
+                            style: TextStyle(fontSize: 14, color: Colors.white)
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.purple.shade600,
                             shape: RoundedRectangleBorder(
@@ -709,15 +756,19 @@ class _DiaryScreenState extends State<DiaryScreen> {
                             ),
                           ),
                         )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _currentLog!.exercises.length,
-                          itemBuilder: (context, index) {
-                            final logExercise = _currentLog!.exercises[index];
-                            return _buildExerciseCard(logExercise);
-                          },
+                      : Column(
+                          children: [
+                            ListView.builder(
+                              controller: _scrollController,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _currentLog!.exercises.length,
+                              itemBuilder: (context, index) {
+                                final logExercise = _currentLog!.exercises[index];
+                                return _buildExerciseCard(logExercise);
+                              },
+                            ),
+                          ],
                         ),
             ],
           ),
