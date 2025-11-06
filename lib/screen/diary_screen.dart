@@ -428,11 +428,12 @@ class _DiaryScreenState extends State<DiaryScreen> {
         height: double.infinity,
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.white, Colors.green.shade100],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+          gradient: RadialGradient(
+            colors: [Colors.white, const Color.fromARGB(255, 245, 255, 246)],
+            radius: 0.7,
+            stops: [0.3, 0.7],
+          ),  
+          // color: Colors.grey[40]
         ),
         child: SingleChildScrollView(
           child: Container(

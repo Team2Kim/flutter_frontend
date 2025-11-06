@@ -65,10 +65,10 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
       ),
       body: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.white, Colors.blue.shade100],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+            gradient: RadialGradient(
+              colors: [Colors.white, const Color.fromARGB(255, 241, 249, 255)],
+              radius: 0.7,
+              stops: [0.3, 0.7],
             ),
             borderRadius: BorderRadius.circular(10),
           ),
@@ -120,7 +120,9 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                           );
                         }
                         final location = facilityProvider.locations[index];
-                        return FacilityCard(
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10, right: 10, left: 10),
+                          child:FacilityCard(
                           location: location, 
                           onTap: () {
                             facilityProvider.setFocusLocation(location.latitude!, location.longitude!);
@@ -128,7 +130,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
                             Navigator.pushNamed(context, '/map/search');
                           }, 
                           width: double.infinity
-                        );
+                        ));
                       },
                     );
                   },

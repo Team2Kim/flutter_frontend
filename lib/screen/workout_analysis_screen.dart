@@ -114,10 +114,10 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
       body: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.white, Colors.green.shade100],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+          gradient: RadialGradient(
+            colors: [Colors.white, const Color.fromARGB(255, 245, 255, 246)],
+            radius: 0.7,
+            stops: [0.3, 0.7],
           )
         ),
         child: Column(
@@ -140,7 +140,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
                       colors: _currentPage == 0 ? [Colors.blue.shade50, Colors.white] : [Colors.white, Colors.white],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      stops: [0.5, 0.7],
+                      stops: [0.33, 0.66],
                     ),
                     borderRadius: BorderRadius.only(topLeft: Radius.circular(12), bottomLeft: Radius.circular(12)),
                   ),
@@ -160,7 +160,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
                       colors: _currentPage == 1 ? [Colors.white, Colors.blue.shade50] : [Colors.white, Colors.white],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      stops: const [0.3, 0.5],
+                      stops: const [0.33, 0.66],
                     ),  
                     borderRadius: BorderRadius.only(topRight: Radius.circular(12), bottomRight: Radius.circular(12)),
                   ),

@@ -21,10 +21,10 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.white, Colors.blue.shade100],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+          gradient: RadialGradient(
+            colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
+            radius: 0.5,
+            stops: [0.3, 0.7],
           ),
           borderRadius: BorderRadius.circular(5),
         ),
@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.blue.shade50, Colors.white],
+                            colors: [const Color.fromARGB(255, 248, 250, 252), Colors.white],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [Colors.yellow.shade100, Colors.white],
+                                    colors: [const Color.fromARGB(255, 255, 251, 227), Colors.white],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   ),
@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [Colors.red.shade100, Colors.white],
+                                colors: [const Color.fromARGB(255, 255, 246, 247), Colors.white],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
@@ -145,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.green.shade100, Colors.white],
+                        colors: [const Color.fromARGB(255, 248, 255, 249), Colors.white],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.purple.shade100, Colors.white],
+                          colors: [const Color.fromARGB(255, 253, 243, 255), Colors.white],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),

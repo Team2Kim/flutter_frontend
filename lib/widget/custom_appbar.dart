@@ -27,7 +27,7 @@ class _CustomAppbarState extends State<CustomAppbar> {
         ],
       ),
       titleTextStyle: const TextStyle(color: Colors.white),
-      backgroundColor: Colors.blue,
+      backgroundColor: const Color.fromARGB(255, 107, 125, 223),
       actions: const [],
       automaticallyImplyLeading: widget.automaticallyImplyLeading,
       foregroundColor: Colors.white,

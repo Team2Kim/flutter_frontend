@@ -433,10 +433,10 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   Widget _buildGeneralSearchPage(ExerciseProvider exerciseProvider) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.white, Colors.yellow.shade100],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+        gradient: RadialGradient(
+          colors: [Colors.white, const Color.fromARGB(255, 255, 254, 242)],
+          radius: 0.7,
+          stops: [0.3, 0.7],
         ),
         borderRadius: BorderRadius.circular(10),
       ),
@@ -521,10 +521,10 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   Widget _buildMuscleSearchPage() {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.white, Colors.red.shade100],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+        gradient: RadialGradient(
+          colors: [Colors.white, const Color.fromARGB(255, 255, 239, 240)],
+          radius: 0.7,
+          stops: [0.3, 0.7],
         ),
         borderRadius: BorderRadius.circular(10),
       ),

@@ -17,7 +17,7 @@ class FacilityCard extends StatelessWidget {
     return Container(
           width: width,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color.fromARGB(232, 255, 255, 255),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey[300]!),
           ),

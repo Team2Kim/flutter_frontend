@@ -158,66 +158,87 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                                       ),
                                       const Spacer(),
                                       // 볼륨
-                                      PopupMenuButton<double>(
-                                        icon: Icon(
-                                          _isMuted ? Icons.volume_off : Icons.volume_up,
-                                          color: Colors.white,
-                                          size: 24,
+                                      SizedBox(
+                                        width: 100, 
+                                        child: SliderTheme(
+                                          data: SliderThemeData(
+                                          trackShape: RectangularSliderTrackShape(),
+                                          trackHeight: 4,
+                                          thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
+                                          thumbColor: Colors.white,
+                                          overlayShape: RoundSliderOverlayShape(overlayRadius: 20),
+                                          overlayColor: Colors.white.withOpacity(0.2),
+                                        ), 
+                                        child: Slider(
+                                          onChanged: (value) {
+                                            _setVolume(value);
+                                          },
+                                          value: _controller!.value.volume, 
+                                          min: 0.0, 
+                                          max: 1.0, 
+                                          divisions: 100,),
                                         ),
-                                        onSelected: _setVolume,
-                                        itemBuilder: (context) => [
-                                          PopupMenuItem(
-                                            value: 0.0,
-                                            child: Row(
-                                              children: [
-                                                Icon(_isMuted ? Icons.volume_off : Icons.volume_mute),
-                                                const SizedBox(width: 8),
-                                                const Text('음소거'),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 0.25,
-                                            child: Row(
-                                              children: [
-                                                const Icon(Icons.volume_down),
-                                                const SizedBox(width: 8),
-                                                const Text('25%'),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 0.5,
-                                            child: Row(
-                                              children: [
-                                                const Icon(Icons.volume_down),
-                                                const SizedBox(width: 8),
-                                                const Text('50%'),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 0.75,
-                                            child: Row(
-                                              children: [
-                                                const Icon(Icons.volume_up),
-                                                const SizedBox(width: 8),
-                                                const Text('75%'),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 1.0,
-                                            child: Row(
-                                              children: [
-                                                const Icon(Icons.volume_up),
-                                                const SizedBox(width: 8),
-                                                const Text('100%'),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
                                       ),
+                                      // PopupMenuButton<double>(
+                                      //   icon: Icon(
+                                      //     _isMuted ? Icons.volume_off : Icons.volume_up,
+                                      //     color: Colors.white,
+                                      //     size: 24,
+                                      //   ),
+                                      //   onSelected: _setVolume,
+                                      //   itemBuilder: (context) => [
+                                      //     PopupMenuItem(
+                                      //       value: 0.0,
+                                      //       child: Row(
+                                      //         children: [
+                                      //           Icon(_isMuted ? Icons.volume_off : Icons.volume_mute),
+                                      //           const SizedBox(width: 8),
+                                      //           const Text('음소거'),
+                                      //         ],
+                                      //       ),
+                                      //     ),
+                                      //     PopupMenuItem(
+                                      //       value: 0.25,
+                                      //       child: Row(
+                                      //         children: [
+                                      //           const Icon(Icons.volume_down),
+                                      //           const SizedBox(width: 8),
+                                      //           const Text('25%'),
+                                      //         ],
+                                      //       ),
+                                      //     ),
+                                      //     PopupMenuItem(
+                                      //       value: 0.5,
+                                      //       child: Row(
+                                      //         children: [
+                                      //           const Icon(Icons.volume_down),
+                                      //           const SizedBox(width: 8),
+                                      //           const Text('50%'),
+                                      //         ],
+                                      //       ),
+                                      //     ),
+                                      //     PopupMenuItem(
+                                      //       value: 0.75,
+                                      //       child: Row(
+                                      //         children: [
+                                      //           const Icon(Icons.volume_up),
+                                      //           const SizedBox(width: 8),
+                                      //           const Text('75%'),
+                                      //         ],
+                                      //       ),
+                                      //     ),
+                                      //     PopupMenuItem(
+                                      //       value: 1.0,
+                                      //       child: Row(
+                                      //         children: [
+                                      //           const Icon(Icons.volume_up),
+                                      //           const SizedBox(width: 8),
+                                      //           const Text('100%'),
+                                      //         ],
+                                      //       ),
+                                      //     ),
+                                      //   ],
+                                      // ),
                                       const SizedBox(width: 8),
                                       // 전체화면 종료
                                       IconButton(
@@ -285,6 +306,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
           : SingleChildScrollView(
               child: 
               Container(
+                height: MediaQuery.of(context).size.height,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [Colors.white, Colors.green.shade100],
@@ -296,12 +318,16 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(height: 20),
              // 영상 섹션 (일반 모드)
              Container(
+              alignment: Alignment.center,
                width: double.infinity,
-               height: MediaQuery.of(context).size.height * 0.25,
+               height: MediaQuery.of(context).size.height * 0.3,
+               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+               margin: const EdgeInsets.symmetric(horizontal: 10),
                decoration: BoxDecoration(
-                 color: Colors.grey[300],
+                 color: Colors.grey[600],
                  borderRadius: BorderRadius.circular(12),
                ),
                child: _isVideoInitialized && _controller != null
@@ -391,66 +417,29 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                                                ),
                                                const Spacer(),
                                                // 볼륨
-                                               PopupMenuButton<double>(
-                                                 icon: Icon(
-                                                   _isMuted ? Icons.volume_off : Icons.volume_up,
-                                                   color: Colors.white,
-                                                   size: 24,
-                                                 ),
-                                                 onSelected: _setVolume,
-                                                 itemBuilder: (context) => [
-                                                   PopupMenuItem(
-                                                     value: 0.0,
-                                                     child: Row(
-                                                       children: [
-                                                         Icon(_isMuted ? Icons.volume_off : Icons.volume_mute),
-                                                         const SizedBox(width: 8),
-                                                         const Text('음소거'),
-                                                       ],
-                                                     ),
-                                                   ),
-                                                   PopupMenuItem(
-                                                     value: 0.25,
-                                                     child: Row(
-                                                       children: [
-                                                         const Icon(Icons.volume_down),
-                                                         const SizedBox(width: 8),
-                                                         const Text('25%'),
-                                                       ],
-                                                     ),
-                                                   ),
-                                                   PopupMenuItem(
-                                                     value: 0.5,
-                                                     child: Row(
-                                                       children: [
-                                                         const Icon(Icons.volume_down),
-                                                         const SizedBox(width: 8),
-                                                         const Text('50%'),
-                                                       ],
-                                                     ),
-                                                   ),
-                                                   PopupMenuItem(
-                                                     value: 0.75,
-                                                     child: Row(
-                                                       children: [
-                                                         const Icon(Icons.volume_up),
-                                                         const SizedBox(width: 8),
-                                                         const Text('75%'),
-                                                       ],
-                                                     ),
-                                                   ),
-                                                   PopupMenuItem(
-                                                     value: 1.0,
-                                                     child: Row(
-                                                       children: [
-                                                         const Icon(Icons.volume_up),
-                                                         const SizedBox(width: 8),
-                                                         const Text('100%'),
-                                                       ],
-                                                     ),
-                                                   ),
-                                                 ],
-                                               ),
+                                               SizedBox(
+                                                  width: 100, 
+                                                  child: SliderTheme(
+                                                    data: SliderThemeData(
+                                                    trackShape: RectangularSliderTrackShape(),
+                                                    trackHeight: 4,
+                                                    thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
+                                                    thumbColor: Colors.white,
+                                                    overlayShape: RoundSliderOverlayShape(overlayRadius: 20),
+                                                    overlayColor: Colors.white.withOpacity(0.2),
+                                                  ), 
+                                                  child: Slider(
+                                                    activeColor: Colors.blue,
+                                                    inactiveColor: Colors.grey[600]!,
+                                                    onChanged: (value) {
+                                                      _setVolume(value);
+                                                    },
+                                                    value: _controller!.value.volume, 
+                                                    min: 0.0, 
+                                                    max: 1.0, 
+                                                    divisions: 100,),
+                                                  ),
+                                                ),
                                                const SizedBox(width: 8),
                                                // 전체화면
                                                IconButton(
@@ -501,91 +490,76 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
             if (!_isFullScreen) ...[
               
               // 운동 정보 섹션
-              Card(
-              color: const Color.fromARGB(75, 255, 255, 255),
-              child: Padding(
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[500],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: const EdgeInsets.symmetric(horizontal: 10),
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.exercise.title,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 255, 255, 255),
+                    Row(
+                      children: [
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          child:Text(
+                          widget.exercise.title,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromARGB(255, 255, 255, 255),
+                          ),
+                        ),)
                       ),
-                    ),
+                      const Spacer(),
+                      // 운동 기록 추가 버튼
+                      SizedBox(
+                        width: 100,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            AddExerciseDialog.show(context, widget.exercise);
+                          },
+                          icon: const Icon(Icons.add),
+                          label: const Text('일지 추가'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],),
                     const SizedBox(height: 16),
-                    
-                    _buildInfoRow('카테고리', widget.exercise.fitnessFactorName ?? '', Color.fromARGB(255, 255, 255, 255)),
-                    _buildInfoRow('운동 부위', widget.exercise.muscleName ?? '', Color.fromARGB(255, 255, 255, 255)),
-                    _buildInfoRow('대상 그룹', widget.exercise.targetGroup ?? '', Color.fromARGB(255, 255, 255, 255)),
-                    _buildInfoRow('영상 길이', _formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), Color.fromARGB(255, 255, 255, 255)),
-                    // _buildInfoRow('언어', widget.exercise.language),
-                    // _buildInfoRow('게시일자', widget.exercise.createdAt == null ? .toString().split(' ')[0] ?? '', Color.fromARGB(255, 255, 255, 255)),
-                    // _buildInfoRow('운영기관', widget.exercise.operatingOrganization),
-                  ],
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 10),
-            
-            // 운동 설명 섹션
-            Card(
-              color: const Color.fromARGB(75, 255, 255, 255),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '운동 설명',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 255, 255, 255),
+                    _buildInfoRow('카테고리', widget.exercise.fitnessFactorName ?? '', Color.fromARGB(255, 255, 202, 176), Color.fromARGB(255, 255, 238, 229)),
+                    _buildInfoRow('운동 부위', widget.exercise.muscleName ?? '', Color.fromARGB(255, 217, 255, 171), Color.fromARGB(255, 245, 255, 233)),
+                    _buildInfoRow('대상 그룹', widget.exercise.targetGroup ?? '', Color.fromARGB(255, 179, 217, 255), Color.fromARGB(255, 229, 242, 255)),
+                    _buildInfoRow('영상 길이', _formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), Color.fromARGB(255, 255, 255, 255), Color.fromARGB(255, 255, 255, 255)),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[400],
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      widget.exercise.description ?? '',
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
-                        fontSize: 16,
-                        height: 1.5,
+                      padding: const EdgeInsets.all(10),
+                      child: Text(
+                        widget.exercise.description ?? '',
+                        style: const TextStyle(
+                          color: Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // 운동 기록 추가 버튼
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  AddExerciseDialog.show(context, widget.exercise);
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('운동 일지에 추가하기'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-          
             ],
           ],
           ),
@@ -594,31 +568,57 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, Color color) {
+  Widget _buildInfoRow(String label, String value, Color color, Color color2) {
+    final valueList = value.split(',');
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 100,
+          Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+            alignment: Alignment.centerLeft,
+            width: 80,
             child: Text(
+              textAlign: TextAlign.left,
               '$label:',
-              style: TextStyle(
-                color: color,
+              style: const TextStyle(
+                color: Colors.white,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
             ),
           ),
-          Expanded(
-            child: Text(  
-              value,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: color,
-                fontSize: 14,
-              ),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[400],
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white.withOpacity(0.5)),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+            width: MediaQuery.of(context).size.width * 0.6,
+            height: 40,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: valueList.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  margin: EdgeInsets.only(right: 5),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [color, color2],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      stops: [0.3, 0.7]
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.all(5),  
+                  alignment: Alignment.center,
+                  child: Text(valueList[index])
+                );
+              },
             ),
           ),
         ],
