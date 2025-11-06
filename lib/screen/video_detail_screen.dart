@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/add_dialog_widget.dart';
+import 'package:gukminexdiary/widget/muscle_description_dialog.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoDetailScreen extends StatefulWidget {
@@ -492,8 +493,16 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
               // 운동 정보 섹션
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey[500],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                  color: Colors.white54,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 padding: const EdgeInsets.all(20),
@@ -511,7 +520,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                           style: const TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 255, 255, 255),
+                            color: Colors.black,
                           ),
                         ),)
                       ),
@@ -537,22 +546,22 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                       ),
                     ],),
                     const SizedBox(height: 16),
-                    _buildInfoRow('카테고리', widget.exercise.fitnessFactorName ?? '', Color.fromARGB(255, 255, 202, 176), Color.fromARGB(255, 255, 238, 229)),
-                    _buildInfoRow('운동 부위', widget.exercise.muscleName ?? '', Color.fromARGB(255, 217, 255, 171), Color.fromARGB(255, 245, 255, 233)),
-                    _buildInfoRow('대상 그룹', widget.exercise.targetGroup ?? '', Color.fromARGB(255, 179, 217, 255), Color.fromARGB(255, 229, 242, 255)),
-                    _buildInfoRow('영상 길이', _formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), Color.fromARGB(255, 255, 255, 255), Color.fromARGB(255, 255, 255, 255)),
+                    _buildInfoRow('카테고리', widget.exercise.fitnessFactorName ?? '', Color.fromARGB(255, 255, 202, 176), Color.fromARGB(255, 255, 238, 229), false),
+                    _buildInfoRow('운동 부위', widget.exercise.muscleName ?? '', Color.fromARGB(255, 217, 255, 171), Color.fromARGB(255, 245, 255, 233), true),
+                    _buildInfoRow('대상 그룹', widget.exercise.targetGroup ?? '', Color.fromARGB(255, 179, 217, 255), Color.fromARGB(255, 229, 242, 255), false),
+                    _buildInfoRow('영상 길이', _formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), Color.fromARGB(255, 255, 255, 255), Color.fromARGB(255, 255, 255, 255), false ),
                     const SizedBox(height: 16),
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.grey[400],
+                        color: Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
                       ),
                       padding: const EdgeInsets.all(10),
                       child: Text(
                         widget.exercise.description ?? '',
                         style: const TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
+                          color: Colors.black,
                           fontSize: 16,
                         ),
                       ),
@@ -568,7 +577,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, Color color, Color color2) {
+  Widget _buildInfoRow(String label, String value, Color color, Color color2, bool isMuscle) {
     final valueList = value.split(',');
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -584,7 +593,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
               textAlign: TextAlign.left,
               '$label:',
               style: const TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -592,9 +601,14 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
           ),
           Container(
             decoration: BoxDecoration(
-              color: Colors.grey[400],
-              borderRadius: BorderRadius.circular(10),
+              gradient: LinearGradient(
+                colors: [Colors.grey.withOpacity(0.5), Colors.grey.withOpacity(0.2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                stops: [0.3, 0.7],
+              ),
               border: Border.all(color: Colors.white.withOpacity(0.5)),
+              borderRadius: BorderRadius.circular(10),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             width: MediaQuery.of(context).size.width * 0.6,
@@ -603,7 +617,16 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
               scrollDirection: Axis.horizontal,
               itemCount: valueList.length,
               itemBuilder: (context, index) {
-                return Container(
+                return 
+                InkWell(
+                onTap: () {
+                  if (isMuscle) {
+                    MuscleDescriptionDialog.show(context, valueList[index]);
+                  } else {
+                    // TODO: 운동 기록 추가 버튼 클릭 시 운동 기록 추가 화면으로 이동
+                  }
+                },
+                child: Container(
                   margin: EdgeInsets.only(right: 5),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -617,6 +640,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                   padding: const EdgeInsets.all(5),  
                   alignment: Alignment.center,
                   child: Text(valueList[index])
+                )
                 );
               },
             ),
