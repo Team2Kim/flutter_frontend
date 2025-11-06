@@ -199,23 +199,23 @@ final TextEditingController _searchController = TextEditingController();
               const SizedBox(height: 16),
               
               // 필터 토글 버튼
-              Container(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _isFilterExpanded = !_isFilterExpanded;
-                    });
-                  },
-                  icon: Icon(_isFilterExpanded ? Icons.expand_less : Icons.expand_more),
-                  label: Text(_isFilterExpanded ? '조건 검색 접기' : '조건 검색 펼치기'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[200],
-                    foregroundColor: Colors.black87,
-                    elevation: 0,
-                  ),
-                ),
-              ),
+              // Container(
+              //   width: double.infinity,
+              //   child: ElevatedButton.icon(
+              //     onPressed: () {
+              //       setState(() {
+              //         _isFilterExpanded = !_isFilterExpanded;
+              //       });
+              //     },
+              //     icon: Icon(_isFilterExpanded ? Icons.expand_less : Icons.expand_more),
+              //     label: Text(_isFilterExpanded ? '조건 검색 접기' : '조건 검색 펼치기'),
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: Colors.grey[200],
+              //       foregroundColor: Colors.black87,
+              //       elevation: 0,
+              //     ),
+              //   ),
+              // ),
               
               // 필터 섹션 (접기/펼치기 가능)
               if (_isFilterExpanded) ...[
