@@ -42,22 +42,32 @@ class DailyLogService {
         if (log.feedback == null) {
           try {
             final feedback = await getAIFeedback(log.logId);
-            return DailyLogModelResponse(
-              logId: log.logId,
-              date: log.date,
-              memo: log.memo,
-              exercises: log.exercises,
-              feedback: feedback,
-            );
+            if (feedback != null) {
+              return DailyLogModelResponse(
+                logId: log.logId,
+                date: log.date,
+                memo: log.memo,
+                exercises: log.exercises,
+                feedback: feedback,
+              );
+            }
           } catch (e) {
-            // 피드백 조회 실패는 무시 (피드백이 없는 경우일 수 있음)
-            return log;
+            // 피드백 조회 실패는 무시 (피드백이 없거나 권한이 없는 경우일 수 있음)
+            // 403, 404 오류는 정상적인 경우로 간주
+            final errorMessage = e.toString();
+            if (!errorMessage.contains('403') && !errorMessage.contains('404')) {
+              // 403, 404가 아닌 다른 오류만 로그 출력
+              print('피드백 조회 실패 (일지 logId: ${log.logId}): $e');
+            }
           }
         }
         
         return log;
       } else if (response.statusCode == 404) {
         // 해당 날짜에 일지가 없음
+        return null;
+      } else if (response.statusCode == 403) {
+        // 권한이 없거나 일지가 없는 경우 (서버 설정에 따라 403 반환 가능)
         return null;
       } else if (response.statusCode == 401) {
         throw Exception('인증에 실패했습니다. 다시 로그인해주세요.');
@@ -351,12 +361,80 @@ class DailyLogService {
       } else if (response.statusCode == 404) {
         // 피드백이 없음
         return null;
+      } else if (response.statusCode == 403) {
+        // 권한이 없거나 피드백이 없는 경우 (서버 설정에 따라 403 반환 가능)
+        return null;
       } else if (response.statusCode == 401) {
         throw Exception('인증에 실패했습니다. 다시 로그인해주세요.');
-      } else if (response.statusCode == 403) {
-        throw Exception('권한이 없습니다.');
       } else {
         throw Exception('피드백 조회 중 오류가 발생했습니다: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('네트워크 오류: ${e.toString()}');
+    }
+  }
+
+  // 11. 주간 패턴 분석
+  Future<WeeklyPatternResponse> analyzeWeeklyPattern(
+    List<DailyLogModelResponse> weeklyLogs, {
+    String model = 'gpt-4o-mini',
+  }) async {
+    try {
+      final headers = await _getHeaders();
+
+      // DailyLogModelResponse 리스트를 API 요청 형태로 변환
+      final weeklyLogsJson = weeklyLogs.map((log) {
+        return {
+          'logId': log.logId,
+          'date': log.date,
+          'memo': log.memo,
+          'exercises': log.exercises.map((exercise) {
+            // muscleName을 배열로 변환
+            final muscles = _parseMusclesToList(exercise.exercise.muscleName);
+            
+            return {
+              'logExerciseId': exercise.logExerciseId,
+              'exercise': {
+                'exerciseId': exercise.exercise.exerciseId,
+                'title': exercise.exercise.title,
+                'muscles': muscles,
+                'videoUrl': exercise.exercise.videoUrl,
+                'trainingName': exercise.exercise.trainingName,
+                'exerciseTool': exercise.exercise.exerciseTool,
+                'targetGroup': exercise.exercise.targetGroup,
+                'fitnessFactorName': exercise.exercise.fitnessFactorName,
+                'fitnessLevelName': exercise.exercise.fitnessLevelName,
+                'trainingPlaceName': exercise.exercise.trainingPlaceName,
+              },
+              'intensity': exercise.intensity,
+              'exerciseTime': exercise.exerciseTime,
+            };
+          }).toList(),
+        };
+      }).toList();
+
+      final requestBody = {
+        'weekly_logs': weeklyLogsJson,
+      };
+
+      final weeklyPatternUrl = '${ApiConfig.workoutLogEndpoint}/weekly-pattern';
+      final response = await http.post(
+        Uri.parse('$weeklyPatternUrl?model=$model'),
+        headers: headers,
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData =
+            jsonDecode(utf8.decode(response.bodyBytes));
+        return WeeklyPatternResponse.fromJson(jsonData);
+      } else {
+        final Map<String, dynamic> jsonData =
+            jsonDecode(utf8.decode(response.bodyBytes));
+        return WeeklyPatternResponse.fromJson(jsonData);
       }
     } catch (e) {
       if (e is Exception) {

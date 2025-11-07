@@ -6,6 +6,7 @@ import 'package:gukminexdiary/model/dailylog_model.dart';
 import 'package:gukminexdiary/model/workout_analysis_model.dart';
 import 'package:gukminexdiary/screen/video_detail_screen.dart';
 import 'package:gukminexdiary/screen/workout_analysis_screen.dart';
+import 'package:gukminexdiary/screen/weekly_pattern_analysis_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -355,6 +356,155 @@ class _DiaryScreenState extends State<DiaryScreen> {
     }
   }
 
+  // 이번 주 월요일부터 일요일까지의 날짜 리스트 가져오기
+  List<DateTime> _getWeekDates(DateTime date) {
+    // 월요일 찾기 (1 = 월요일, 7 = 일요일)
+    final weekday = date.weekday; // 1 = 월요일, 7 = 일요일
+    final monday = date.subtract(Duration(days: weekday - 1));
+    
+    List<DateTime> weekDates = [];
+    for (int i = 0; i < 7; i++) {
+      weekDates.add(monday.add(Duration(days: i)));
+    }
+    return weekDates;
+  }
+
+  // 주간 패턴 분석 실행
+  Future<void> _analyzeWeeklyPattern() async {
+    try {
+      // 로딩 다이얼로그 표시
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('이번 주 일지 불러오는 중...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // 이번 주 월요일부터 일요일까지 날짜 가져오기
+      final weekDates = _getWeekDates(_selectedDate);
+      
+      // 각 날짜별로 일지 가져오기
+      List<DailyLogModelResponse> weeklyLogs = [];
+      for (final date in weekDates) {
+        final dateStr = _formatDate(date);
+        try {
+          final log = await _dailyLogService.getDailyLogByDate(dateStr);
+          // 운동이 있는 일지만 추가
+          if (log != null && log.exercises.isNotEmpty) {
+            weeklyLogs.add(log);
+          }
+        } catch (e) {
+          // 403(권한 없음) 또는 404(일지 없음) 오류는 정상적인 경우로 간주하고 조용히 건너뜀
+          final errorMessage = e.toString();
+          if (errorMessage.contains('403') || errorMessage.contains('404')) {
+            // 해당 날짜에 일지가 없거나 권한이 없는 경우는 정상
+            continue;
+          }
+          // 다른 오류는 로그만 남기고 계속 진행
+          print('날짜 $dateStr 일지 로드 실패: $e');
+        }
+      }
+
+      // 로딩 다이얼로그 닫기
+      if (mounted) Navigator.pop(context);
+
+      // 주간 로그가 없으면 에러 메시지
+      if (weeklyLogs.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('이번 주에 분석할 운동 기록이 없습니다'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      // 다시 로딩 다이얼로그 표시
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('AI 주간 패턴 분석 중...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // 주간 패턴 분석 요청
+      final weeklyPattern = await _dailyLogService.analyzeWeeklyPattern(weeklyLogs);
+
+      // 로딩 다이얼로그 닫기
+      if (mounted) Navigator.pop(context);
+
+      // 분석 결과 화면으로 이동
+      if (mounted) {
+        if (weeklyPattern.success && weeklyPattern.aiPattern != null) {
+          // 주간 날짜 범위 문자열 생성
+          final weekDates = _getWeekDates(_selectedDate);
+          final weekStart = _formatDate(weekDates.first);
+          final weekEnd = _formatDate(weekDates.last);
+          final weekRange = '$weekStart ~ $weekEnd';
+          
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WeeklyPatternAnalysisScreen(
+                weeklyPatternResponse: weeklyPattern,
+                weekRange: weekRange,
+              ),
+            ),
+          );
+        } else {
+          // 실패한 경우 에러 메시지
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('주간 패턴 분석 실패: ${weeklyPattern.message ?? "알 수 없는 오류"}'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // 로딩 다이얼로그 닫기
+      if (mounted) Navigator.pop(context);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('주간 패턴 분석 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+
   // AI 분석 실행
   Future<void> _analyzeWorkout() async {
     if (_currentLog == null || _currentLog!.exercises.isEmpty) {
@@ -656,7 +806,8 @@ class _DiaryScreenState extends State<DiaryScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(children: [
+                          Row(
+                            children: [
                             Icon(Icons.fitness_center, size: 18, color: Colors.blue.shade700),
                             const SizedBox(width: 6),
                             Text(
@@ -668,52 +819,104 @@ class _DiaryScreenState extends State<DiaryScreen> {
                               ),
                             ),
                           ],),
-                          
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade700,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                          SizedBox(width: 10),
+                          // 주간 패턴 분석 버튼
+                          Expanded(child:
+                          InkWell(
+                            onTap: _analyzeWeeklyPattern,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [const Color.fromARGB(255, 231, 255, 231), const Color.fromARGB(255, 255, 255, 255)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),  
+                                border: Border.all(color: Colors.green.shade100),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              width: 100,
+                              height: 40,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.timeline, size: 18, color: Colors.green.shade700),
+                                  const SizedBox(width: 6),
+                                  Text('주간 분석', style: TextStyle(fontSize: 14, color: Colors.green.shade700),),
+                                ],
                               ),
                             ),
-                            onPressed: () {
+                          ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(child:
+                          InkWell(
+                            onTap: () {
                               Navigator.pushNamed(context, '/video/search/name');
                             },
-                            child: Text('운동 추가하기', style: TextStyle(fontSize: 13, color: Colors.white),),
+                            child: Container(
+                              width: 120,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [const Color.fromARGB(255, 224, 224, 255), const Color.fromARGB(255, 255, 255, 255)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),  
+                                border: Border.all(color: Colors.blue.shade200),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              height: 40,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add, size: 18, color: const Color.fromARGB(255, 31, 51, 162)),
+                                  const SizedBox(width: 6),
+                                  Text('운동 추가', style: TextStyle(fontSize: 14, color: const Color.fromARGB(255, 31, 51, 162)),),
+                                ],
+                              ),
+                            ),
+                          ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
                       if (_currentLog != null && _currentLog!.exercises.isNotEmpty)
                       // AI 분석 버튼 또는 분석지 불러오기 버튼
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _currentLog!.feedback != null 
-                              ? () => _loadFeedbackScreen()
-                              : _analyzeWorkout,
-                          icon: Icon(
-                            _currentLog!.feedback != null 
-                                ? Icons.description 
-                                : Icons.psychology, 
-                            size: 18, 
-                            color: Colors.white
-                          ),
-                          label: Text(
-                            _currentLog!.feedback != null 
-                                ? '분석지 불러오기' 
-                                : 'AI 분석하기', 
-                            style: TextStyle(fontSize: 14, color: Colors.white)
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.purple.shade600,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      InkWell(
+                        onTap: () {
+                          _currentLog!.feedback != null 
+                                    ? _loadFeedbackScreen()
+                                    : _analyzeWorkout();
+                        },
+                        child:
+                        Column(
+                          children: [
+                            Container(
+                              width: double.infinity,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [const Color.fromARGB(255, 251, 244, 253), const Color.fromARGB(255, 255, 255, 255)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),  
+                                border: Border.all(color: Colors.purple.shade100),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.psychology, size: 18, color: Colors.purple.shade700),
+                                  const SizedBox(width: 6),
+                                  _currentLog!.feedback != null 
+                                    ? Text('분석지 불러오기', style: TextStyle(fontSize: 14, color: Colors.purple.shade700),)
+                                    : Text('AI 분석하기', style: TextStyle(fontSize: 14, color: Colors.purple.shade700),),
+                                ],
+                              ),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
+                          const SizedBox(height: 8),  
+                          ],
                         ),
-                      ),
+                        )
                     ],
                   ),
                 ),

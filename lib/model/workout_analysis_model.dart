@@ -267,3 +267,327 @@ class AIFeedback {
   }
 }
 
+// 주간 패턴 분석 응답 모델
+class WeeklyPatternResponse {
+  final bool success;
+  final WeeklyPattern? aiPattern;
+  final WeeklyMetricsSummary? metricsSummary;
+  final String? model;
+  final int? recordsAnalyzed;
+  final String? message;
+
+  WeeklyPatternResponse({
+    required this.success,
+    this.aiPattern,
+    this.metricsSummary,
+    this.model,
+    this.recordsAnalyzed,
+    this.message,
+  });
+
+  factory WeeklyPatternResponse.fromJson(Map<String, dynamic> json) {
+    return WeeklyPatternResponse(
+      success: json['success'] ?? false,
+      aiPattern: json['ai_pattern'] != null
+          ? WeeklyPattern.fromJson(json['ai_pattern'])
+          : null,
+      metricsSummary: json['metrics_summary'] != null
+          ? WeeklyMetricsSummary.fromJson(json['metrics_summary'])
+          : null,
+      model: json['model'],
+      recordsAnalyzed: json['records_analyzed'],
+      message: json['message'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'ai_pattern': aiPattern?.toJson(),
+      'metrics_summary': metricsSummary?.toJson(),
+      'model': model,
+      'records_analyzed': recordsAnalyzed,
+      'message': message,
+    };
+  }
+}
+
+// 주간 메트릭스 요약 모델
+class WeeklyMetricsSummary {
+  final int weeklyWorkoutCount;
+  final int restDays;
+  final int totalMinutes;
+  final Map<String, int> intensityCounts;
+  final Map<String, int> bodyPartCounts;
+  final List<MuscleCount> topMuscles;
+
+  WeeklyMetricsSummary({
+    required this.weeklyWorkoutCount,
+    required this.restDays,
+    required this.totalMinutes,
+    required this.intensityCounts,
+    required this.bodyPartCounts,
+    required this.topMuscles,
+  });
+
+  factory WeeklyMetricsSummary.fromJson(Map<String, dynamic> json) {
+    return WeeklyMetricsSummary(
+      weeklyWorkoutCount: json['weekly_workout_count'] ?? 0,
+      restDays: json['rest_days'] ?? 0,
+      totalMinutes: json['total_minutes'] ?? 0,
+      intensityCounts: Map<String, int>.from(json['intensity_counts'] ?? {}),
+      bodyPartCounts: Map<String, int>.from(json['body_part_counts'] ?? {}),
+      topMuscles: (json['top_muscles'] as List<dynamic>?)
+              ?.map((e) => MuscleCount.fromJson(e))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'weekly_workout_count': weeklyWorkoutCount,
+      'rest_days': restDays,
+      'total_minutes': totalMinutes,
+      'intensity_counts': intensityCounts,
+      'body_part_counts': bodyPartCounts,
+      'top_muscles': topMuscles.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+// 근육 카운트 모델
+class MuscleCount {
+  final String name;
+  final int count;
+
+  MuscleCount({
+    required this.name,
+    required this.count,
+  });
+
+  factory MuscleCount.fromJson(Map<String, dynamic> json) {
+    return MuscleCount(
+      name: json['name'] ?? '',
+      count: json['count'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'count': count,
+    };
+  }
+}
+
+class WeeklyPattern {
+  final PatternAnalysis? patternAnalysis;
+  final RecommendedRoutine? recommendedRoutine;
+  final String? recoveryGuidance;
+  final List<String>? nextTargetMuscles;
+  final String? encouragement;
+
+  WeeklyPattern({
+    this.patternAnalysis,
+    this.recommendedRoutine,
+    this.recoveryGuidance,
+    this.nextTargetMuscles,
+    this.encouragement,
+  });
+
+  factory WeeklyPattern.fromJson(Map<String, dynamic> json) {
+    return WeeklyPattern(
+      patternAnalysis: json['pattern_analysis'] != null
+          ? PatternAnalysis.fromJson(json['pattern_analysis'])
+          : null,
+      recommendedRoutine: json['recommended_routine'] != null
+          ? RecommendedRoutine.fromJson(json['recommended_routine'])
+          : null,
+      recoveryGuidance: json['recovery_guidance'],
+      nextTargetMuscles: (json['next_target_muscles'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      encouragement: json['encouragement'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'pattern_analysis': patternAnalysis?.toJson(),
+      'recommended_routine': recommendedRoutine?.toJson(),
+      'recovery_guidance': recoveryGuidance,
+      'next_target_muscles': nextTargetMuscles,
+      'encouragement': encouragement,
+    };
+  }
+}
+
+class PatternAnalysis {
+  final String? consistency;
+  final String? intensityTrend;
+  final MuscleBalance? muscleBalance;
+  final String? habitObservation;
+
+  PatternAnalysis({
+    this.consistency,
+    this.intensityTrend,
+    this.muscleBalance,
+    this.habitObservation,
+  });
+
+  factory PatternAnalysis.fromJson(Map<String, dynamic> json) {
+    return PatternAnalysis(
+      consistency: json['consistency'],
+      intensityTrend: json['intensity_trend'],
+      muscleBalance: json['muscle_balance'] != null
+          ? MuscleBalance.fromJson(json['muscle_balance'])
+          : null,
+      habitObservation: json['habit_observation'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'consistency': consistency,
+      'intensity_trend': intensityTrend,
+      'muscle_balance': muscleBalance?.toJson(),
+      'habit_observation': habitObservation,
+    };
+  }
+}
+
+class MuscleBalance {
+  final List<String>? overworked;
+  final List<String>? underworked;
+  final String? comments;
+
+  MuscleBalance({
+    this.overworked,
+    this.underworked,
+    this.comments,
+  });
+
+  factory MuscleBalance.fromJson(Map<String, dynamic> json) {
+    return MuscleBalance(
+      overworked: (json['overworked'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      underworked: (json['underworked'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      comments: json['comments'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'overworked': overworked,
+      'underworked': underworked,
+      'comments': comments,
+    };
+  }
+}
+
+class RecommendedRoutine {
+  final List<String>? weeklyOverview;
+  final List<DailyDetail>? dailyDetails;
+  final String? progressionStrategy;
+
+  RecommendedRoutine({
+    this.weeklyOverview,
+    this.dailyDetails,
+    this.progressionStrategy,
+  });
+
+  factory RecommendedRoutine.fromJson(Map<String, dynamic> json) {
+    return RecommendedRoutine(
+      weeklyOverview: (json['weekly_overview'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      dailyDetails: (json['daily_details'] as List<dynamic>?)
+          ?.map((e) => DailyDetail.fromJson(e))
+          .toList(),
+      progressionStrategy: json['progression_strategy'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'weekly_overview': weeklyOverview,
+      'daily_details': dailyDetails?.map((e) => e.toJson()).toList(),
+      'progression_strategy': progressionStrategy,
+    };
+  }
+}
+
+class DailyDetail {
+  final int? day;
+  final String? focus;
+  final List<ExerciseDetail>? exercises;
+  final String? estimatedDuration;
+
+  DailyDetail({
+    this.day,
+    this.focus,
+    this.exercises,
+    this.estimatedDuration,
+  });
+
+  factory DailyDetail.fromJson(Map<String, dynamic> json) {
+    return DailyDetail(
+      day: json['day'],
+      focus: json['focus'],
+      exercises: (json['exercises'] as List<dynamic>?)
+          ?.map((e) => ExerciseDetail.fromJson(e))
+          .toList(),
+      estimatedDuration: json['estimated_duration'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'day': day,
+      'focus': focus,
+      'exercises': exercises?.map((e) => e.toJson()).toList(),
+      'estimated_duration': estimatedDuration,
+    };
+  }
+}
+
+class ExerciseDetail {
+  final String? name;
+  final String? sets;
+  final String? reps;
+  final String? rest;
+  final String? notes;
+
+  ExerciseDetail({
+    this.name,
+    this.sets,
+    this.reps,
+    this.rest,
+    this.notes,
+  });
+
+  factory ExerciseDetail.fromJson(Map<String, dynamic> json) {
+    return ExerciseDetail(
+      name: json['name'],
+      sets: json['sets'],
+      reps: json['reps'],
+      rest: json['rest'],
+      notes: json['notes'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'sets': sets,
+      'reps': reps,
+      'rest': rest,
+      'notes': notes,
+    };
+  }
+}
+

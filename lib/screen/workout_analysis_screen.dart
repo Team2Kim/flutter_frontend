@@ -378,20 +378,26 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
           // 저장된 피드백인 경우 다시 생성하기 버튼 표시
           if (widget.feedback != null && widget.logId != null) ...[
             const Spacer(),
-            ElevatedButton.icon(
-              onPressed: _isRegenerating ? null : _regenerateAnalysis,
-              icon: _isRegenerating 
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.refresh, size: 18),
-              label: const Text('다시 생성하기', style: TextStyle(fontSize: 13)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple.shade600,
-                foregroundColor: Colors.white,
+            InkWell(
+              onTap: _isRegenerating ? null : _regenerateAnalysis,
+              child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [const Color.fromARGB(255, 249, 227, 253), Colors.white],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(color: Colors.purple.shade100),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.refresh, size: 18, color: Colors.purple.shade700),
+                    const SizedBox(width: 8),
+                    Text('다시 생성하기', style: TextStyle(fontSize: 13, color: Colors.purple.shade700),), 
+                  ],
+                ),
               ),
             ),
           ],

@@ -526,30 +526,45 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                       ),
                       const Spacer(),
                       // 운동 기록 추가 버튼
-                      SizedBox(
-                        width: 100,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            AddExerciseDialog.show(context, widget.exercise);
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text('일지 추가'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                      InkWell(
+                        onTap: () {
+                          AddExerciseDialog.show(context, widget.exercise);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                            gradient: const LinearGradient(
+                              colors: [Color.fromARGB(255, 246, 251, 255), Colors.white],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
+                            border: Border.all(color: Colors.blue.shade100),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          width: 100,
+                          height: 40,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add, size: 18, color: Colors.blue.shade700),
+                              const SizedBox(width: 8),
+                              Text('일지 추가', style: TextStyle(fontSize: 13, color: Colors.blue.shade700),),
+                            ],
                           ),
                         ),
                       ),
                     ],),
                     const SizedBox(height: 16),
-                    _buildInfoRow('카테고리', widget.exercise.fitnessFactorName ?? '', Color.fromARGB(255, 255, 202, 176), Color.fromARGB(255, 255, 238, 229), false),
-                    _buildInfoRow('운동 부위', widget.exercise.muscleName ?? '', Color.fromARGB(255, 217, 255, 171), Color.fromARGB(255, 245, 255, 233), true),
-                    _buildInfoRow('대상 그룹', widget.exercise.targetGroup ?? '', Color.fromARGB(255, 179, 217, 255), Color.fromARGB(255, 229, 242, 255), false),
-                    _buildInfoRow('영상 길이', _formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), Color.fromARGB(255, 255, 255, 255), Color.fromARGB(255, 255, 255, 255), false ),
+                    _buildInfoRow('카테고리', widget.exercise.fitnessFactorName ?? '', Color.fromARGB(255, 251, 242, 237), Color.fromARGB(255, 255, 255, 255), false),
+                    _buildInfoRow('운동 부위', widget.exercise.muscleName ?? '', Color.fromARGB(255, 246, 255, 235), Color.fromARGB(255, 255, 255, 255), true),
+                    _buildInfoRow('대상 그룹', widget.exercise.targetGroup ?? '', Color.fromARGB(255, 237, 246, 255), Color.fromARGB(255, 255, 255, 255), false),
+                    _buildInfoRow('영상 길이', _formatVideoLength(widget.exercise.videoLengthSeconds ?? 0), Color.fromARGB(255, 255, 236, 236), Color.fromARGB(255, 255, 255, 255), false ),
                     const SizedBox(height: 16),
                     Container(
                       width: double.infinity,
