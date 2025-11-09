@@ -19,7 +19,9 @@ class WeeklyPatternAnalysisScreen extends StatefulWidget {
 class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScreen> with TickerProviderStateMixin {
   // 섹션 접기/펼치기 상태 (기본적으로 모두 펼쳐져 있음)
   Map<String, bool> _isSectionExpanded = {};
-  
+  late final PageController _pageController;
+  int _currentPage = 0;
+
   // 애니메이션 관련 상태
   double _patternAnalysisOpacity = 0.0;
   double _recommendedRoutineOpacity = 0.0;
@@ -29,6 +31,7 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
     // 화면이 나타난 후 애니메이션 시작
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAnimations();
@@ -66,6 +69,12 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final pattern = widget.weeklyPatternResponse.aiPattern;
     
@@ -75,6 +84,7 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
         automaticallyImplyLeading: true,
       ),
       body: Container(
+        height: MediaQuery.of(context).size.height,
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           gradient: RadialGradient(
@@ -97,28 +107,64 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                   ],
                 ),
               )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 주간 정보 카드
-                  _buildWeekInfoCard(),
-                  const SizedBox(height: 20),
-                  // 분석 내용
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white60,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
+            : Builder(
+                builder: (context) {
+                  final analysisPages = _buildAnalysisPages(pattern);
+                  final pageCount = analysisPages.length;
+
+                  if (_currentPage >= pageCount) {
+                    final targetPage = pageCount - 1;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
+                      if (_pageController.hasClients) {
+                        _pageController.jumpToPage(targetPage);
+                      }
+                      if (_currentPage != targetPage) {
+                        setState(() {
+                          _currentPage = targetPage;
+                        });
+                      }
+                    });
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildWeekInfoCard(),
+                       const SizedBox(height: 10),
+                      _buildPageIndicator(pageCount),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white60,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.grey.shade200),
+                                ),
+                                child: PageView(
+                                  controller: _pageController,
+                                  onPageChanged: (index) {
+                                    if (_currentPage != index) {
+                                      setState(() {
+                                        _currentPage = index;
+                                      });
+                                    }
+                                  },
+                                  children: analysisPages,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        child: _buildDetailedWeeklyAnalysis(pattern),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
+                      // const SizedBox(height: 28),
+                    ],
+                  );
+                },
               ),
       ),
     );
@@ -171,279 +217,356 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
   }
 
   // 주간 분석 상세 내용 구성
-  Widget _buildDetailedWeeklyAnalysis(WeeklyPattern pattern) {
+  List<Widget> _buildAnalysisPages(WeeklyPattern pattern) {
     final metrics = widget.weeklyPatternResponse.metricsSummary;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 주간 통계 요약 (기본 분석 형태)
-        if (metrics != null) ...[
-          _buildMetricsSummary(metrics),
-          const SizedBox(height: 20),
-        ],
-        
-        // 패턴 분석 - 일관성
-        if (pattern.patternAnalysis?.consistency != null)
-          AnimatedOpacity(
-            opacity: _patternAnalysisOpacity,
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            child: _buildAISection(
-              '일관성',
-              pattern.patternAnalysis!.consistency!,
-              Icons.trending_up,
-              Colors.purple,
-            ),
+
+    final firstPageChildren = <Widget>[];
+    final secondPageChildren = <Widget>[];
+
+    if (metrics != null) {
+      firstPageChildren.add(_buildMetricsSummary(metrics));
+      firstPageChildren.add(const SizedBox(height: 20));
+    }
+
+    if (pattern.patternAnalysis?.consistency != null) {
+      firstPageChildren.add(
+        AnimatedOpacity(
+          opacity: _patternAnalysisOpacity,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          child: _buildAISection(
+            '일관성',
+            pattern.patternAnalysis!.consistency!,
+            Icons.trending_up,
+            Colors.purple,
           ),
+        ),
+      );
+      firstPageChildren.add(const SizedBox(height: 5));
+    }
 
-        const SizedBox(height: 5),
-
-        // 패턴 분석 - 강도 추세
-        if (pattern.patternAnalysis?.intensityTrend != null)
-          AnimatedOpacity(
-            opacity: _patternAnalysisOpacity,
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            child: _buildAISection(
-              '강도 추세',
-              pattern.patternAnalysis!.intensityTrend!,
-              Icons.show_chart,
-              Colors.blue,
-            ),
+    if (pattern.patternAnalysis?.intensityTrend != null) {
+      firstPageChildren.add(
+        AnimatedOpacity(
+          opacity: _patternAnalysisOpacity,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          child: _buildAISection(
+            '강도 추세',
+            pattern.patternAnalysis!.intensityTrend!,
+            Icons.show_chart,
+            Colors.blue,
           ),
+        ),
+      );
+      firstPageChildren.add(const SizedBox(height: 5));
+    }
 
-        const SizedBox(height: 5),
-
-        // 과로근/미활용근
-        if (pattern.patternAnalysis?.muscleBalance != null &&
-            ((pattern.patternAnalysis!.muscleBalance!.overworked != null &&
+    if (pattern.patternAnalysis?.muscleBalance != null &&
+        ((pattern.patternAnalysis!.muscleBalance!.overworked != null &&
                 pattern.patternAnalysis!.muscleBalance!.overworked!.isNotEmpty) ||
-             (pattern.patternAnalysis!.muscleBalance!.underworked != null &&
-                pattern.patternAnalysis!.muscleBalance!.underworked!.isNotEmpty)))
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white60,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '과로근',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
-                        ),
+            (pattern.patternAnalysis!.muscleBalance!.underworked != null &&
+                pattern.patternAnalysis!.muscleBalance!.underworked!.isNotEmpty))) {
+      firstPageChildren.add(
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white60,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '과로근',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade800,
                       ),
-                      const SizedBox(height: 8),
-                      if (pattern.patternAnalysis!.muscleBalance!.overworked != null &&
-                          pattern.patternAnalysis!.muscleBalance!.overworked!.isNotEmpty)
-                        Wrap(
-                          children: [
-                            for (var muscle in pattern.patternAnalysis!.muscleBalance!.overworked!) ...[
-                              Container(
-                                padding: const EdgeInsets.all(5),
-                                margin: const EdgeInsets.only(right: 5, bottom: 5),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade100,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(muscle),
+                    ),
+                    const SizedBox(height: 8),
+                    if (pattern.patternAnalysis!.muscleBalance!.overworked != null &&
+                        pattern.patternAnalysis!.muscleBalance!.overworked!.isNotEmpty)
+                      Wrap(
+                        children: [
+                          for (var muscle in pattern.patternAnalysis!.muscleBalance!.overworked!) ...[
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              margin: const EdgeInsets.only(right: 5, bottom: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade100,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ]
-                          ],
-                        )
-                      else
-                        Text(
-                          '없음',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white60,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                              child: Text(muscle),
+                            ),
+                          ]
+                        ],
+                      )
+                    else
                       Text(
-                        '미활용근',
+                        '없음',
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      if (pattern.patternAnalysis!.muscleBalance!.underworked != null &&
-                          pattern.patternAnalysis!.muscleBalance!.underworked!.isNotEmpty)
-                        Wrap(
-                          children: [
-                            for (var muscle in pattern.patternAnalysis!.muscleBalance!.underworked!) ...[
-                              Container(
-                                padding: const EdgeInsets.all(5),
-                                margin: const EdgeInsets.only(right: 5, bottom: 5),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade100,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(muscle),
-                              )
-                            ]
-                          ],
-                        )
-                      else
-                        Text(
-                          '없음',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
-                          ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white60,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '미활용근',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (pattern.patternAnalysis!.muscleBalance!.underworked != null &&
+                        pattern.patternAnalysis!.muscleBalance!.underworked!.isNotEmpty)
+                      Wrap(
+                        children: [
+                          for (var muscle in pattern.patternAnalysis!.muscleBalance!.underworked!) ...[
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              margin: const EdgeInsets.only(right: 5, bottom: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade100,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(muscle),
+                            )
+                          ]
+                        ],
+                      )
+                    else
+                      Text(
+                        '없음',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
                         ),
-                    ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+      firstPageChildren.add(const SizedBox(height: 5));
+    }
+
+    if (pattern.patternAnalysis?.muscleBalance?.comments != null) {
+      firstPageChildren.add(
+        AnimatedOpacity(
+          opacity: _patternAnalysisOpacity,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          child: _buildAISection(
+            '근육 균형',
+            pattern.patternAnalysis!.muscleBalance!.comments!,
+            Icons.balance,
+            Colors.orange,
+          ),
+        ),
+      );
+      firstPageChildren.add(const SizedBox(height: 5));
+    }
+
+    if (pattern.patternAnalysis?.habitObservation != null) {
+      firstPageChildren.add(
+        AnimatedOpacity(
+          opacity: _patternAnalysisOpacity,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          child: _buildAISection(
+            '습관 관찰',
+            pattern.patternAnalysis!.habitObservation!,
+            Icons.visibility_outlined,
+            Colors.teal,
+          ),
+        ),
+      );
+      firstPageChildren.add(const SizedBox(height: 5));
+    }
+
+    if (pattern.recommendedRoutine?.weeklyOverview != null &&
+        pattern.recommendedRoutine!.weeklyOverview!.isNotEmpty) {
+      secondPageChildren.add(
+        AnimatedOpacity(
+          opacity: _recommendedRoutineOpacity,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          child: _buildListSection(
+            '주간 개요',
+            pattern.recommendedRoutine!.weeklyOverview!,
+            Icons.calendar_view_week,
+            Colors.orange,
+          ),
+        ),
+      );
+      secondPageChildren.add(const SizedBox(height: 5));
+    }
+
+    if (pattern.recommendedRoutine?.dailyDetails != null &&
+        pattern.recommendedRoutine!.dailyDetails!.isNotEmpty) {
+      secondPageChildren.addAll(
+        pattern.recommendedRoutine!.dailyDetails!.map(
+          (detail) => Padding(
+            padding: const EdgeInsets.only(bottom: 5),
+            child: AnimatedOpacity(
+              opacity: _recommendedRoutineOpacity,
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeInOut,
+              child: _buildDailyDetailSection(detail),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (pattern.recommendedRoutine?.progressionStrategy != null) {
+      secondPageChildren.add(const SizedBox(height: 5));
+      secondPageChildren.add(
+        AnimatedOpacity(
+          opacity: _recommendedRoutineOpacity,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          child: _buildAISection(
+            '진행 전략',
+            pattern.recommendedRoutine!.progressionStrategy!,
+            Icons.timeline,
+            Colors.orange,
+          ),
+        ),
+      );
+    }
+
+    if (pattern.recoveryGuidance != null) {
+      secondPageChildren.add(const SizedBox(height: 5));
+      secondPageChildren.add(
+        AnimatedOpacity(
+          opacity: _recoveryGuidanceOpacity,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          child: _buildAISection(
+            '회복 가이드',
+            pattern.recoveryGuidance!,
+            Icons.healing,
+            Colors.teal,
+          ),
+        ),
+      );
+    }
+
+    if (pattern.encouragement != null) {
+      secondPageChildren.add(const SizedBox(height: 5));
+      secondPageChildren.add(
+        AnimatedOpacity(
+          opacity: _encouragementOpacity,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          child: _buildAISection(
+            '격려 메시지',
+            pattern.encouragement!,
+            Icons.favorite,
+            Colors.pink,
+          ),
+        ),
+      );
+    }
+
+    if (pattern.nextTargetMuscles != null && pattern.nextTargetMuscles!.isNotEmpty) {
+      secondPageChildren.add(const SizedBox(height: 5));
+      secondPageChildren.add(
+        _buildNextTargetMusclesSection(pattern.nextTargetMuscles!),
+      );
+    }
+
+    final pages = <Widget>[
+      _buildScrollablePage(firstPageChildren),
+    ];
+
+    if (secondPageChildren.isNotEmpty) {
+      pages.add(_buildScrollablePage(secondPageChildren));
+    }
+
+    return pages;
+  }
+
+  Widget _buildScrollablePage(List<Widget> children) {
+    final effectiveChildren = children.isNotEmpty
+        ? children
+        : [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Text(
+                  '표시할 내용이 없습니다.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-            ],
-          ),
-
-        const SizedBox(height: 5),
-
-        // 패턴 분석 - 근육 균형 코멘트
-        if (pattern.patternAnalysis?.muscleBalance?.comments != null)
-          AnimatedOpacity(
-            opacity: _patternAnalysisOpacity,
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            child: _buildAISection(
-              '근육 균형',
-              pattern.patternAnalysis!.muscleBalance!.comments!,
-              Icons.balance,
-              Colors.orange,
             ),
-          ),
+          ];
 
-        const SizedBox(height: 5),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...effectiveChildren,
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
 
-        // 패턴 분석 - 습관 관찰
-        if (pattern.patternAnalysis?.habitObservation != null)
-          AnimatedOpacity(
-            opacity: _patternAnalysisOpacity,
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            child: _buildAISection(
-              '습관 관찰',
-              pattern.patternAnalysis!.habitObservation!,
-              Icons.visibility_outlined,
-              Colors.teal,
-            ),
-          ),
+  Widget _buildPageIndicator(int pageCount) {
+    if (pageCount <= 1) {
+      return const SizedBox.shrink();
+    }
 
-        const SizedBox(height: 5),
-
-        // 추천 루틴 - 주간 개요
-        if (pattern.recommendedRoutine?.weeklyOverview != null &&
-            pattern.recommendedRoutine!.weeklyOverview!.isNotEmpty)
-          AnimatedOpacity(
-            opacity: _recommendedRoutineOpacity,
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            child: _buildListSection(
-              '주간 개요',
-              pattern.recommendedRoutine!.weeklyOverview!,
-              Icons.calendar_view_week,
-              Colors.orange,
-            ),
-          ),
-
-        const SizedBox(height: 5),
-
-        // 추천 루틴 - 일별 상세
-        if (pattern.recommendedRoutine?.dailyDetails != null &&
-            pattern.recommendedRoutine!.dailyDetails!.isNotEmpty)
-          ...pattern.recommendedRoutine!.dailyDetails!.map((detail) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: AnimatedOpacity(
-                opacity: _recommendedRoutineOpacity,
-                duration: const Duration(milliseconds: 600),
-                curve: Curves.easeInOut,
-                child: _buildDailyDetailSection(detail),
+    return Column(children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(pageCount, (index) {
+            final isActive = index == _currentPage;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              height: 8,
+              width: isActive ? 20 : 8,
+              decoration: BoxDecoration(
+                color: isActive ? Colors.blueAccent : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(4),
               ),
             );
           }),
-
-        const SizedBox(height: 5),
-
-        // 추천 루틴 - 진행 전략
-        if (pattern.recommendedRoutine?.progressionStrategy != null)
-          AnimatedOpacity(
-            opacity: _recommendedRoutineOpacity,
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            child: _buildAISection(
-              '진행 전략',
-              pattern.recommendedRoutine!.progressionStrategy!,
-              Icons.timeline,
-              Colors.orange,
-            ),
-          ),
-
-        const SizedBox(height: 5),
-
-        // 회복 가이드
-        if (pattern.recoveryGuidance != null)
-          AnimatedOpacity(
-            opacity: _recoveryGuidanceOpacity,
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            child: _buildAISection(
-              '회복 가이드',
-              pattern.recoveryGuidance!,
-              Icons.healing,
-              Colors.teal,
-            ),
-          ),
-
-        const SizedBox(height: 5),
-
-        // 격려 메시지
-        if (pattern.encouragement != null)
-          AnimatedOpacity(
-            opacity: _encouragementOpacity,
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            child: _buildAISection(
-              '격려 메시지',
-              pattern.encouragement!,
-              Icons.favorite,
-              Colors.pink,
-            ),
-          ),
-
-        const SizedBox(height: 5),
-
-        // 다음 타겟 근육
-        if (pattern.nextTargetMuscles != null && pattern.nextTargetMuscles!.isNotEmpty)
-          _buildNextTargetMusclesSection(pattern.nextTargetMuscles!),
+        ),
+        SizedBox(height: 5),
+        Text(_currentPage == 0 ? "운동 패턴 분석" : "추천 루틴", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
       ],
     );
   }
@@ -710,6 +833,7 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                       child: SingleChildScrollView(
                         controller: scrollController,
                         child: Container(
+                          width: double.infinity,
                           constraints: const BoxConstraints(minHeight: 100, maxHeight: 300),
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
@@ -890,19 +1014,24 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
         // 상위 근육
         if (metrics.topMuscles.isNotEmpty)
           _buildSection('자주 운동한 근육', [
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: metrics.topMuscles.map((muscle) {
-                return Chip(
-                  label: Text('${muscle.name} (${muscle.count}회)'),
-                  labelStyle: const TextStyle(fontSize: 12),
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                  backgroundColor: Colors.blue.shade50,
-                );
-              }).toList(),
-            ),
+            Container(
+              height: 80,
+                child: SingleChildScrollView(
+                  child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: metrics.topMuscles.map((muscle) {
+                    return Chip(
+                      label: Text('${muscle.name} (${muscle.count}회)'),
+                      labelStyle: const TextStyle(fontSize: 12),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: Colors.blue.shade50,
+                    );
+                  }).toList(),
+                )
+              ),
+            )
           ], Icons.fitness_center),
       ],
     );

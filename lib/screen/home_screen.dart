@@ -1,12 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:gukminexdiary/widget/custom_appbar.dart';
-import 'package:gukminexdiary/widget/custom_drawer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gukminexdiary/data/muscle_data.dart';
-import 'package:gukminexdiary/services/exercise_service.dart';
 import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/screen/video_detail_screen.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:gukminexdiary/services/exercise_service.dart';
+import 'package:gukminexdiary/services/recommendation_service.dart';
+import 'package:gukminexdiary/widget/custom_appbar.dart';
+import 'package:gukminexdiary/widget/custom_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,10 +21,25 @@ class _HomeScreenState extends State<HomeScreen> {
   List<ExerciseModelResponse> _randomExercises = [];
   bool _isLoadingRandom = false;
 
+  List<ExerciseModelResponse> _recommendedExercises = [];
+  bool _isLoadingRecommended = false;
+  String? _recommendationError;
+
+  late final PageController _pageController;
+  int _currentPage = 0;
+
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
     _loadRandomMuscleExercises();
+    _loadRecommendations();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadRandomMuscleExercises() async {
@@ -49,16 +65,51 @@ class _HomeScreenState extends State<HomeScreen> {
       final exerciseService = ExerciseService();
       final exercises = await exerciseService.getExercisesByMuscle([_randomMuscleName!], 0, 5);
       
+      if (!mounted) return;
       setState(() {
         _randomExercises = exercises;
         _isLoadingRandom = false;
       });
     } catch (e) {
       print('랜덤 근육 운동 로드 실패: $e');
+      if (!mounted) return;
       setState(() {
         _isLoadingRandom = false;
       });
     }
+  }
+
+  Future<void> _loadRecommendations() async {
+    setState(() {
+      _isLoadingRecommended = true;
+      _recommendationError = null;
+    });
+
+    try {
+      final recommendationService = RecommendationService();
+      final exercises = await recommendationService.fetchRecommendationList(count: 5);
+      if (!mounted) return;
+      setState(() {
+        _recommendedExercises = exercises;
+        _isLoadingRecommended = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingRecommended = false;
+        _recommendationError = e.toString();
+      });
+    }
+  }
+
+  String _currentPageTitle() {
+    if (_currentPage == 0) {
+      if (_randomMuscleName != null) {
+        return '오늘 ${_randomMuscleName} 운동 5가지는 어떤가요?';
+      }
+      return '오늘의 근육별 추천 운동';
+    }
+    return '나를 위한 AI 맞춤 운동 5가지';
   }
 
   @override
@@ -81,54 +132,109 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            // 랜덤 근육 운동 추천 섹션
             Container(
               width: double.infinity,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_randomMuscleName != null)
-                    Text(
-                      '오늘 ${_randomMuscleName} 운동 5가지는 어떤가요?',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.blue.shade100, const Color.fromARGB(0, 255, 255, 255)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Text(
+                        _currentPageTitle(),
+                          style: const TextStyle(
+                            fontSize: 14, 
+                            fontWeight: FontWeight.bold, 
+                            color: Colors.black87,
+                          ),
+                        ),
                       ),
-                    )
-                  else
-                    const Text(
-                      '오늘의 추천 운동',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                       Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(2, (index) {
+                          final isActive = _currentPage == index;
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            height: 8,
+                            width: isActive ? 20 : 8,
+                            decoration: BoxDecoration(
+                              color: isActive ? Colors.blueAccent : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          );
+                        }),
                       ),
-                    ),
-                  const SizedBox(height: 12),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    height: 180,
-                    child: _isLoadingRandom
-                        ? const Center(child: CircularProgressIndicator())
-                        : _randomExercises.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  '운동을 불러올 수 없습니다',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  SizedBox(
+                    height: 200,
+                    width: double.infinity,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: PageView(
+                              physics: const NeverScrollableScrollPhysics(),
+                              controller: _pageController,
+                              onPageChanged: (index) {
+                                setState(() {
+                                  _currentPage = index;
+                                });
+                              },
+                              children: [
+                                _buildExerciseListPage(
+                                  isLoading: _isLoadingRandom,
+                                  exercises: _randomExercises,
+                                  emptyMessage: '운동을 불러올 수 없습니다',
                                 ),
-                              )
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: _randomExercises.length,
-                                itemBuilder: (context, index) {
-                                  final exercise = _randomExercises[index];
-                                  return _buildExerciseCard(exercise);
-                                },
+                                _buildExerciseListPage(
+                                  isLoading: _isLoadingRecommended,
+                                  exercises: _recommendedExercises,
+                                  emptyMessage: _recommendationError ?? '추천 결과가 없습니다',
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_currentPage > 0)
+                          Positioned(
+                            left: 8,
+                            top: 0,
+                            bottom: 0,
+                            child: Center(
+                              child: _buildNavButton(
+                                icon: Icons.chevron_left,
+                                onTap: () => _animateToPage(_currentPage - 1),
                               ),
+                            ),
+                          ),
+                        if (_currentPage < 1)
+                          Positioned(
+                            right: 8,
+                            top: 0,
+                            bottom: 0,
+                            child: Center(
+                              child: _buildNavButton(
+                                icon: Icons.chevron_right,
+                                onTap: () => _animateToPage(_currentPage + 1),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -306,6 +412,81 @@ class _HomeScreenState extends State<HomeScreen> {
             Image.asset('assets/images/main_logo.png', width: 100, height: 100),
           ],
         )
+      ),
+    );
+  }
+
+  Widget _buildExerciseListPage({
+    required bool isLoading,
+    required List<ExerciseModelResponse> exercises,
+    required String emptyMessage,
+  }) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (exercises.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            emptyMessage,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: exercises.length,
+      padding: const EdgeInsets.only(bottom: 8),
+      itemBuilder: (context, index) {
+        final exercise = exercises[index];
+        return _buildExerciseCard(exercise);
+      },
+    );
+  }
+
+  void _animateToPage(int targetPage) {
+    final nextPage = targetPage < 0
+        ? 0
+        : targetPage > 1
+            ? 1
+            : targetPage;
+
+    if (!_pageController.hasClients || nextPage == _currentPage) return;
+
+    setState(() {
+      _currentPage = nextPage;
+    });
+
+    _pageController.animateToPage(
+      nextPage,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  Widget _buildNavButton({required IconData icon, required VoidCallback onTap}) {
+    return Material(
+      color: Colors.black.withOpacity(0.3),
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            icon,
+            size: 18,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
