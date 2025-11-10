@@ -152,6 +152,16 @@ class _VideoCardState extends State<VideoCard> {
                                     ),
                                   ],
                                 ),
+                                Container(
+                                  width: 150,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Text(
+                                      widget.exercise.standardTitle ?? '', 
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500,), 
+                                      textAlign: TextAlign.end,),
+                                  ),
+                                ),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [

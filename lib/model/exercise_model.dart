@@ -4,6 +4,7 @@ class ExerciseModelResponse {
   final String? description;
   final String? trainingName;
   final String? targetGroup;
+  final String? standardTitle;
   final String? fitnessFactorName;
   final String? fitnessLevelName;
   final String? bodyPart;
@@ -32,6 +33,7 @@ class ExerciseModelResponse {
     required this.title,
     this.description,
     this.trainingName,
+    this.standardTitle,
     this.targetGroup,
     this.fitnessFactorName,
     this.fitnessLevelName,
@@ -87,6 +89,7 @@ class ExerciseModelResponse {
       description: json['description'],
       trainingName: json['trainingName'],
       targetGroup: json['targetGroup'],
+      standardTitle: json['standardTitle'],
       fitnessFactorName: json['fitnessFactorName'],
       fitnessLevelName: json['fitnessLevelName'],
       bodyPart: json['bodyPart'],
@@ -119,6 +122,7 @@ class ExerciseModelResponse {
       'description': description,
       'trainingName': trainingName,
       'targetGroup': targetGroup,
+      'standardTitle': standardTitle,
       'fitnessFactorName': fitnessFactorName,
       'fitnessLevelName': fitnessLevelName,
       'bodyPart': bodyPart,
