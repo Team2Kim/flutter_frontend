@@ -35,6 +35,7 @@ class RecommendationService {
       }
 
       final decoded = jsonDecode(response.body);
+      print(decoded);
       return RecommendationResponse.fromJson(decoded);
     } else if (response.statusCode == 401) {
       throw Exception('인증에 실패했습니다. 다시 로그인해주세요.');

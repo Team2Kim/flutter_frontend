@@ -15,6 +15,14 @@ class DailyLogService {
     return muscleName.split(',').map((m) => m.trim()).where((m) => m.isNotEmpty).toList();
   }
 
+  String _normalizeIntensity(String? intensity) {
+    const allowed = {'상', '중', '하'};
+    if (intensity != null && allowed.contains(intensity)) {
+      return intensity;
+    }
+    return '중';
+  }
+
   // 헤더에 토큰 추가하는 헬퍼 메서드
   Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
@@ -33,7 +41,7 @@ class DailyLogService {
         Uri.parse('$_baseUrl/by-date?date=$date'),
         headers: headers,
       );
-  
+      print(response.body);
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = jsonDecode(utf8.decode(response.bodyBytes));
         final log = DailyLogModelResponse.fromJson(jsonData);
@@ -385,34 +393,37 @@ class DailyLogService {
     try {
       final headers = await _getHeaders();
 
-      // DailyLogModelResponse 리스트를 API 요청 형태로 변환
-      final weeklyLogsJson = weeklyLogs.map((log) {
+      // 엔드포인트 사양에 맞춰 최대 7개의 일지를 변환
+      final limitedLogs = weeklyLogs.take(7).toList();
+      final weeklyLogsJson = limitedLogs.map((log) {
+        final exercises = (log.exercises).map((exercise) {
+          final exerciseInfo = exercise.exercise;
+          final muscles = _parseMusclesToList(exerciseInfo.muscleName);
+
+          final exerciseMap = <String, dynamic>{
+            if (exerciseInfo.title.isNotEmpty) 'title': exerciseInfo.title,
+            'muscles': muscles,
+            if (exerciseInfo.bodyPart != null && exerciseInfo.bodyPart!.isNotEmpty)
+              'bodyPart': exerciseInfo.bodyPart,
+            if (exerciseInfo.exerciseTool != null && exerciseInfo.exerciseTool!.isNotEmpty)
+              'exerciseTool': exerciseInfo.exerciseTool,
+            if (exerciseInfo.description != null && exerciseInfo.description!.isNotEmpty)
+              'description': exerciseInfo.description,
+            if (exerciseInfo.trainingName != null && exerciseInfo.trainingName!.isNotEmpty)
+              'trainingName': exerciseInfo.trainingName,
+          };
+
+          return {
+            'exercise': exerciseMap,
+            'intensity': _normalizeIntensity(exercise.intensity),
+            'exerciseTime': exercise.exerciseTime,
+          };
+        }).toList();
+
         return {
-          'logId': log.logId,
           'date': log.date,
-          'memo': log.memo,
-          'exercises': log.exercises.map((exercise) {
-            // muscleName을 배열로 변환
-            final muscles = _parseMusclesToList(exercise.exercise.muscleName);
-            
-            return {
-              'logExerciseId': exercise.logExerciseId,
-              'exercise': {
-                'exerciseId': exercise.exercise.exerciseId,
-                'title': exercise.exercise.title,
-                'muscles': muscles,
-                'videoUrl': exercise.exercise.videoUrl,
-                'trainingName': exercise.exercise.trainingName,
-                'exerciseTool': exercise.exercise.exerciseTool,
-                'targetGroup': exercise.exercise.targetGroup,
-                'fitnessFactorName': exercise.exercise.fitnessFactorName,
-                'fitnessLevelName': exercise.exercise.fitnessLevelName,
-                'trainingPlaceName': exercise.exercise.trainingPlaceName,
-              },
-              'intensity': exercise.intensity,
-              'exerciseTime': exercise.exerciseTime,
-            };
-          }).toList(),
+          if (log.memo != null && log.memo!.trim().isNotEmpty) 'memo': log.memo,
+          'exercises': exercises,
         };
       }).toList();
 
@@ -421,8 +432,13 @@ class DailyLogService {
       };
 
       final weeklyPatternUrl = '${ApiConfig.workoutLogEndpoint}/weekly-pattern';
+      final uri = Uri.parse(weeklyPatternUrl).replace(
+        queryParameters: {
+          'model': model,
+        },
+      );
       final response = await http.post(
-        Uri.parse('$weeklyPatternUrl?model=$model'),
+        uri,
         headers: headers,
         body: jsonEncode(requestBody),
       );

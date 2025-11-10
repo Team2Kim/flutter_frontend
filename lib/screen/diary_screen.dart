@@ -366,6 +366,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
     for (int i = 0; i < 7; i++) {
       weekDates.add(monday.add(Duration(days: i)));
     }
+    print(weekDates);
     return weekDates;
   }
 
@@ -457,7 +458,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
 
       // 주간 패턴 분석 요청
       final weeklyPattern = await _dailyLogService.analyzeWeeklyPattern(weeklyLogs);
-
+      
       // 로딩 다이얼로그 닫기
       if (mounted) Navigator.pop(context);
 
@@ -481,6 +482,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
           );
         } else {
           // 실패한 경우 에러 메시지
+          print(weeklyPattern.toJson());
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('주간 패턴 분석 실패: ${weeklyPattern.message ?? "알 수 없는 오류"}'),

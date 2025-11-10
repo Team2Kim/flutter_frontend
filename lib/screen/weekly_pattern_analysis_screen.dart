@@ -941,7 +941,7 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
             ),
             SizedBox(width: 10),
             Expanded(child:
-            _buildStatCard('휴식일', '${7-metrics.restDays}일', Icons.restaurant),
+            _buildStatCard('휴식일', '${metrics.restDays}일', Icons.restaurant),
             ),
             SizedBox(width: 10),
             Expanded(child:
