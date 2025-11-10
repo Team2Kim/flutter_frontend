@@ -13,5 +13,6 @@ class ApiConfig {
   static const String bookmarkEndpoint = '$baseUrl/bookmarks';
   static const String journalsEndpoint = '$baseUrl/journals';
   static const String recommendationEndpoint = '$baseUrl/recommendations';
+  static const String userProfileEndpoint = '$baseUrl/users/profile';
   static const String workoutLogEndpoint = '$baseUrl2/workout-log';
 }
