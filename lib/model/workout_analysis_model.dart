@@ -556,37 +556,106 @@ class DailyDetail {
 }
 
 class ExerciseDetail {
+  final int? exerciseId;
   final String? name;
+  final String? title;
   final String? sets;
   final String? reps;
   final String? rest;
   final String? notes;
+  final String? videoUrl;
+  final String? bodyPart;
+  final String? exerciseTool;
+  final String? description;
+  final String? targetGroup;
+  final String? standardTitle;
+  final String? fitnessLevelName;
+  final String? fitnessFactorName;
+  final String? imageUrl;
+  final String? imageFileName;
+  final int? videoLengthSeconds;
+  final String? muscleName;
 
   ExerciseDetail({
+    this.exerciseId,
     this.name,
+    this.title,
     this.sets,
     this.reps,
     this.rest,
     this.notes,
+    this.videoUrl,
+    this.bodyPart,
+    this.exerciseTool,
+    this.description,
+    this.targetGroup,
+    this.standardTitle,
+    this.fitnessLevelName,
+    this.fitnessFactorName,
+    this.imageUrl,
+    this.imageFileName,
+    this.videoLengthSeconds,
+    this.muscleName,
   });
 
   factory ExerciseDetail.fromJson(Map<String, dynamic> json) {
+    String? parsedMuscleName;
+    final rawMuscleData = json['muscle_name'] ?? json['muscles'];
+    if (rawMuscleData is List) {
+      parsedMuscleName = rawMuscleData.map((muscle) {
+        if (muscle is Map && muscle['name'] != null) {
+          return muscle['name'].toString();
+        }
+        return muscle.toString();
+      }).where((name) => name.isNotEmpty).join(',');
+    } else if (rawMuscleData is String) {
+      parsedMuscleName = rawMuscleData;
+    }
+
     return ExerciseDetail(
+      exerciseId: json['exercise_id'],
       name: json['name'],
+      title: json['title'],
       sets: json['sets'],
       reps: json['reps'],
       rest: json['rest'],
       notes: json['notes'],
+      videoUrl: json['video_url'],
+      bodyPart: json['body_part'],
+      exerciseTool: json['exercise_tool'],
+      description: json['description'],
+      targetGroup: json['target_group'],
+      standardTitle: json['standard_title'],
+      fitnessLevelName: json['fitness_level_name'],
+      fitnessFactorName: json['fitness_factor_name'],
+      imageUrl: json['image_url'],
+      imageFileName: json['image_file_name'],
+      videoLengthSeconds: json['video_length_seconds'],
+      muscleName: parsedMuscleName,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'exercise_id': exerciseId,
       'name': name,
+      'title': title,
       'sets': sets,
       'reps': reps,
       'rest': rest,
       'notes': notes,
+      'video_url': videoUrl,
+      'body_part': bodyPart,
+      'exercise_tool': exerciseTool,
+      'description': description,
+      'target_group': targetGroup,
+      'standard_title': standardTitle,
+      'fitness_level_name': fitnessLevelName,
+      'fitness_factor_name': fitnessFactorName,
+      'image_url': imageUrl,
+      'image_file_name': imageFileName,
+      'video_length_seconds': videoLengthSeconds,
+      'muscle_name': muscleName,
     };
   }
 }

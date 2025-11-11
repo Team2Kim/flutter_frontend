@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/model/workout_analysis_model.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
+import 'package:gukminexdiary/widget/video_card.dart';
 
 class WeeklyPatternAnalysisScreen extends StatefulWidget {
   final WeeklyPatternResponse weeklyPatternResponse;
@@ -754,26 +756,9 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
   Widget _buildDailyDetailSection(DailyDetail detail) {
     final title = 'Day ${detail.day ?? ""}${detail.focus != null ? " - ${detail.focus!}" : ""}';
     final isExpanded = _isSectionExpanded[title] ?? true;
-    final ScrollController scrollController = ScrollController();
-    
-    // 일별 상세 내용 구성
-    String content = '';
-    if (detail.exercises != null && detail.exercises!.isNotEmpty) {
-      for (var exercise in detail.exercises!) {
-        content += '• ${exercise.name ?? ""}';
-        if (exercise.sets != null) content += ' (${exercise.sets}세트)';
-        if (exercise.reps != null) content += ' ${exercise.reps}회';
-        if (exercise.rest != null) content += ' 휴식: ${exercise.rest}';
-        content += '\n';
-        if (exercise.notes != null && exercise.notes!.isNotEmpty) {
-          content += '  ${exercise.notes!}\n';
-        }
-      }
-    }
-    if (detail.estimatedDuration != null) {
-      content += '\n예상 소요 시간: ${detail.estimatedDuration}';
-    }
-    
+    final exercises = detail.exercises ?? [];
+    final hasExercises = exercises.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -821,38 +806,49 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
         AnimatedSize(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          child: isExpanded && content.isNotEmpty
+          child: isExpanded
               ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 6),
-                    Scrollbar(
-                      thickness: 10,
-                      thumbVisibility: true,
-                      trackVisibility: true,
-                      controller: scrollController,
-                      child: SingleChildScrollView(
-                        controller: scrollController,
-                        child: Container(
-                          width: double.infinity,
-                          constraints: const BoxConstraints(minHeight: 100, maxHeight: 300),
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.white60,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.orange.withOpacity(0.2)),
-                          ),
-                          child: SelectableText(
-                            content.trim(),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              height: 1.6,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w600,
-                            ),
+                    const SizedBox(height: 10),
+                    if (detail.estimatedDuration != null && detail.estimatedDuration!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, bottom: 12),
+                        child: _buildRoutineMetaChip(
+                          icon: Icons.timer_outlined,
+                          label: '예상 소요 시간',
+                          value: detail.estimatedDuration!,
+                        ),
+                      ),
+                    if (hasExercises)
+                      Column(
+                        children: exercises.map((exercise) {
+                          final exerciseModel = _mapExerciseDetailToModel(exercise);
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: VideoCard(exercise: exerciseModel),
+                          );
+                        }).toList(),
+                      )
+                    else
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.orange.withOpacity(0.2)),
+                        ),
+                        child: const Text(
+                          '추천 운동이 없습니다.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black54,
                           ),
                         ),
                       ),
-                    ),
                   ],
                 )
               : const SizedBox.shrink(),
@@ -861,6 +857,70 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
     );
   }
 
+  Widget _buildRoutineMetaChip({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.orange.withOpacity(0.12), Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.orange.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.orange.shade700),
+          const SizedBox(width: 8),
+          Text(
+            '$label · $value',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.orange.shade700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  ExerciseModelResponse _mapExerciseDetailToModel(ExerciseDetail exercise) {
+    // title 우선순위: title > standardTitle > name
+    final title = exercise.title ?? 
+                  exercise.standardTitle ?? 
+                  exercise.name ?? 
+                  '추천 운동';
+    
+    // exerciseId가 유효한 경우(0이 아닌 경우) videoUrl을 null로 설정
+    // 이렇게 하면 VideoDetailScreen에서 exerciseId로 올바른 운동 정보를 조회할 수 있음
+    final videoUrl = (exercise.exerciseId != null && exercise.exerciseId! > 0) 
+        ? null  // exerciseId가 유효하면 videoUrl 무시 (올바른 정보를 조회하기 위해)
+        : exercise.videoUrl;  // exerciseId가 없거나 0이면 videoUrl 사용
+    
+    return ExerciseModelResponse(
+      exerciseId: exercise.exerciseId ?? 0,
+      title: title,
+      description: exercise.description,
+      targetGroup: exercise.targetGroup,
+      standardTitle: exercise.standardTitle,
+      fitnessFactorName: exercise.fitnessFactorName,
+      fitnessLevelName: exercise.fitnessLevelName,
+      bodyPart: exercise.bodyPart,
+      muscleName: exercise.muscleName,
+      exerciseTool: exercise.exerciseTool,
+      videoLengthSeconds: exercise.videoLengthSeconds,
+      imageUrl: exercise.imageUrl,
+      imageFileName: exercise.imageFileName,
+      videoUrl: videoUrl,
+    );
+  }
 
   Widget _buildNextTargetMusclesSection(List<String> nextTargetMuscles) {
     return Container(

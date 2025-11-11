@@ -18,7 +18,6 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
   VideoPlayerController? _controller;
   bool _isVideoInitialized = false;
   bool _isFullScreen = false;
-  bool _isMuted = false;
 
   @override
   void initState() {
@@ -58,10 +57,8 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
     setState(() {
       if (volume == 0.0) {
         _controller!.setVolume(0.0);
-        _isMuted = true;
       } else {
         _controller!.setVolume(volume);
-        _isMuted = false;
       }
     });
   }
@@ -297,6 +294,7 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool canLogExercise = widget.exercise.exerciseId > 0;
     return Scaffold(
       appBar: _isFullScreen ? null : CustomAppbar(
         title: '운동 영상',
@@ -525,40 +523,63 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                         ),)
                       ),
                       const Spacer(),
-                      // 운동 기록 추가 버튼
-                      InkWell(
-                        onTap: () {
-                          AddExerciseDialog.show(context, widget.exercise);
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
+                      if (canLogExercise)
+                        InkWell(
+                          onTap: () {
+                            AddExerciseDialog.show(context, widget.exercise);
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                              gradient: const LinearGradient(
+                                colors: [Color.fromARGB(255, 246, 251, 255), Colors.white],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
-                            ],
-                            gradient: const LinearGradient(
-                              colors: [Color.fromARGB(255, 246, 251, 255), Colors.white],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                              border: Border.all(color: Colors.blue.shade100),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            border: Border.all(color: Colors.blue.shade100),
+                            width: 100,
+                            height: 40,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add, size: 18, color: Colors.blue.shade700),
+                                const SizedBox(width: 8),
+                                Text('일지 추가', style: TextStyle(fontSize: 13, color: Colors.blue.shade700),),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          width: 100,
-                          height: 40,
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.add, size: 18, color: Colors.blue.shade700),
-                              const SizedBox(width: 8),
-                              Text('일지 추가', style: TextStyle(fontSize: 13, color: Colors.blue.shade700),),
+                              Icon(Icons.info_outline, size: 16, color: Colors.grey.shade600),
+                              const SizedBox(width: 6),
+                              Text(
+                                '기록 불가',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      ),
                     ],),
                     const SizedBox(height: 16),
                     _buildInfoRow('카테고리', widget.exercise.fitnessFactorName ?? '', Color.fromARGB(255, 251, 242, 237), Color.fromARGB(255, 255, 255, 255), false),
