@@ -3,6 +3,7 @@ import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/model/workout_analysis_model.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/video_card.dart';
+import 'package:gukminexdiary/widget/debug_response_dialog.dart';
 
 class WeeklyPatternAnalysisScreen extends StatefulWidget {
   final WeeklyPatternResponse weeklyPatternResponse;
@@ -81,9 +82,23 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
     final pattern = widget.weeklyPatternResponse.aiPattern;
     
     return Scaffold(
-      appBar: const CustomAppbar(
+      appBar: CustomAppbar(
         title: '주간 패턴 분석',
         automaticallyImplyLeading: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bug_report, color: Colors.white),
+            tooltip: 'API 응답 확인',
+            onPressed: () {
+              final responseJson = widget.weeklyPatternResponse.toJson();
+              DebugResponseDialog.show(
+                context,
+                responseJson,
+                title: '주간 패턴 분석 API 응답',
+              );
+            },
+          ),
+        ],
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -898,12 +913,6 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                   exercise.name ?? 
                   '추천 운동';
     
-    // exerciseId가 유효한 경우(0이 아닌 경우) videoUrl을 null로 설정
-    // 이렇게 하면 VideoDetailScreen에서 exerciseId로 올바른 운동 정보를 조회할 수 있음
-    final videoUrl = (exercise.exerciseId != null && exercise.exerciseId! > 0) 
-        ? null  // exerciseId가 유효하면 videoUrl 무시 (올바른 정보를 조회하기 위해)
-        : exercise.videoUrl;  // exerciseId가 없거나 0이면 videoUrl 사용
-    
     return ExerciseModelResponse(
       exerciseId: exercise.exerciseId ?? 0,
       title: title,
@@ -918,7 +927,7 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
       videoLengthSeconds: exercise.videoLengthSeconds,
       imageUrl: exercise.imageUrl,
       imageFileName: exercise.imageFileName,
-      videoUrl: videoUrl,
+      videoUrl: exercise.videoUrl,  // API 응답의 video_url을 그대로 사용
     );
   }
 

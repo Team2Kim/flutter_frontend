@@ -295,9 +295,22 @@ class WeeklyPatternResponse {
           ? WeeklyMetricsSummary.fromJson(json['metrics_summary'])
           : null,
       model: json['model'],
-      recordsAnalyzed: json['records_analyzed'],
+      recordsAnalyzed: _parseInt(json['records_analyzed']),
       message: json['message'],
     );
+  }
+
+  // String 또는 int를 int로 안전하게 변환하는 헬퍼 함수
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) {
+      return int.tryParse(value);
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -332,16 +345,42 @@ class WeeklyMetricsSummary {
 
   factory WeeklyMetricsSummary.fromJson(Map<String, dynamic> json) {
     return WeeklyMetricsSummary(
-      weeklyWorkoutCount: json['weekly_workout_count'] ?? 0,
-      restDays: json['rest_days'] ?? 0,
-      totalMinutes: json['total_minutes'] ?? 0,
-      intensityCounts: Map<String, int>.from(json['intensity_counts'] ?? {}),
-      bodyPartCounts: Map<String, int>.from(json['body_part_counts'] ?? {}),
+      weeklyWorkoutCount: _parseInt(json['weekly_workout_count']) ?? 0,
+      restDays: _parseInt(json['rest_days']) ?? 0,
+      totalMinutes: _parseInt(json['total_minutes']) ?? 0,
+      intensityCounts: _parseStringIntMap(json['intensity_counts'] ?? {}),
+      bodyPartCounts: _parseStringIntMap(json['body_part_counts'] ?? {}),
       topMuscles: (json['top_muscles'] as List<dynamic>?)
               ?.map((e) => MuscleCount.fromJson(e))
               .toList() ??
           [],
     );
+  }
+
+  // String 또는 int를 int로 안전하게 변환하는 헬퍼 함수
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) {
+      return int.tryParse(value);
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return null;
+  }
+
+  // Map<String, dynamic>을 Map<String, int>로 안전하게 변환
+  static Map<String, int> _parseStringIntMap(dynamic value) {
+    if (value == null || value is! Map) return {};
+    final result = <String, int>{};
+    value.forEach((key, val) {
+      final intValue = _parseInt(val);
+      if (intValue != null) {
+        result[key.toString()] = intValue;
+      }
+    });
+    return result;
   }
 
   Map<String, dynamic> toJson() {
@@ -369,8 +408,21 @@ class MuscleCount {
   factory MuscleCount.fromJson(Map<String, dynamic> json) {
     return MuscleCount(
       name: json['name'] ?? '',
-      count: json['count'] ?? 0,
+      count: _parseInt(json['count']) ?? 0,
     );
+  }
+
+  // String 또는 int를 int로 안전하게 변환하는 헬퍼 함수
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) {
+      return int.tryParse(value);
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -602,6 +654,7 @@ class ExerciseDetail {
     String? parsedMuscleName;
     final rawMuscleData = json['muscle_name'] ?? json['muscles'];
     if (rawMuscleData is List) {
+      // 리스트 형식: [{name: "근육1"}, {name: "근육2"}] 또는 ["근육1", "근육2"]
       parsedMuscleName = rawMuscleData.map((muscle) {
         if (muscle is Map && muscle['name'] != null) {
           return muscle['name'].toString();
@@ -609,11 +662,12 @@ class ExerciseDetail {
         return muscle.toString();
       }).where((name) => name.isNotEmpty).join(',');
     } else if (rawMuscleData is String) {
-      parsedMuscleName = rawMuscleData;
+      // 문자열 형식: "근육1,근육2,근육3" - 공백 제거 후 그대로 사용
+      parsedMuscleName = rawMuscleData.trim();
     }
 
     return ExerciseDetail(
-      exerciseId: json['exercise_id'],
+      exerciseId: _parseInt(json['exercise_id']),
       name: json['name'],
       title: json['title'],
       sets: json['sets'],
@@ -630,9 +684,22 @@ class ExerciseDetail {
       fitnessFactorName: json['fitness_factor_name'],
       imageUrl: json['image_url'],
       imageFileName: json['image_file_name'],
-      videoLengthSeconds: json['video_length_seconds'],
+      videoLengthSeconds: _parseInt(json['video_length_seconds']),
       muscleName: parsedMuscleName,
     );
+  }
+
+  // String 또는 int를 int로 안전하게 변환하는 헬퍼 함수
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) {
+      return int.tryParse(value);
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {

@@ -18,8 +18,16 @@ class VideoCard extends StatefulWidget {
 
 class _VideoCardState extends State<VideoCard> {
   bool _istouched = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    print(widget.exercise.videoUrl);
+  }
+
   @override
   Widget build(BuildContext context) {
+    print(widget.exercise.videoUrl);
     return Container (
           decoration: BoxDecoration(
             color: Colors.white70,

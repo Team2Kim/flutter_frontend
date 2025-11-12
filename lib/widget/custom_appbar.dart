@@ -5,10 +5,12 @@ class CustomAppbar extends StatefulWidget implements PreferredSizeWidget {
     super.key, 
     required this.automaticallyImplyLeading,
     required this.title,
+    this.actions,
   });
   
   final bool automaticallyImplyLeading;
   final String title;
+  final List<Widget>? actions;
 
   @override
   State<CustomAppbar> createState() => _CustomAppbarState();
@@ -28,7 +30,7 @@ class _CustomAppbarState extends State<CustomAppbar> {
       ),
       titleTextStyle: const TextStyle(color: Colors.white),
       backgroundColor: const Color.fromARGB(255, 107, 125, 223),
-      actions: const [],
+      actions: widget.actions ?? const [],
       automaticallyImplyLeading: widget.automaticallyImplyLeading,
       foregroundColor: Colors.white,
       elevation: 2,
