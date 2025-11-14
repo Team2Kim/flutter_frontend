@@ -32,184 +32,224 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // 신체 부위 선택 섹션
-        Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '신체 부위 선택',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+    return 
+    Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color.fromARGB(255, 128, 128, 128)),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(10),
+        ),
+        gradient: const LinearGradient(
+          colors: [Colors.white, const Color.fromARGB(255, 255, 236, 238)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child:
+      Column(
+        children: [
+          // 신체 부위 선택 섹션
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color.fromARGB(255, 255, 221, 225), Color.fromARGB(0, 255, 255, 255)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(10),
+                    ),
+                  ),
+                  child:
+                  Text(
+                    '신체 부위 선택',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ),
-              Divider(),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.4,
-                child: Row(
-                  children: [
-                    // 왼쪽: BodyPartSelector
-                    Expanded(
-                      flex: 1,
-                      child: BodyPartSelector(
-                        bodyParts: selectedBodyParts,
-                        selectedColor: Colors.blue,
-                        unselectedColor: Colors.grey,
-                        side: selectedBodySides[selectedBodySideIndex],
-                        onSelectionUpdated: (bodyParts) {
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  child: Row(
+                    children: [
+                      // 왼쪽: BodyPartSelector
+                      Expanded(
+                        flex: 1,
+                        child: BodyPartSelector(
+                          bodyParts: selectedBodyParts,
+                          selectedColor: Colors.blue,
+                          unselectedColor: Colors.grey,
+                          side: selectedBodySides[selectedBodySideIndex],
+                          onSelectionUpdated: (bodyParts) {
 
-                          setState(() {
-                            selectedBodyParts = bodyParts;
-                            // selectedMuscles.clear();
-                          });
-                          
-                          // BodyParts 객체에서 선택된 부위들을 문자열 리스트로 변환 (true가 선택된 것)
-                          List<String> selectedParts = [];
-                          final bodyPartsMap = bodyParts.toMap();
-                          for (var part in bodyPartsMap.keys) {
-                            if (bodyPartsMap[part] == true) {
-                              if (part == 'abdomen') {
-                                selectedParts.add('lowerBody');
-                              } else if (part == 'lowerBody') {
-                                selectedParts.add('abdomen');
-                              } else {
-                                selectedParts.add(part);
+                            setState(() {
+                              selectedBodyParts = bodyParts;
+                              // selectedMuscles.clear();
+                            });
+                            
+                            // BodyParts 객체에서 선택된 부위들을 문자열 리스트로 변환 (true가 선택된 것)
+                            List<String> selectedParts = [];
+                            final bodyPartsMap = bodyParts.toMap();
+                            for (var part in bodyPartsMap.keys) {
+                              if (bodyPartsMap[part] == true) {
+                                if (part == 'abdomen') {
+                                  selectedParts.add('lowerBody');
+                                } else if (part == 'lowerBody') {
+                                  selectedParts.add('abdomen');
+                                } else {
+                                  selectedParts.add(part);
+                                }
                               }
                             }
-                          }
-                          print('selectedParts: $selectedParts');
-                          widget.onBodyPartsSelected?.call(selectedParts);
-                        },
-                      ),
-                    ),
-                    VerticalDivider(),
-                    // 오른쪽: 근육 선택 섹션
-                    // if (_getSelectedBodyParts().isNotEmpty)
-                    Expanded(
-                      flex: 1,
-                      child: _MuscleSelectorWidget(
-                        selectedBodyParts: _getSelectedBodyParts(), 
-                        onMusclesSelected: (muscles) {
-                          setState(() {
-                            selectedMuscles = muscles;
-                          });
-                          widget.onMusclesSelected?.call(muscles);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-               // 신체 방향 선택 버튼들
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedBodySideIndex = (selectedBodySideIndex - 1 + selectedBodySides.length) % selectedBodySides.length;
-                          });
-                        },
-                        icon: const Icon(Icons.arrow_back_ios),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          _getBodySideName(selectedBodySides[selectedBodySideIndex]),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
-                          ),
+                            print('selectedParts: $selectedParts');
+                            widget.onBodyPartsSelected?.call(selectedParts);
+                          },
                         ),
                       ),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedBodySideIndex = (selectedBodySideIndex + 1) % selectedBodySides.length;
-                          });
-                        },
-                        icon: const Icon(Icons.arrow_forward_ios),
+                      VerticalDivider(color: const Color.fromARGB(0, 255, 221, 225),),
+                      // 오른쪽: 근육 선택 섹션
+                      // if (_getSelectedBodyParts().isNotEmpty)
+                      Expanded(
+                        flex: 1,
+                        child: _MuscleSelectorWidget(
+                          selectedBodyParts: _getSelectedBodyParts(), 
+                          onMusclesSelected: (muscles) {
+                            setState(() {
+                              selectedMuscles = muscles;
+                            });
+                            widget.onMusclesSelected?.call(muscles);
+                          },
+                        ),
                       ),
                     ],
                   ),
-                  SizedBox()
-                ],
-              ),
-              ),
-              // 선택된 근육 요약
-          // if (selectedMuscles.isNotEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: 
-              Column(
-                children: [
-                  Text(
-                    '선택된 근육 (${selectedMuscles.length}개)',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
+                ),
+                // 신체 방향 선택 버튼들
+                Container(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 30,
+                          child: 
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  selectedBodySideIndex = (selectedBodySideIndex - 1 + selectedBodySides.length) % selectedBodySides.length;
+                                });
+                              },
+                              icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+                            ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: const Color.fromARGB(255, 128, 128, 128)),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: SizedBox(
+                            width: 50,
+                            child: Text(
+                              textAlign: TextAlign.center,
+                              _getBodySideName(selectedBodySides[selectedBodySideIndex]),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 30,
+                          child: 
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  selectedBodySideIndex = (selectedBodySideIndex + 1) % selectedBodySides.length;
+                                });
+                              },
+                              icon: const Icon(Icons.arrow_forward_ios, color: Colors.black),
+                            ),
+                        )
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    width: double.infinity,
-                    height: 50,
-                    child: ListView.builder(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.horizontal,
-                        itemCount: selectedMuscles.length,
-                        itemBuilder: (context, index) {
-                          final muscle = selectedMuscles[index];
-                          return Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            child: Chip(
-                            label: Text(
-                              muscle.name,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
-                            deleteIcon: Icon(
-                              Icons.close,
-                              size: 16,
-                              color: Theme.of(context).primaryColor,
-                            ),
-                            onDeleted: () {
-                              setState(() {
-                                selectedMuscles.remove(muscle);
-                                widget.onMusclesSelected?.call(selectedMuscles);
-                              });
-                              // widget.onMusclesSelected(selectedMuscles);
-                            },
-                          ));
-                      },
+                    SizedBox()
+                  ],
+                ),
+                ),
+                // 선택된 근육 요약
+            // if (selectedMuscles.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: 
+                Column(
+                  children: [
+                    Text(
+                      '선택된 근육 (${selectedMuscles.length}개)',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      width: double.infinity,
+                      height: 50,
+                      child: ListView.builder(
+                          shrinkWrap: true,
+                          scrollDirection: Axis.horizontal,
+                          itemCount: selectedMuscles.length,
+                          itemBuilder: (context, index) {
+                            final muscle = selectedMuscles[index];
+                            return Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              child: Chip(
+                              label: Text(
+                                muscle.name,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                              deleteIcon: Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                              onDeleted: () {
+                                setState(() {
+                                  selectedMuscles.remove(muscle);
+                                  widget.onMusclesSelected?.call(selectedMuscles);
+                                });
+                                // widget.onMusclesSelected(selectedMuscles);
+                              },
+                            ));
+                        },
+                      )
                     )
-                  )
-                ],
+                  ],
+                ),
               ),
+              ],
             ),
-            ],
-          ),
-        ),
-        
-        
-      ],
+          ), 
+        ],
+      )
     );
   }
 

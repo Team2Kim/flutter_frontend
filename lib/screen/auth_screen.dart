@@ -208,13 +208,19 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isSignupMode ? '회원가입' : '로그인'),
-        automaticallyImplyLeading: true,
-      ),
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
-          return Padding(
+          return Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [const Color.fromARGB(255, 193, 198, 221), Color.fromARGB(255, 255, 255, 255)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: [0.7, 0.9],
+              ),
+            ),
+            child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Form(
               key: _formKey,
@@ -244,6 +250,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     TextFormField(
                       controller: _idController,
                       decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color.fromARGB(187, 255, 255, 255),
                         labelText: '아이디',
                         prefixIcon: const Icon(Icons.person),
                         border: const OutlineInputBorder(),
@@ -315,6 +323,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: '비밀번호',
+                        filled: true,
+                        fillColor: const Color.fromARGB(187, 255, 255, 255),
                         prefixIcon: const Icon(Icons.lock),
                         suffixIcon: _isSignupMode ? Row(
                           mainAxisSize: MainAxisSize.min,
@@ -384,6 +394,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         obscureText: _obscureConfirmPassword,
                         decoration: InputDecoration(
                           labelText: '비밀번호 확인',
+                          filled: true,
+                          fillColor: const Color.fromARGB(187, 255, 255, 255),
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -438,7 +450,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       // 닉네임 입력
                       TextFormField(
                         controller: _nicknameController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color.fromARGB(187, 255, 255, 255),
                           labelText: '닉네임',
                           prefixIcon: Icon(Icons.badge),
                           border: OutlineInputBorder(),
@@ -466,6 +480,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           labelText: '이메일',
+                          filled: true,
+                          fillColor: const Color.fromARGB(187, 255, 255, 255),
                           prefixIcon: const Icon(Icons.email),
                           border: const OutlineInputBorder(),
                           suffixIcon: Consumer<AuthProvider>(
@@ -532,7 +548,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     // 언어 선택
                     DropdownButtonFormField<String>(
                       value: _selectedLanguage,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color.fromARGB(187, 255, 255, 255),
                         labelText: '언어 선택',
                         prefixIcon: Icon(Icons.language),
                         border: OutlineInputBorder(),
@@ -654,6 +672,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ),
             ),
+          )
           );
         },
       ),

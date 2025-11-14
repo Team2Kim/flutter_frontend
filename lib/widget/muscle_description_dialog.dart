@@ -26,16 +26,23 @@ class MuscleDescriptionDialog {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        insetPadding: const EdgeInsets.all(10),
+        backgroundColor: const Color.fromARGB(255, 255, 247, 247),
         shape: RoundedRectangleBorder(
-          side: BorderSide(color: Colors.grey.shade300),
+          side: BorderSide(color: const Color.fromARGB(255, 128, 128, 128)),
           borderRadius: BorderRadius.circular(10),
         ),
-        title: Text(
-          muscle.name,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+        title: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color.fromARGB(255, 255, 221, 225), Color.fromARGB(0, 255, 255, 255)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(10),
           ),
+          child: Text(muscle.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -88,32 +95,52 @@ class MuscleDescriptionDialog {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '설명:',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color.fromARGB(255, 255, 221, 225), Color.fromARGB(0, 255, 255, 255)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text('설명:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          border: Border.all(color: const Color.fromARGB(255, 128, 128, 128)),
+                          color: const Color.fromARGB(255, 255, 255, 255),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(muscle.description, style: const TextStyle(fontSize: 14)),
                       ),
                       if (muscle.detail != null && muscle.detail!.isNotEmpty) ...[
                         const SizedBox(height: 12),
-                        const Text(
-                          '상세 설명:',
-                          style: TextStyle(fontWeight: FontWeight.w600),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color.fromARGB(255, 255, 221, 225), Color.fromARGB(0, 255, 255, 255)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text('상세 설명', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
+                            border: Border.all(color: const Color.fromARGB(255, 128, 128, 128)),
+                            color: const Color.fromARGB(255, 255, 255, 255),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(muscle.detail!, style: const TextStyle(fontSize: 14)),
@@ -127,6 +154,10 @@ class MuscleDescriptionDialog {
         ),
         actions: [
           TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 255, 221, 225),
+              foregroundColor: Colors.black,
+            ),
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('확인'),
           ),

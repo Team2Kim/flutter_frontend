@@ -61,13 +61,21 @@ class _HomeScreenState extends State<HomeScreen> {
       final randomMuscle = allMuscles[random.nextInt(allMuscles.length)];
       _randomMuscleName = randomMuscle.name;
 
-      // 해당 근육으로 운동 5개 불러오기 (page: 0, size: 5)
+      // 해당 근육으로 운동 20개 불러오기 후 무작위 5개 선택
       final exerciseService = ExerciseService();
-      final exercises = await exerciseService.getExercisesByMuscle([_randomMuscleName!], 0, 5);
+      final exercises = await exerciseService.getExercisesByMuscle(
+        [_randomMuscleName!],
+        0,
+        20,
+      );
+
+      final selectedExercises = List<ExerciseModelResponse>.from(exercises);
+      selectedExercises.shuffle(random);
+      final topFive = selectedExercises.take(5).toList();
       
       if (!mounted) return;
       setState(() {
-        _randomExercises = exercises;
+        _randomExercises = topFive;
         _isLoadingRandom = false;
       });
     } catch (e) {
@@ -568,6 +576,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Text(
+                      exercise.standardTitle ?? '',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color.fromARGB(255, 87, 87, 87),
                       ),
                     ),
                   ),

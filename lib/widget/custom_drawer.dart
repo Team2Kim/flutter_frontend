@@ -170,16 +170,36 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text('로그아웃'),
-                      content: const Text('정말 로그아웃하시겠습니까?'),
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(color: Colors.white, width: 1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      surfaceTintColor: const Color.fromARGB(255, 172, 172, 172),
+                      backgroundColor: const Color.fromARGB(255, 107, 125, 223),
+                      title: const Text('로그아웃', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                      content: const Text('정말 로그아웃하시겠습니까?', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.normal)),
                       actions: [
                         TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(150, 255, 255, 255),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            side: BorderSide(color: const Color.fromARGB(255, 255, 255, 255), width: 1),
+                          ),
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: const Text('취소'),
+                          child: const Text('취소', style: TextStyle(color: Color.fromARGB(255, 49, 49, 49), fontSize: 16, fontWeight: FontWeight.normal)),
                         ),
                         TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(150, 255, 255, 255),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            side: BorderSide(color: Colors.white, width: 1),
+                          ),
                           onPressed: () {
                             Navigator.of(context).pop();
                             _handleLogout();
