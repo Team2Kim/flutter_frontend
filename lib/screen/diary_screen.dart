@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
+import 'package:gukminexdiary/widget/exercise_record_dialog.dart';
 import 'package:gukminexdiary/services/dailylog_service.dart';
 import 'package:gukminexdiary/model/dailylog_model.dart';
 import 'package:gukminexdiary/model/workout_analysis_model.dart';
@@ -159,190 +160,24 @@ class _DiaryScreenState extends State<DiaryScreen> {
   }
 
   // 운동 기록 수정 다이얼로그
-  void _showEditExerciseDialog(LogExercise logExercise) {
-    String intensity = logExercise.intensity;
-    final TextEditingController timeController = 
-        TextEditingController(text: logExercise.exerciseTime.toString());
-    final TextEditingController memoController = 
-        TextEditingController(text: logExercise.exerciseMemo ?? '');
-    bool isProcessing = false;
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              Icon(Icons.edit, color: Colors.blue.shade700, size: 22),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  logExercise.exercise.title,
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            height: 280,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                // 강도 선택
-                const Text(
-                  '강도',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: ['하', '중', '상'].map((level) {
-                    return ChoiceChip(
-                      label: Text(level),
-                      selected: intensity == level,
-                      selectedColor: Colors.blue.shade100,
-                      onSelected: (selected) {
-                        if (selected) {
-                          setDialogState(() {
-                            intensity = level;
-                          });
-                        }
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 20),
-                // 운동 시간 입력
-                const Text(
-                  '운동 시간',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: timeController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(3),
-                  ],
-                  decoration: InputDecoration(
-                    hintText: '시간을 입력하세요',
-                    suffixText: '분',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '권장: 5분 ~ 120분',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '운동 메모',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: memoController,
-                  maxLines: 2,
-                  decoration: InputDecoration(
-                    hintText: '무게, 반복 횟수, 세트 등 기록',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            ),
-          ),
-          actions: [
-            isProcessing ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Color.fromARGB(255, 25, 118, 210)),
-              ),
-            ) : const SizedBox.shrink(),
-            isProcessing ? const SizedBox(width: 10) : TextButton(
-              onPressed: () {
-                timeController.dispose();
-                memoController.dispose();
-                Navigator.pop(context);
-              },
-              child: const Text('취소'),
-            ),
-            isProcessing ? const SizedBox(width: 10) : ElevatedButton(
-              onPressed: () async {
-                
-                final timeText = timeController.text.trim();
-                if (timeText.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('운동 시간을 입력해주세요'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                  return;
-                }
-                
-                final exerciseTime = int.tryParse(timeText);
-                if (exerciseTime == null || exerciseTime <= 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('올바른 시간을 입력해주세요'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                  return;
-                }
-                
-                setDialogState(() {
-                  isProcessing = true;
-                });
-                Navigator.of(context).pop();
-                await _updateExercise(
-                  logExercise.logExerciseId,
-                  intensity,
-                  exerciseTime,
-                  exerciseMemo: memoController.text.trim().isEmpty ? null : memoController.text.trim(),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('저장'),
-            ),
-          ],
-        ),
-      ),
+  void _showEditExerciseDialog(LogExercise logExercise) async {
+    final result = await ExerciseRecordDialog.show(
+      context,
+      mode: ExerciseRecordDialogMode.edit,
+      exerciseTitle: logExercise.exercise.title,
+      initialIntensity: logExercise.intensity,
+      initialTime: logExercise.exerciseTime,
+      initialMemo: logExercise.exerciseMemo,
+      standardTitle: logExercise.exercise.standardTitle ?? '',
+    );
+
+    if (result == null) return;
+
+    await _updateExercise(
+      logExercise.logExerciseId,
+      result.intensity,
+      result.exerciseTime,
+      exerciseMemo: result.exerciseMemo,
     );
   }
 

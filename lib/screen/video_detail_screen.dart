@@ -513,14 +513,28 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                         scrollDirection: Axis.horizontal,
                         child: Container(
                           width: MediaQuery.of(context).size.width * 0.5,
-                          child:Text(
-                          widget.exercise.title,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [ 
+                              Text(
+                                widget.exercise.title,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                widget.exercise.standardTitle ?? '',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 87, 87, 87),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),)
+                        )
                       ),
                       const Spacer(),
                       if (canLogExercise)
