@@ -708,6 +708,15 @@ class _FilterDialogState extends State<_FilterDialog> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [const Color.fromARGB(255, 255, 254, 242), const Color.fromARGB(255, 255, 255, 255)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [0.7, 0.9],
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.8,
           maxWidth: MediaQuery.of(context).size.width * 0.9,
@@ -719,7 +728,7 @@ class _FilterDialogState extends State<_FilterDialog> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: const Color.fromARGB(255, 255, 254, 242),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -748,7 +757,12 @@ class _FilterDialogState extends State<_FilterDialog> {
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
-                child: Column(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(110, 255, 255, 255),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildFilterSection(
@@ -820,11 +834,13 @@ class _FilterDialogState extends State<_FilterDialog> {
                 ),
               ),
             ),
+            ),
             // 하단 버튼
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                border: Border(top: BorderSide(color: Colors.grey.shade200, width: 2)),
+                color: const Color.fromARGB(110, 255, 255, 255),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
@@ -853,7 +869,7 @@ class _FilterDialogState extends State<_FilterDialog> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('취소'),
+                        child: const Text('취소', style: TextStyle(color: Color.fromARGB(255, 228, 137, 131))),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton(
@@ -867,12 +883,15 @@ class _FilterDialogState extends State<_FilterDialog> {
                           widget.onDiseaseChanged(_currentDisease);
                           // 적용 버튼 콜백 실행
                           widget.onApply();
-                        },
+                        },             
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          backgroundColor: const Color.fromARGB(255, 236, 255, 188),
                           foregroundColor: Colors.white,
                         ),
-                        child: const Text('적용'),
+                        child: const Text('적용', style: TextStyle(color: Colors.black)),
                       ),
                     ],
                   ),
@@ -894,11 +913,23 @@ class _FilterDialogState extends State<_FilterDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [const Color.fromARGB(255, 245, 255, 177), const Color.fromARGB(0, 255, 255, 255)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: 12),
@@ -908,12 +939,17 @@ class _FilterDialogState extends State<_FilterDialog> {
           children: options.map((option) {
             final isSelected = selectedValue == option;
             return FilterChip(
-              label: Text(option),
+              label: Text(option, style: const TextStyle(color: Colors.black)),
+              side: BorderSide(color: const Color.fromARGB(255, 167, 167, 167), width: isSelected ? 2 : 1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               selected: isSelected,
               onSelected: (selected) {
                 onChanged(selected ? option : null);
               },
-              selectedColor: Colors.blue[100],
+              backgroundColor: const Color.fromARGB(255, 247, 247, 247),
+              selectedColor: const Color.fromARGB(255, 249, 255, 195),
               checkmarkColor: Colors.blue[800],
             );
           }).toList(),
