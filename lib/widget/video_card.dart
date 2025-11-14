@@ -27,7 +27,6 @@ class _VideoCardState extends State<VideoCard> {
 
   @override
   Widget build(BuildContext context) {
-    print(widget.exercise.videoUrl);
     return Container (
           decoration: BoxDecoration(
             color: Colors.white70,

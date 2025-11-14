@@ -295,6 +295,7 @@ class DailyLogService {
             },
             'intensity': exercise.intensity,
             'exerciseTime': exercise.exerciseTime,
+          'exerciseMemo': exercise.exerciseMemo,
           };
         }).toList(),
       };
@@ -417,6 +418,8 @@ class DailyLogService {
             'exercise': exerciseMap,
             'intensity': _normalizeIntensity(exercise.intensity),
             'exerciseTime': exercise.exerciseTime,
+            if (exercise.exerciseMemo != null && exercise.exerciseMemo!.isNotEmpty)
+              'exerciseMemo': exercise.exerciseMemo,
           };
         }).toList();
 

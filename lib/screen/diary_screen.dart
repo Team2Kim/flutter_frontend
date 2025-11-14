@@ -163,6 +163,8 @@ class _DiaryScreenState extends State<DiaryScreen> {
     String intensity = logExercise.intensity;
     final TextEditingController timeController = 
         TextEditingController(text: logExercise.exerciseTime.toString());
+    final TextEditingController memoController = 
+        TextEditingController(text: logExercise.exerciseMemo ?? '');
     bool isProcessing = false;
     showDialog(
       context: context,
@@ -184,10 +186,11 @@ class _DiaryScreenState extends State<DiaryScreen> {
             ],
           ),
           content: SizedBox(
-            height: 200,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            height: 280,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // 강도 선택
                 const Text(
                   '강도',
@@ -251,7 +254,31 @@ class _DiaryScreenState extends State<DiaryScreen> {
                     color: Colors.grey.shade600,
                   ),
                 ),
+                const SizedBox(height: 16),
+                const Text(
+                  '운동 메모',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: memoController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: '무게, 반복 횟수, 세트 등 기록',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
               ],
+            ),
             ),
           ),
           actions: [
@@ -266,12 +293,14 @@ class _DiaryScreenState extends State<DiaryScreen> {
             isProcessing ? const SizedBox(width: 10) : TextButton(
               onPressed: () {
                 timeController.dispose();
+                memoController.dispose();
                 Navigator.pop(context);
               },
               child: const Text('취소'),
             ),
             isProcessing ? const SizedBox(width: 10) : ElevatedButton(
               onPressed: () async {
+                
                 final timeText = timeController.text.trim();
                 if (timeText.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -293,13 +322,17 @@ class _DiaryScreenState extends State<DiaryScreen> {
                   );
                   return;
                 }
+                
                 setDialogState(() {
                   isProcessing = true;
                 });
-                await _updateExercise(logExercise.logExerciseId, intensity, exerciseTime);
-                timeController.dispose();
-                Navigator.pop(context);
-                
+                Navigator.of(context).pop();
+                await _updateExercise(
+                  logExercise.logExerciseId,
+                  intensity,
+                  exerciseTime,
+                  exerciseMemo: memoController.text.trim().isEmpty ? null : memoController.text.trim(),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
@@ -314,11 +347,12 @@ class _DiaryScreenState extends State<DiaryScreen> {
   }
 
   // 운동 기록 수정
-  Future<void> _updateExercise(int logExerciseId, String intensity, int exerciseTime) async {
+  Future<void> _updateExercise(int logExerciseId, String intensity, int exerciseTime, {String? exerciseMemo}) async {
     try {
       final request = UpdateLogExerciseRequest(
         intensity: intensity,
         exerciseTime: exerciseTime,
+        exerciseMemo: exerciseMemo,
       );
 
       await _dailyLogService.updateLogExercise(logExerciseId, request);
@@ -1094,6 +1128,25 @@ class _DiaryScreenState extends State<DiaryScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                  if (logExercise.exerciseMemo != null && logExercise.exerciseMemo!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Text(
+                        logExercise.exerciseMemo!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
+                        ),
                       ),
                     ),
                   ],

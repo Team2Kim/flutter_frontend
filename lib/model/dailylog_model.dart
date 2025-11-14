@@ -45,12 +45,14 @@ class LogExercise {
   final int logExerciseId;
   final String intensity;
   final int exerciseTime;
+  final String? exerciseMemo;
   final ExerciseModelResponse exercise;
 
   LogExercise({
     required this.logExerciseId,
     required this.intensity,
     required this.exerciseTime,
+    this.exerciseMemo,
     required this.exercise,
   });
 
@@ -63,6 +65,7 @@ class LogExercise {
       exerciseTime: json['exerciseTime'] is String 
           ? int.parse(json['exerciseTime']) 
           : json['exerciseTime'],
+      exerciseMemo: json['exerciseMemo'],
       exercise: ExerciseModelResponse.fromJson(json['exercise']),
     );
   }
@@ -72,6 +75,7 @@ class LogExercise {
       'logExerciseId': logExerciseId,
       'intensity': intensity,
       'exerciseTime': exerciseTime,
+      'exerciseMemo': exerciseMemo,
       'exercise': exercise.toJson(),
     };
   }
@@ -113,11 +117,13 @@ class AddExerciseToLogRequest {
   final int exerciseId;
   final String intensity;
   final int exerciseTime;
+  final String? exerciseMemo;
 
   AddExerciseToLogRequest({
     required this.exerciseId,
     required this.intensity,
     required this.exerciseTime,
+    this.exerciseMemo,
   });
 
   Map<String, dynamic> toJson() {
@@ -125,6 +131,7 @@ class AddExerciseToLogRequest {
       'exerciseId': exerciseId,
       'intensity': intensity,
       'exerciseTime': exerciseTime,
+      'exerciseMemo': exerciseMemo,
     };
   }
 }
@@ -132,16 +139,19 @@ class AddExerciseToLogRequest {
 class UpdateLogExerciseRequest {
   final String? intensity;
   final int? exerciseTime;
+  final String? exerciseMemo;
 
   UpdateLogExerciseRequest({
     this.intensity,
     this.exerciseTime,
+    this.exerciseMemo,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'intensity': intensity,
       'exerciseTime': exerciseTime,
+      'exerciseMemo': exerciseMemo,
     };
   }
 }

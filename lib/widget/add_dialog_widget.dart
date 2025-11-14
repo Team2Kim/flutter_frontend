@@ -14,6 +14,7 @@ class AddExerciseDialog {
     final selectedDate = date ?? DateTime.now();
     String intensity = '중';
     final TextEditingController timeController = TextEditingController(text: '30');
+    final TextEditingController memoController = TextEditingController();
     final parentContext = context; // 부모 context 저장
     bool isProcessing = false;
     await showDialog(
@@ -36,10 +37,11 @@ class AddExerciseDialog {
             ],
           ),
           content: SizedBox(
-            height: 200,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            height: 280,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // 강도 선택
                 const Text(
                   '강도',
@@ -106,7 +108,31 @@ class AddExerciseDialog {
                     color: Colors.grey.shade600,
                   ),
                 ),
+                const SizedBox(height: 16),
+                const Text(
+                  '운동 메모 (무게, 반복, 세트 등)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: memoController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: '예: 30kg, 10회 5세트',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
               ],
+            ),
             ),
           ),
           actions: [
@@ -121,6 +147,7 @@ class AddExerciseDialog {
             isProcessing ? const SizedBox(width: 10) : TextButton(
               onPressed: () {
                 timeController.dispose();
+                memoController.dispose();
                 Navigator.pop(context);
               },
               child: const Text('취소'),
@@ -152,16 +179,17 @@ class AddExerciseDialog {
                   isProcessing = true;
                 });
                 // 부모 context 사용 (다이얼로그 context가 아닌)
+                Navigator.of(context).pop();
                 await _addExerciseToLog(
                   parentContext,
                   exercise.exerciseId,
                   exercise.title,
                   intensity,
                   exerciseTime,
+                  memoController.text.trim().isEmpty ? null : memoController.text.trim(),
                   selectedDate,
                 );
-
-                Navigator.pop(context);
+                
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
@@ -181,6 +209,7 @@ class AddExerciseDialog {
     String exerciseTitle,
     String intensity,
     int exerciseTime,
+    String? exerciseMemo,
     DateTime date,
   ) async {
     final dailyLogService = DailyLogService();
@@ -230,6 +259,7 @@ class AddExerciseDialog {
         exerciseId: exerciseId,
         intensity: intensity,
         exerciseTime: exerciseTime,
+        exerciseMemo: exerciseMemo,
       );
 
       await dailyLogService.addExerciseToLog(currentLog.logId, request);
