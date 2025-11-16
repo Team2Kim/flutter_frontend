@@ -25,15 +25,14 @@ class _CustomAppbarState extends State<CustomAppbar> {
     return AppBar(
       title: Row(
         children: [
-          Text(widget.title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(widget.title, style: const TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)),
         ],
       ),
-      titleTextStyle: const TextStyle(color: Colors.white),
-      backgroundColor: const Color.fromARGB(255, 107, 125, 223),
+      titleTextStyle: const TextStyle(color: Colors.black),
+      backgroundColor: const Color.fromRGBO(241, 248, 255, 1),
       actions: widget.actions ?? const [],
       automaticallyImplyLeading: widget.automaticallyImplyLeading,
-      foregroundColor: Colors.white,
-      elevation: 2,
+      foregroundColor: Colors.black,
     );
   }
 }

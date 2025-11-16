@@ -8,6 +8,7 @@ import 'package:gukminexdiary/services/exercise_service.dart';
 import 'package:gukminexdiary/services/recommendation_service.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/custom_drawer.dart';
+import 'package:gukminexdiary/widget/bottom_navigation_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -128,10 +129,10 @@ class _HomeScreenState extends State<HomeScreen> {
         automaticallyImplyLeading: true,
       ),
       drawer: const CustomDrawer(),
-      body: Container(
+      body: Container(  
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: RadialGradient(
+          gradient: const RadialGradient(
             colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
             radius: 0.5,
             stops: [0.3, 0.7],
@@ -417,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // ),
               ],
             ),),
-            Image.asset('assets/images/main_logo.png', width: 100, height: 100),
+            const BottomNavigationBarWidget(),
           ],
         )
       ),
