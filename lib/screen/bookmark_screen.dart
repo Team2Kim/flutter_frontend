@@ -150,14 +150,14 @@ final TextEditingController _searchController = TextEditingController();
   Widget build(BuildContext context) {
     final bookmarkProvider = Provider.of<BookmarkProvider>(context);
     return Scaffold(
-      appBar: CustomAppbar(
-        title: '즐겨찾기',
-        automaticallyImplyLeading: true,
-      ),
+      // appBar: CustomAppbar(
+      //   title: '즐겨찾기',
+      //   automaticallyImplyLeading: true,
+      // ),
       body: Container(
           decoration: BoxDecoration(
             gradient: RadialGradient(
-              colors: [Colors.white, const Color.fromARGB(255, 249, 241, 250)],
+              colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
               radius: 0.5,
               stops: [0.3, 0.7],
             ),
@@ -168,10 +168,17 @@ final TextEditingController _searchController = TextEditingController();
             children: [
               // 검색창
               Container(
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    colors: [Colors.white, const Color.fromARGB(0, 245, 245, 245)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    stops: [0.7, 0.9],
+                  ),
+                  border: Border.all(color: const Color.fromARGB(255, 186, 225, 255), width: 2),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   children: [
@@ -184,14 +191,9 @@ final TextEditingController _searchController = TextEditingController();
                         ),
                       ),
                     ),
-                    ElevatedButton.icon(
+                    IconButton(
                       onPressed: _performSearch,
                       icon: const Icon(Icons.search),
-                      label: const Text('검색'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[800],
-                        foregroundColor: Colors.white,
-                      ),
                     ),
                   ],
                 ),

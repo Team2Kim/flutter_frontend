@@ -17,10 +17,17 @@ class FacilitySearchBar extends StatelessWidget {
         return Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+                gradient: LinearGradient(
+                  colors: [Colors.white, const Color.fromARGB(0, 245, 245, 245)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  stops: [0.7, 0.9],
+                ),
+                border: Border.all(color: const Color.fromARGB(255, 186, 225, 255), width: 2),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 children: [

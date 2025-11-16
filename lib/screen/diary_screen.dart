@@ -475,20 +475,20 @@ class _DiaryScreenState extends State<DiaryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppbar(
-        title: '운동 일지',
-        automaticallyImplyLeading: true,
-      ),
+      // appBar: CustomAppbar(
+      //   title: '운동 일지',
+      //   automaticallyImplyLeading: true,
+      // ),
       body: Container(
         height: double.infinity,
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          gradient: RadialGradient(
-            colors: [Colors.white, const Color.fromARGB(255, 245, 255, 246)],
-            radius: 0.7,
+          gradient: const RadialGradient(
+            colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
+            radius: 0.5,
             stops: [0.3, 0.7],
-          ),  
-          // color: Colors.grey[40]
+          ),
+          borderRadius: BorderRadius.circular(5),
         ),
         child: SingleChildScrollView(
           child: Container(

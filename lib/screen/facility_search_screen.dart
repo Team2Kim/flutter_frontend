@@ -59,10 +59,10 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppbar(
-        title: '시설 검색',
-        automaticallyImplyLeading: true,
-      ),
+      // appBar: CustomAppbar(
+      //   title: '시설 검색',
+      //   automaticallyImplyLeading: true,
+      // ),
       body: Container(
           decoration: BoxDecoration(
             gradient: RadialGradient(

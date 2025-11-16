@@ -18,10 +18,10 @@ class _MuscleSelectorScreenState extends State<MuscleSelectorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppbar(
-        title: '근육 검색',
-        automaticallyImplyLeading: true,
-      ),
+      // appBar: const CustomAppbar(
+      //   title: '근육 검색',
+      //   automaticallyImplyLeading: true,
+      // ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

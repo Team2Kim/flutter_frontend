@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gukminexdiary/provider/auth_provider.dart';
 import 'package:gukminexdiary/provider/facility_provider.dart';
-import 'package:gukminexdiary/screen/home_screen.dart';
 import 'package:gukminexdiary/screen/auth_screen.dart';
 import 'package:gukminexdiary/screen/diary_screen.dart';
 import 'package:gukminexdiary/screen/map_search_screen.dart';
@@ -16,6 +15,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gukminexdiary/screen/bookmark_screen.dart';
 import 'package:gukminexdiary/screen/muscle_selector_screen.dart';
 import 'package:gukminexdiary/screen/api_test_screen.dart';
+import 'package:gukminexdiary/screen/main_root_screen.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -75,10 +75,10 @@ class _MyAppState extends State<MyApp> {
               useMaterial3: true,
               fontFamily: 'Pretendard',
             ),
-            home: authProvider.isAuthenticated ? const HomeScreen() : const AuthScreen(),
+            home: authProvider.isAuthenticated ? const MainRootScreen() : const AuthScreen(),
             routes: {
               '/auth': (context) => const AuthScreen(),
-              '/home': (context) => const HomeScreen(),
+              '/home': (context) => const MainRootScreen(),
               '/diary': (context) => const DiaryScreen(),
               '/facility/search': (context) => const FacilitySearchScreen(),
               '/map/search': (context) => const MapSearchScreen(),

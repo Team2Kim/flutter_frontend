@@ -377,37 +377,91 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   Widget build(BuildContext context) {
     final exerciseProvider = Provider.of<ExerciseProvider>(context);
     return Scaffold(
-      appBar: CustomAppbar(
-        title: '영상 검색',
-        automaticallyImplyLeading: true,
-      ),
+      // appBar: CustomAppbar(
+      //   title: '영상 검색',
+      //   automaticallyImplyLeading: true,
+      // ),
       body: Column(
         children: [
           // 탭 바
           Container(
+            height: 50,
+            width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color.fromARGB(255, 241, 249, 255),
               border: Border(
-                bottom: BorderSide(color: Colors.grey[300]!),
+                bottom: BorderSide(color: const Color.fromARGB(0, 224, 224, 224)!),
               ),
             ),
-            child: TabBar(
-              controller: _tabController,
-              onTap: (index) {
-                _pageController.animateToPage(
-                  index,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-              tabs: const [
-                Tab(text: '전체 검색'),
-                Tab(text: '근육별 검색'),
+            child: Row(
+              children: [
+                SizedBox(width: 5),
+                Expanded(child: 
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: _tabController.index == 0 ? const Color.fromARGB(255, 241, 249, 255) : const Color.fromARGB(22, 0, 0, 0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _tabController.index = 0;
+                      _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                    });
+                  }, child: Text('전체 검색', 
+                    style: TextStyle(
+                      fontSize: 16, 
+                      fontWeight: _tabController.index == 0 ? FontWeight.bold : FontWeight.normal, 
+                      color: _tabController.index == 0 ? 
+                        const Color.fromARGB(255, 94, 137, 255) :
+                        const Color.fromARGB(255, 110, 110, 110),), 
+                       textAlign: TextAlign.center,)
+                  ),
+                ),
+                SizedBox(width: 5),
+                Expanded(
+                  child: TextButton(style: TextButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    backgroundColor: _tabController.index == 1 ? const Color.fromARGB(255, 241, 249, 255) : const Color.fromARGB(22, 0, 0, 0),
+                    textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ), onPressed: () {
+                    setState(() {
+                      _tabController.index = 1;
+                      _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                    });
+                  }, child: Text('근육별 검색', 
+                    style: TextStyle(fontSize: 16, 
+                    fontWeight: _tabController.index == 1 ? FontWeight.bold : FontWeight.normal, 
+                    color: _tabController.index == 1 ? 
+                    const Color.fromARGB(255, 94, 137, 255) :
+                     const Color.fromARGB(255, 110, 110, 110),), 
+                     textAlign: TextAlign.center,)
+                  )
+                ),
+                SizedBox(width: 5),
               ],
-              labelColor: Colors.black,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: Colors.blue,
-            ),
+            )
+            // child: TabBar(
+            //   controller: _tabController,
+            //   onTap: (index) {
+            //     _pageController.animateToPage(
+            //       index,
+            //       duration: const Duration(milliseconds: 300),
+            //       curve: Curves.easeInOut,
+            //     );
+            //   },
+            //   tabs: const [
+            //     Tab(text: '전체 검색',),
+            //     Tab(text: '근육별 검색'),
+            //   ],
+            //   labelColor: Colors.black,
+            //   unselectedLabelColor: Colors.grey,
+            //   indicatorColor: const Color.fromARGB(255, 167, 216, 255),
+            // ),
           ),
           // 페이지뷰
           Expanded(
@@ -434,7 +488,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
     return Container(
       decoration: BoxDecoration(
         gradient: RadialGradient(
-          colors: [Colors.white, const Color.fromARGB(255, 255, 254, 242)],
+          colors: [Colors.white, const Color.fromARGB(255, 241, 249, 255)],
           radius: 0.7,
           stops: [0.3, 0.7],
         ),
@@ -444,10 +498,17 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
         children: [
           // 검색창
           Container(
-            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
+              gradient: LinearGradient(
+                colors: [Colors.white, const Color.fromARGB(0, 245, 245, 245)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                stops: [0.7, 0.9],
+              ),
+              border: Border.all(color: const Color.fromARGB(255, 186, 225, 255), width: 2),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               children: [
@@ -460,37 +521,41 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
                     ),
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: _performSearch,
-                  icon: const Icon(Icons.search),
-                  label: const Text('검색'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[800],
-                    foregroundColor: Colors.white,
-                  ),
-                ),
+                Row(children: [
+                  IconButton(onPressed: () => _showFilterDialog(context), icon: const Icon(Icons.filter_list)),
+                  IconButton(onPressed: _performSearch, icon: const Icon(Icons.search)),
+                ],)
+                
               ],
             ),
           ),
           // 필터 버튼
+          // Container(
+          //   width: double.infinity,
+          //   child: ElevatedButton.icon(
+          //     onPressed: () => _showFilterDialog(context),
+          //     icon: const Icon(Icons.filter_list),
+          //     label: const Text('조건 검색'),
+          //     style: ElevatedButton.styleFrom(
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(0),
+          //       ),
+          //       backgroundColor: Colors.grey[200],
+          //       foregroundColor: Colors.black87,
+          //       elevation: 0,
+          //     ),
+          //   ),
+          // ),
           Container(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _showFilterDialog(context),
-              icon: const Icon(Icons.filter_list),
-              label: const Text('조건 검색'),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
-                ),
-                backgroundColor: Colors.grey[200],
-                foregroundColor: Colors.black87,
-                elevation: 0,
+            height: 10,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [ const Color.fromARGB(255, 241, 249, 255), 
+                const Color.fromARGB(92, 241, 249, 255), 
+                const Color.fromARGB(0, 241, 249, 255)],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          
           // 영상 목록
           Expanded(
             child: ListView.builder(
@@ -522,7 +587,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
     return Container(
       decoration: BoxDecoration(
         gradient: RadialGradient(
-          colors: [Colors.white, const Color.fromARGB(255, 255, 239, 240)],
+          colors: [Colors.white, const Color.fromARGB(255, 241, 249, 255)],
           radius: 0.7,
           stops: [0.3, 0.7],
         ),

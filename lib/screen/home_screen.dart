@@ -8,7 +8,6 @@ import 'package:gukminexdiary/services/exercise_service.dart';
 import 'package:gukminexdiary/services/recommendation_service.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/custom_drawer.dart';
-import 'package:gukminexdiary/widget/bottom_navigation_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -124,13 +123,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppbar(
-        title: '홈',
-        automaticallyImplyLeading: true,
-      ),
+      // appBar: const CustomAppbar(
+      //   title: '홈',
+      //   automaticallyImplyLeading: true,
+      // ),
       drawer: const CustomDrawer(),
       body: Container(  
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 10, top: 5),
         decoration: BoxDecoration(
           gradient: const RadialGradient(
             colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
@@ -141,286 +140,54 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            Container(
+             Container(
               width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.blue.shade100, const Color.fromARGB(0, 255, 255, 255)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Text(
-                        _currentPageTitle(),
-                          style: const TextStyle(
-                            fontSize: 14, 
-                            fontWeight: FontWeight.bold, 
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(2, (index) {
-                          final isActive = _currentPage == index;
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            height: 8,
-                            width: isActive ? 20 : 8,
-                            decoration: BoxDecoration(
-                              color: isActive ? Colors.blueAccent : Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          );
-                        }),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  SizedBox(
-                    height: 200,
-                    width: double.infinity,
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: PageView(
-                              physics: const NeverScrollableScrollPhysics(),
-                              controller: _pageController,
-                              onPageChanged: (index) {
-                                setState(() {
-                                  _currentPage = index;
-                                });
-                              },
-                              children: [
-                                _buildExerciseListPage(
-                                  isLoading: _isLoadingRandom,
-                                  exercises: _randomExercises,
-                                  emptyMessage: '운동을 불러올 수 없습니다',
-                                ),
-                                _buildExerciseListPage(
-                                  isLoading: _isLoadingRecommended,
-                                  exercises: _recommendedExercises,
-                                  emptyMessage: _recommendationError ?? '추천 결과가 없습니다',
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        if (_currentPage > 0)
-                          Positioned(
-                            left: 8,
-                            top: 0,
-                            bottom: 0,
-                            child: Center(
-                              child: _buildNavButton(
-                                icon: Icons.chevron_left,
-                                onTap: () => _animateToPage(_currentPage - 1),
-                              ),
-                            ),
-                          ),
-                        if (_currentPage < 1)
-                          Positioned(
-                            right: 8,
-                            top: 0,
-                            bottom: 0,
-                            child: Center(
-                              child: _buildNavButton(
-                                icon: Icons.chevron_right,
-                                onTap: () => _animateToPage(_currentPage + 1),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [ const Color.fromARGB(255, 184, 224, 255), const Color.fromARGB(0, 255, 255, 255)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text('오늘 ${_randomMuscleName} 운동 5가지는 어떤가요?', 
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),)
+            ),
+            Expanded(child:
+            _buildExerciseListPage(
+              isLoading: _isLoadingRandom,
+                exercises: _randomExercises,
+                emptyMessage: '운동을 불러올 수 없습니다',
               ),
             ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 5),
+              margin: const EdgeInsets.only(top: 10, bottom: 10),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [ const Color.fromARGB(255, 184, 224, 255), const Color.fromARGB(0, 255, 255, 255)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text('나를 위한 AI 맞춤 운동 5가지', 
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),)
+            ),
             Expanded(
-              flex: 4,
-              child: ListView(
-              children: [
-                Card(
-                  child: InkWell(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/facility/search');
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [const Color.fromARGB(255, 248, 250, 252), Colors.white],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(5),
-                          border: Border.all(color: Colors.blue.shade100),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Image.asset('assets/icons/gym.png', width: 25, height: 25,),
-                            const Text('시설 검색', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                          ],
-                      ),
-                    ),  
-                  ),
-                ),
-                SizedBox(height: 10),
-                const Row(children: [Text("운동 검색", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),],),
-                SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                        child: Card( 
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.pushNamed(context, '/video/search/name');
-                            },
-                            child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [const Color.fromARGB(255, 255, 251, 227), Colors.white],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(color: Colors.yellow.shade100),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                child: 
-                                const Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Icon(Icons.video_library, size: 25,),
-                                    Text('이름 검색', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                                  ],
-                              ),
-                            ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Card(
-                      child: InkWell(
-                          onTap: () {
-                            Navigator.pushNamed(context, '/video/search/muscle');
-                          },
-                        child:
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [const Color.fromARGB(255, 255, 246, 247), Colors.white],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(5),
-                              border: Border.all(color: Colors.red.shade100),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Image.asset('assets/icons/muscle.png', width: 25, height: 25,),
-                                const Text('근육 검색', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ]
-                ),
-                Card(
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/diary');
-                    },
-                    child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [const Color.fromARGB(255, 248, 255, 249), Colors.white],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(color: Colors.green.shade100),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    child: 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                        Image.asset('assets/icons/diary.png', width: 40, height: 40,),
-                        const Text('AI 운동 일지', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                      ],
-                    ),
-                  ),
-                  )
-                ),
-                Card(
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/bookmark');
-                    },
-                  child:
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [const Color.fromARGB(255, 253, 243, 255), Colors.white],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: Colors.purple.shade100),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Icon(Icons.bookmark, size: 40,),
-                          Text('즐겨찾기', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                // Card(
-                //   child: InkWell(
-                //     onTap: () {
-                //       Navigator.pushNamed(context, '/api/test');
-                //     },
-                //   child:
-                //     Container(
-                //       padding: const EdgeInsets.all(20),
-                //       child: const Row(
-                //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //         children: [
-                //           Icon(Icons.api, size: 50,),
-                //           Text('API 테스트', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
-                //         ],
-                //       ),
-                //     ),
-                //   ),
-                // ),
-              ],
-            ),),
-            const BottomNavigationBarWidget(),
+              child: 
+              _buildExerciseListPage(
+                isLoading: _isLoadingRecommended,
+                exercises: _recommendedExercises,
+                emptyMessage: _recommendationError ?? '추천 결과가 없습니다',
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.1)
           ],
-        )
+        ),
       ),
     );
   }
@@ -450,10 +217,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return ListView.builder(
+    return PageView.builder(
       scrollDirection: Axis.horizontal,
       itemCount: exercises.length,
-      padding: const EdgeInsets.only(bottom: 8),
       itemBuilder: (context, index) {
         final exercise = exercises[index];
         return _buildExerciseCard(exercise);
@@ -502,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildExerciseCard(ExerciseModelResponse exercise) {
     return Container(
-      width: 160,
+      width: MediaQuery.of(context).size.width * 0.9,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -543,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: CachedNetworkImage(
                 imageUrl: "${exercise.imageUrl}/${exercise.imageFileName}",
                 width: double.infinity,
-                height: 100,
+                height: 150,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   width: double.infinity,
@@ -575,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       exercise.title,
                       style: const TextStyle(
-                        fontSize: 14,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -585,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       exercise.standardTitle ?? '',
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 14,
                         color: Color.fromARGB(255, 87, 87, 87),
                       ),
                     ),

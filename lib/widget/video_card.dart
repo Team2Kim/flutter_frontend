@@ -27,19 +27,19 @@ class _VideoCardState extends State<VideoCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container (
-          decoration: BoxDecoration(
-            color: Colors.white70,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Container(
+    return
+           Container(
+            margin: const EdgeInsets.only(top:5, bottom: 5, left: 10, right: 10),
             decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Colors.grey[300]!,
-                  width: 1,
-                ),
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 237, 255, 255),
+                  const Color.fromARGB(255, 151, 212, 255)
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+              borderRadius: BorderRadius.circular(10),
             ),
             padding: const EdgeInsets.all(10),
             child: InkWell(
@@ -57,8 +57,8 @@ class _VideoCardState extends State<VideoCard> {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Color.fromARGB(255, 237, 255, 255),
-                                Color.fromARGB(255, 200, 255, 200),
+                                Color.fromARGB(255, 222, 255, 255),
+                                const Color.fromARGB(0, 231, 242, 250)
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -204,16 +204,16 @@ class _VideoCardState extends State<VideoCard> {
                                 ),
                                 gradient: !widget.selectedMuscleNames.contains(currentMuscleName) ? LinearGradient(
                                   colors: [
-                                    Colors.blue.withOpacity(0.3),
-                                      Colors.blue.withOpacity(0.1),
+                                    Colors.blue.withOpacity(0.2),
+                                      Colors.blue.withOpacity(0.4),
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                     stops: [0.1, 0.4],
                                   ) :  LinearGradient(
                                   colors: [
-                                    Colors.green.withOpacity(0.3),
-                                      Colors.green.withOpacity(0.1),
+                                    Colors.green.withOpacity(0.2),
+                                      Colors.green.withOpacity(0.4),
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -298,8 +298,7 @@ class _VideoCardState extends State<VideoCard> {
                 )                   
               ),
             ),
-          ),
-        );
+          );
   }
 
   String _formatVideoLength(int videoLength) {
