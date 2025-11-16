@@ -492,20 +492,14 @@ class _DiaryScreenState extends State<DiaryScreen> {
         ),
         child: SingleChildScrollView(
           child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white54,
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
+            // padding: const EdgeInsets.all(10),
+            // decoration: BoxDecoration(
+            //   color: Colors.white54,
+            //   border: Border.all(color: Colors.grey.shade300),
+            //   borderRadius: BorderRadius.circular(8),
+            // ),
             child: Column(
             children: [
-              const Text(
-                '운동일지',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              
               // 주간 달력
               Container(
                 decoration: BoxDecoration(
@@ -925,6 +919,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
                       ),
                     ),
                   ),
+                  Text(logExercise.exercise.standardTitle ?? '', style: TextStyle(fontSize: 12, color: Colors.grey.shade600),),
                   const SizedBox(height: 6),
                   Row(
                     children: [

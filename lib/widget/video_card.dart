@@ -252,11 +252,11 @@ class _VideoCardState extends State<VideoCard> {
                                         foregroundColor: Colors.white,
                                       ),
                                       child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                                         children: [
                                           Icon(Icons.fitness_center, size: 18),
                                           SizedBox(width: 4),
-                                          Text("운동 기록하기"),
+                                          Text("운동 기록"),
                                         ],
                                       ),
                                     ),
@@ -280,11 +280,11 @@ class _VideoCardState extends State<VideoCard> {
                                         ),
                                       ),
                                       child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                                         children: [
                                           Icon(Icons.video_library, size: 18),
                                           SizedBox(width: 4),
-                                          Text("영상 보러가기"),
+                                          Text("영상 보기"),
                                         ],
                                       ),
                                     ),
