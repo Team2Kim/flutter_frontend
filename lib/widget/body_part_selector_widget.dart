@@ -7,11 +7,14 @@ import 'muscle_description_dialog.dart';
 class BodyPartSelectorWidget extends StatefulWidget {
   final Function(List<String> selectedBodyParts)? onBodyPartsSelected;
   final Function(List<MuscleModel> selectedMuscles)? onMusclesSelected;
+  /// 다이얼로그 등에서 재사용할 때, 이미 선택된 근육 상태를 전달하기 위한 초기 값
+  final List<MuscleModel>? initialSelectedMuscles;
 
   const BodyPartSelectorWidget({
     super.key,
     this.onBodyPartsSelected,
     this.onMusclesSelected,
+    this.initialSelectedMuscles,
   });
 
   @override
@@ -31,6 +34,15 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
   int selectedBodySideIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // 이미 선택된 근육이 있다면 초기 상태로 반영
+    if (widget.initialSelectedMuscles != null && widget.initialSelectedMuscles!.isNotEmpty) {
+      selectedMuscles = List<MuscleModel>.from(widget.initialSelectedMuscles!);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return 
     Container(
@@ -39,11 +51,12 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
         borderRadius: const BorderRadius.all(
           Radius.circular(10),
         ),
-        gradient: const LinearGradient(
-          colors: [Colors.white, const Color.fromARGB(255, 255, 236, 238)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        // gradient: const LinearGradient(
+        //   colors: [Colors.white, const Color.fromARGB(255, 255, 236, 238)],
+        //   begin: Alignment.topCenter,
+        //   end: Alignment.bottomCenter,
+        // ),
+        color: Colors.transparent,
       ),
       child:
       Column(
@@ -59,7 +72,7 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color.fromARGB(255, 255, 221, 225), Color.fromARGB(0, 255, 255, 255)],
+                      colors: [Color.fromARGB(255, 255, 221, 225), Color.fromARGB(104, 255, 255, 255)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -67,13 +80,35 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                       Radius.circular(10),
                     ),
                   ),
-                  child:
-                  Text(
-                    '신체 부위 선택',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                    Text(
+                      '신체 부위 선택',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                    SizedBox(
+                      width: 30,
+                      child:
+                      IconButton(
+                        style: IconButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          backgroundColor: Colors.white.withOpacity(0.5),
+                          elevation: 0,
+                          padding: EdgeInsets.zero,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        icon: const Icon(Icons.close, color: Colors.black, size: 20, shadows: [Shadow(color: Colors.white, blurRadius: 20)]),
+                      ),
+                    )
+                  ],)
+                  
                 ),
                 const SizedBox(height: 16),
                 SizedBox(
@@ -120,7 +155,8 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                       Expanded(
                         flex: 1,
                         child: _MuscleSelectorWidget(
-                          selectedBodyParts: _getSelectedBodyParts(), 
+                          selectedBodyParts: _getSelectedBodyParts(),
+                          initialSelectedMuscles: selectedMuscles,
                           onMusclesSelected: (muscles) {
                             setState(() {
                               selectedMuscles = muscles;
@@ -140,7 +176,8 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                   children: [
                     Row(
                       children: [
-                        SizedBox(
+                        Container(
+                          alignment: Alignment.center,
                           width: 30,
                           child: 
                             IconButton(
@@ -149,7 +186,7 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                                   selectedBodySideIndex = (selectedBodySideIndex - 1 + selectedBodySides.length) % selectedBodySides.length;
                                 });
                               },
-                              icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+                              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
                             ),
                         ),
                         Container(
@@ -171,7 +208,8 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                             ),
                           ),
                         ),
-                        SizedBox(
+                        Container(
+                          alignment: Alignment.center,
                           width: 30,
                           child: 
                             IconButton(
@@ -180,7 +218,7 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
                                   selectedBodySideIndex = (selectedBodySideIndex + 1) % selectedBodySides.length;
                                 });
                               },
-                              icon: const Icon(Icons.arrow_forward_ios, color: Colors.black),
+                              icon: const Icon(Icons.arrow_forward_ios, color: Colors.white),
                             ),
                         )
                       ],
@@ -287,10 +325,12 @@ class _BodyPartSelectorWidgetState extends State<BodyPartSelectorWidget> {
 
 class _MuscleSelectorWidget extends StatefulWidget {
   final List<String> selectedBodyParts;
+  final List<MuscleModel> initialSelectedMuscles;
   final Function(List<MuscleModel>) onMusclesSelected;
 
   const _MuscleSelectorWidget({
     required this.selectedBodyParts,
+    required this.initialSelectedMuscles,
     required this.onMusclesSelected,
   });
 
@@ -306,6 +346,8 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
   @override
   void initState() {
     super.initState();
+    // 부모에서 전달된 초기 선택 근육 상태 반영
+    selectedMuscles = List<MuscleModel>.from(widget.initialSelectedMuscles);
     _loadMuscles();
   }
 
@@ -353,13 +395,14 @@ class _MuscleSelectorWidgetState extends State<_MuscleSelectorWidget> {
             '근육 선택',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             '${muscles.length}개의 근육이 있습니다',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.black,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 16),

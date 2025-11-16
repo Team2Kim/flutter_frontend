@@ -62,7 +62,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [const Color.fromARGB(255, 107, 125, 223), const Color.fromARGB(255, 167, 174, 210)],
+            colors: [const Color.fromARGB(255, 176, 184, 232), const Color.fromARGB(255, 193, 198, 224)],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
@@ -88,7 +88,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
               child: ListTile(
                 leading: const Icon(Icons.home, color: Colors.white),
-                title: const Text('홈', style: TextStyle(fontSize: 18, color: Colors.white)),
+                title: const Text('홈', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
                   if (widget.onTabSelected != null) {
                     _selectRootTab(2); // 홈 탭
@@ -110,7 +110,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
               child: ListTile(
                 leading: const Icon(Icons.book, color: Colors.white),
-                title: const Text('AI 운동 일지', style: TextStyle(fontSize: 18, color: Colors.white)),
+                title: const Text('AI 운동 일지', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
                   if (widget.onTabSelected != null) {
                     _selectRootTab(3); // 일지 탭
@@ -128,7 +128,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
               child: ListTile(
                 leading: const Icon(Icons.search, color: Colors.white),
-                title: const Text('시설 검색', style: TextStyle(fontSize: 18, color: Colors.white)),
+                title: const Text('시설 검색', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
                   if (widget.onTabSelected != null) {
                     _selectRootTab(0); // 시설 검색 탭
@@ -146,7 +146,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
               child: ListTile(
                 leading: const Icon(Icons.video_library, color: Colors.white),
-                title: const Text('운동 검색', style: TextStyle(fontSize: 18, color: Colors.white)),
+                title: const Text('운동 검색', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
                   if (widget.onTabSelected != null) {
                     _selectRootTab(1); // 운동 검색 탭
@@ -164,7 +164,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
               child: ListTile(
                 leading: const Icon(Icons.bookmark, color: Colors.white),
-                title: const Text('즐겨찾기', style: TextStyle(fontSize: 18, color: Colors.white)),
+                title: const Text('즐겨찾기', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
                   if (widget.onTabSelected != null) {
                     _selectRootTab(4); // 즐겨찾기 탭
@@ -182,7 +182,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
               child: ListTile(
                 leading: const Icon(Icons.settings, color: Colors.white),
-                title: const Text('설정', style: TextStyle(fontSize: 18, color: Colors.white)),
+                title: const Text('설정', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.of(context).pop(); // Drawer 닫기
                   _navigateToScreen(context, '/setting');
@@ -196,14 +196,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
               child: ListTile(
               leading: const Icon(Icons.logout, color: Color.fromARGB(255, 252, 142, 134)),
-              title: const Text('로그아웃', style: TextStyle(fontSize: 18, color: Color.fromARGB(255, 252, 142, 134))),
+              title: const Text('로그아웃', style: TextStyle(fontSize: 18, color: Color.fromARGB(255, 252, 142, 134), fontWeight: FontWeight.bold)),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Colors.white, width: 1),
+                        side: BorderSide(color: Colors.white, width: 1),  
                         borderRadius: BorderRadius.circular(10),
                       ),
                       surfaceTintColor: const Color.fromARGB(255, 172, 172, 172),

@@ -598,37 +598,6 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
           // 검색 결과
           Column(
             children: [
-              Container(
-                height: 50,
-                width: double.infinity,
-                child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(0),
-                    ),
-                    backgroundColor: Colors.grey[200],
-                    foregroundColor: Colors.black87,
-                    elevation: 0,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isMuscleExpanded = !_isMuscleExpanded;
-                      if (_isMuscleExpanded) {
-                        _muscleAnimationController.forward();
-                      } else {
-                        _muscleAnimationController.reverse();
-                      }
-                    });
-                  }, 
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('근육 선택'),
-                      Icon(_isMuscleExpanded ? Icons.expand_less : Icons.expand_more),
-                    ],
-                  ),
-                ),
-              ),
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -659,38 +628,71 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
                                   );
                                 }
                                 
-                              // 실제 운동 데이터로 VideoCard 표시
-                              final exercise = _muscleSearchResults[index];
-                              return VideoCard(exercise: exercise, selectedMuscleNames: _selectedMuscles.map((muscle) => muscle.name).toList());
-                          },
-                        ),
+                                // 실제 운동 데이터로 VideoCard 표시
+                                final exercise = _muscleSearchResults[index];
+                                return VideoCard(
+                                  exercise: exercise,
+                                  selectedMuscleNames: _selectedMuscles.map((muscle) => muscle.name).toList(),
+                                );
+                              },
+                            ),
                 ),
               ),
-          ],
+            ],
           ),
-          ClipRect(
-            child: Align(
-              alignment: Alignment.topCenter,
-              heightFactor: 1.0,
-              child: SizeTransition(
-                sizeFactor: _muscleSizeAnimation,
-                axisAlignment: -1.0,
-                child: IgnorePointer(
-                  ignoring: !_isMuscleExpanded,
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 50, 16, 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: BodyPartSelectorWidget(
-                      onMusclesSelected: _onMusclesSelected,
-                    ),
-                  ),
+          // 근육 선택 버튼 (항상 맨 위에서 터치 가능하도록 Positioned를 마지막에 둠)
+          Positioned(
+            top: 10,
+            right: 10,
+            child: Container(
+              height: 50,
+              margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.white, const Color.fromARGB(255, 234, 246, 255)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  stops: [0.7, 0.9],
+                ),
+                border: Border.all(color: const Color.fromARGB(255, 186, 225, 255), width: 2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  padding: EdgeInsets.zero,
+                ),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (dialogContext) {
+                      return AlertDialog(
+                        insetPadding: EdgeInsets.zero,
+                        backgroundColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        title: SizedBox.shrink(),
+                        content: SizedBox(
+                          width: double.maxFinite,
+                          child: BodyPartSelectorWidget(
+                            initialSelectedMuscles: _selectedMuscles,
+                            onMusclesSelected: _onMusclesSelected,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                child: Image.asset(
+                  'assets/icons/muscle.png',
+                  width: 24,
+                  height: 24,
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
