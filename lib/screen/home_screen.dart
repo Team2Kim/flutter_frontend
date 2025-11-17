@@ -6,7 +6,6 @@ import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/screen/video_detail_screen.dart';
 import 'package:gukminexdiary/services/exercise_service.dart';
 import 'package:gukminexdiary/services/recommendation_service.dart';
-import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/custom_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,7 +15,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
   String? _randomMuscleName;
   List<ExerciseModelResponse> _randomExercises = [];
   bool _isLoadingRandom = false;
@@ -25,20 +24,15 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingRecommended = false;
   String? _recommendationError;
 
-  late final PageController _pageController;
-  int _currentPage = 0;
-
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
     _loadRandomMuscleExercises();
     _loadRecommendations();
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
     super.dispose();
   }
 
@@ -110,18 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String _currentPageTitle() {
-    if (_currentPage == 0) {
-      if (_randomMuscleName != null) {
-        return '오늘 ${_randomMuscleName} 운동 5가지는 어떤가요?';
-      }
-      return '오늘의 근육별 추천 운동';
-    }
-    return '나를 위한 AI 맞춤 운동 5가지';
-  }
-
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       // appBar: const CustomAppbar(
       //   title: '홈',
@@ -224,45 +209,6 @@ class _HomeScreenState extends State<HomeScreen> {
         final exercise = exercises[index];
         return _buildExerciseCard(exercise);
       },
-    );
-  }
-
-  void _animateToPage(int targetPage) {
-    final nextPage = targetPage < 0
-        ? 0
-        : targetPage > 1
-            ? 1
-            : targetPage;
-
-    if (!_pageController.hasClients || nextPage == _currentPage) return;
-
-    setState(() {
-      _currentPage = nextPage;
-    });
-
-    _pageController.animateToPage(
-      nextPage,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  Widget _buildNavButton({required IconData icon, required VoidCallback onTap}) {
-    return Material(
-      color: Colors.black.withOpacity(0.3),
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: Icon(
-            icon,
-            size: 18,
-            color: Colors.white,
-          ),
-        ),
-      ),
     );
   }
 
@@ -392,4 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

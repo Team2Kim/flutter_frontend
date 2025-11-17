@@ -18,12 +18,20 @@ class MainRootScreen extends StatefulWidget {
 
 class _MainRootScreenState extends State<MainRootScreen> {
   late final PageController _pageController;
+  late final List<Widget> _pages;
   int _currentIndex = 2; // 기본 홈 탭 (0:시설, 1:영상, 2:홈, 3:일지, 4:즐겨찾기)
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
+    _pages = const [
+      FacilitySearchScreen(),
+      VideoSearchScreen(lastPage: false),
+      HomeScreen(),
+      DiaryScreen(),
+      BookmarkScreen(),
+    ];
   }
 
   @override
@@ -83,13 +91,7 @@ class _MainRootScreenState extends State<MainRootScreen> {
               _currentIndex = index;
             });
           },
-          children: const [
-            FacilitySearchScreen(),
-            VideoSearchScreen(lastPage: false),
-            HomeScreen(),
-            DiaryScreen(),
-            BookmarkScreen(),
-          ],
+          children: _pages,
         ),
       ),
       bottomNavigationBar: BottomNavigationBarWidget(

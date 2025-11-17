@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/provider/exercise_provider.dart';
 import 'package:gukminexdiary/provider/bookmark_provider.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +15,8 @@ class VideoSearchScreen extends StatefulWidget {
   State<VideoSearchScreen> createState() => _VideoSearchScreenState();
 }
 
-class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProviderStateMixin {
+class _VideoSearchScreenState extends State<VideoSearchScreen>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   final PageController _pageController = PageController();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -33,10 +33,6 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   bool _isMuscleLoading = false;
   bool _isMuscleLoadingMore = false;
   bool _muscleLastPage = false;
-  bool _isMuscleExpanded = false;
-  BodyPartSelectorWidget? _bodyPartSelectorWidget;
-  late AnimationController _muscleAnimationController;
-  late Animation<double> _muscleSizeAnimation;
 
   // 필터 상태 관리 (단일 선택만 가능)
   String? _selectedTargetGroup; // 대상 (targetGroup)
@@ -58,14 +54,6 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _muscleAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _muscleSizeAnimation = CurvedAnimation(
-      parent: _muscleAnimationController,
-      curve: Curves.decelerate,
-    );
     _scrollController.addListener(_onScroll);
     _muscleScrollController.addListener(_onMuscleScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -82,9 +70,6 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
       final bookmarkProvider = context.read<BookmarkProvider>();
       await exerciseProvider.getExercisesData('');
       await bookmarkProvider.getBookmarks();
-      _bodyPartSelectorWidget = BodyPartSelectorWidget(
-        onMusclesSelected: _onMusclesSelected,
-      );
     });
   }
 
@@ -131,43 +116,6 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
     }
   }
 
-  // 필터 섹션 빌드 메서드 (라디오 버튼 방식) - 다이얼로그 내에서 사용
-  Widget _buildFilterSection(String title, List<String> options, String? selectedValue, Function(String?) onChanged, {bool autoSearch = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: options.map((option) {
-            final isSelected = selectedValue == option;
-            return FilterChip(
-              label: Text(option),
-              selected: isSelected,
-              onSelected: (selected) {
-                // 단일 선택: 같은 그룹에서 하나만 선택 가능
-                onChanged(selected ? option : null);
-                if (autoSearch) {
-                  _performSearch();
-                }
-              },
-              selectedColor: Colors.blue[100],
-              checkmarkColor: Colors.blue[800],
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-  
   // 필터 초기화
   void _clearAllFilters() {
     setState(() {
@@ -369,12 +317,15 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
     _searchController.dispose();
     _scrollController.dispose();
     _muscleScrollController.dispose();
-    _muscleAnimationController.dispose();
     super.dispose();
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final exerciseProvider = Provider.of<ExerciseProvider>(context);
     return Scaffold(
       // appBar: CustomAppbar(
@@ -390,7 +341,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen> with TickerProvid
             decoration: BoxDecoration(
               color: const Color.fromARGB(255, 241, 249, 255),
               border: Border(
-                bottom: BorderSide(color: const Color.fromARGB(0, 224, 224, 224)!),
+                bottom: BorderSide(color: const Color.fromARGB(0, 224, 224, 224)),
               ),
             ),
             child: Row(

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/video_card.dart';
-import 'package:gukminexdiary/provider/exercise_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:gukminexdiary/provider/bookmark_provider.dart';
 
@@ -12,7 +10,7 @@ class BookmarkScreen extends StatefulWidget {
   State<BookmarkScreen> createState() => _BookmarkScreenState();
 }
 
-class _BookmarkScreenState extends State<BookmarkScreen> {
+class _BookmarkScreenState extends State<BookmarkScreen> with AutomaticKeepAliveClientMixin {
 final TextEditingController _searchController = TextEditingController();
   bool _isFilterExpanded = false; // 필터 섹션 접기/펼치기 상태
   
@@ -148,6 +146,7 @@ final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final bookmarkProvider = Provider.of<BookmarkProvider>(context);
     return Scaffold(
       // appBar: CustomAppbar(
@@ -265,4 +264,7 @@ final TextEditingController _searchController = TextEditingController();
       )
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

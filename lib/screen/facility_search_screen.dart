@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gukminexdiary/provider/facility_provider.dart';
-import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:provider/provider.dart';
 import 'package:gukminexdiary/widget/facility_card.dart';
 import 'package:gukminexdiary/widget/facility_search_bar.dart';
@@ -12,7 +11,7 @@ class FacilitySearchScreen extends StatefulWidget {
   State<FacilitySearchScreen> createState() => _FacilitySearchScreenState();
 }
 
-class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
+class _FacilitySearchScreenState extends State<FacilitySearchScreen> with AutomaticKeepAliveClientMixin {
   // final TextEditingController _searchController = TextEditingController();
   // final TextEditingController _keywordController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -58,6 +57,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       // appBar: CustomAppbar(
       //   title: '시설 검색',
@@ -142,4 +142,7 @@ class _FacilitySearchScreenState extends State<FacilitySearchScreen> {
       )
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

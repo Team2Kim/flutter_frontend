@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/exercise_record_dialog.dart';
 import 'package:gukminexdiary/services/dailylog_service.dart';
 import 'package:gukminexdiary/model/dailylog_model.dart';
@@ -18,7 +17,7 @@ class DiaryScreen extends StatefulWidget {
   State<DiaryScreen> createState() => _DiaryScreenState();
 }
 
-class _DiaryScreenState extends State<DiaryScreen> {
+class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClientMixin {
   DateTime _selectedDate = DateTime.now();
   DateTime _focusedDate = DateTime.now();
   CalendarFormat _calendarFormat = CalendarFormat.week;
@@ -474,6 +473,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       // appBar: CustomAppbar(
       //   title: '운동 일지',
@@ -1048,4 +1048,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
