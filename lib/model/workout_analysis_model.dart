@@ -577,7 +577,7 @@ class RecommendedRoutine {
 class DailyDetail {
   final int? day;
   final String? focus;
-  final List<ExerciseDetail>? exercises;
+  final List<int>? exercises; // ID 배열로 변경
   final String? estimatedDuration;
 
   DailyDetail({
@@ -592,7 +592,13 @@ class DailyDetail {
       day: json['day'],
       focus: json['focus'],
       exercises: (json['exercises'] as List<dynamic>?)
-          ?.map((e) => ExerciseDetail.fromJson(e))
+          ?.map((e) {
+            if (e is int) return e;
+            if (e is String) return int.tryParse(e);
+            if (e is num) return e.toInt();
+            return null;
+          })
+          .whereType<int>()
           .toList(),
       estimatedDuration: json['estimated_duration'],
     );
@@ -602,7 +608,7 @@ class DailyDetail {
     return {
       'day': day,
       'focus': focus,
-      'exercises': exercises?.map((e) => e.toJson()).toList(),
+      'exercises': exercises,
       'estimated_duration': estimatedDuration,
     };
   }

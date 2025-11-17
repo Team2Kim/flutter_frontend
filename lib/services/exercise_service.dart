@@ -304,4 +304,56 @@ class ExerciseService {
     );
     return response;
   }
+
+  // ID 목록으로 여러 운동 영상 조회
+  Future<List<ExerciseModelResponse>> getExercisesByIds(List<int> ids) async {
+    if (ids.isEmpty) {
+      return [];
+    }
+
+    final response = await getExercisesByIdsFromAPI(ids);
+    
+    if (response.statusCode == 200) {
+      if (response.body.isEmpty) {
+        return [];
+      }
+      
+      try {
+        final data = jsonDecode(response.body);
+        
+        // API 응답이 List인지 확인
+        if (data is List) {
+          return data.map<ExerciseModelResponse>((item) => ExerciseModelResponse.fromJson(item)).toList();
+        }
+        
+        throw Exception('Unexpected response format: expected List');
+      } catch (e) {
+        print('JSON 파싱 오류: $e');
+        return [];
+      }
+    } else if (response.statusCode == 400) {
+      throw Exception('잘못된 요청: ids 파라미터가 필요합니다.');
+    } else {
+      throw Exception('운동 정보 조회 실패: ${response.statusCode}');
+    }
+  }
+
+  Future<http.Response> getExercisesByIdsFromAPI(List<int> ids) async {
+    final idsParam = ids.join(',');
+    
+    final uri = Uri.parse('$baseUrl/exercises/by-ids')
+        .replace(queryParameters: {
+          'ids': idsParam,
+        });
+    print(idsParam);
+    print('운동 ID 목록 조회 API 호출 URL: $uri');
+    
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+    return response;
+  }
 }

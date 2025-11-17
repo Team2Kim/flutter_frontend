@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/model/workout_analysis_model.dart';
+import 'package:gukminexdiary/services/exercise_service.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/video_card.dart';
 
@@ -33,13 +34,54 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
   double _recoveryGuidanceOpacity = 0.0;
   double _encouragementOpacity = 0.0;
   
+  // 운동 정보 캐시 (exerciseId -> ExerciseModelResponse)
+  Map<int, ExerciseModelResponse>? _exercisesCache;
+  Future<List<ExerciseModelResponse>>? _exercisesFuture;
+  
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    
+    // 모든 운동 ID를 모아서 한 번에 로드
+    _loadAllExercises();
+    
     // 화면이 나타난 후 애니메이션 시작
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAnimations();
+    });
+  }
+  
+  void _loadAllExercises() {
+    final pattern = widget.weeklyPatternResponse.aiPattern;
+    if (pattern?.recommendedRoutine?.dailyDetails == null) {
+      return;
+    }
+    
+    // 모든 DailyDetail의 exercises ID를 모음
+    final allExerciseIds = <int>{};
+    for (final detail in pattern!.recommendedRoutine!.dailyDetails!) {
+      if (detail.exercises != null) {
+        allExerciseIds.addAll(detail.exercises!);
+      }
+    }
+    
+    if (allExerciseIds.isEmpty) {
+      return;
+    }
+    
+    // 한 번에 모든 운동 정보를 로드
+    _exercisesFuture = ExerciseService().getExercisesByIds(allExerciseIds.toList());
+    _exercisesFuture!.then((exercises) {
+      if (mounted) {
+        setState(() {
+          _exercisesCache = {
+            for (final exercise in exercises) exercise.exerciseId: exercise
+          };
+        });
+      }
+    }).catchError((error) {
+      print('운동 정보 로드 오류: $error');
     });
   }
   
@@ -812,8 +854,8 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
   Widget _buildDailyDetailSection(DailyDetail detail) {
     final title = 'Day ${detail.day ?? ""}${detail.focus != null ? " - ${detail.focus!}" : ""}';
     final isExpanded = _isSectionExpanded[title] ?? true;
-    final exercises = detail.exercises ?? [];
-    final hasExercises = exercises.isNotEmpty;
+    final exerciseIds = detail.exercises ?? [];
+    final hasExercises = exerciseIds.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -877,14 +919,75 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                         ),
                       ),
                     if (hasExercises)
-                      Column(
-                        children: exercises.map((exercise) {
-                          final exerciseModel = _mapExerciseDetailToModel(exercise);
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: VideoCard(exercise: exerciseModel),
+                      FutureBuilder<List<ExerciseModelResponse>>(
+                        future: _exercisesFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+                          
+                          if (snapshot.hasError) {
+                            return Container(
+                              width: double.infinity,
+                              margin: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.red.withOpacity(0.2)),
+                              ),
+                              child: Text(
+                                '운동 정보를 불러오는 중 오류가 발생했습니다: ${snapshot.error}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            );
+                          }
+                          
+                          // 캐시에서 해당 ID의 운동 정보만 필터링
+                          final exercises = exerciseIds
+                              .map((id) => _exercisesCache?[id])
+                              .whereType<ExerciseModelResponse>()
+                              .toList();
+                          
+                          if (exercises.isEmpty) {
+                            return Container(
+                              width: double.infinity,
+                              margin: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.orange.withOpacity(0.2)),
+                              ),
+                              child: const Text(
+                                '추천 운동이 없습니다.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            );
+                          }
+                          
+                          return Column(
+                            children: exercises.map((exercise) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: VideoCard(exercise: exercise),
+                              );
+                            }).toList(),
                           );
-                        }).toList(),
+                        },
                       )
                     else
                       Container(
@@ -944,31 +1047,6 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
           ),
         ],
       ),
-    );
-  }
-
-  ExerciseModelResponse _mapExerciseDetailToModel(ExerciseDetail exercise) {
-    // title 우선순위: title > standardTitle > name
-    final title = exercise.title ?? 
-                  exercise.standardTitle ?? 
-                  exercise.name ?? 
-                  '추천 운동';
-    
-    return ExerciseModelResponse(
-      exerciseId: exercise.exerciseId ?? 0,
-      title: title,
-      description: exercise.description,
-      targetGroup: exercise.targetGroup,
-      standardTitle: exercise.standardTitle,
-      fitnessFactorName: exercise.fitnessFactorName,
-      fitnessLevelName: exercise.fitnessLevelName,
-      bodyPart: exercise.bodyPart,
-      muscleName: exercise.muscleName,
-      exerciseTool: exercise.exerciseTool,
-      videoLengthSeconds: exercise.videoLengthSeconds,
-      imageUrl: exercise.imageUrl,
-      imageFileName: exercise.imageFileName,
-      videoUrl: exercise.videoUrl,  // API 응답의 video_url을 그대로 사용
     );
   }
 
