@@ -142,7 +142,15 @@ class _SettingScreenState extends State<SettingScreen> {
       ),
       drawer: const CustomDrawer(),
       body: SafeArea(
-        child: _isLoading
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
+              radius: 0.7,
+              stops: [0.3, 0.7],
+            ),
+          ),
+          child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _errorMessage != null
                 ? _buildErrorState()
@@ -179,6 +187,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     ),
                   ),
       ),
+      )
     );
   }
 

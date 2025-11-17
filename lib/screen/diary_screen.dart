@@ -4,11 +4,15 @@ import 'package:gukminexdiary/widget/exercise_record_dialog.dart';
 import 'package:gukminexdiary/services/dailylog_service.dart';
 import 'package:gukminexdiary/model/dailylog_model.dart';
 import 'package:gukminexdiary/model/workout_analysis_model.dart';
+import 'package:gukminexdiary/model/user_profile_model.dart';
+import 'package:gukminexdiary/services/user_service.dart';
+import 'package:gukminexdiary/provider/navigation_provider.dart';
 import 'package:gukminexdiary/screen/video_detail_screen.dart';
 import 'package:gukminexdiary/screen/workout_analysis_screen.dart';
 import 'package:gukminexdiary/screen/weekly_pattern_analysis_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class DiaryScreen extends StatefulWidget {
   const DiaryScreen({super.key});
@@ -23,8 +27,9 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
   CalendarFormat _calendarFormat = CalendarFormat.week;
   ScrollController _scrollController = ScrollController();
   TextEditingController _memoController = TextEditingController();
-  
   final DailyLogService _dailyLogService = DailyLogService();
+  final UserService _userService = UserService();
+  UserProfile? _userProfile;
   DailyLogModelResponse? _currentLog;
   bool _isLoading = false;
 
@@ -224,18 +229,25 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
     }
   }
 
-  // 이번 주 월요일부터 일요일까지의 날짜 리스트 가져오기
+  // 선택된 날짜 포함, 6일 전까지 총 7일의 날짜 리스트 가져오기 (과거→현재 순)
   List<DateTime> _getWeekDates(DateTime date) {
-    // 월요일 찾기 (1 = 월요일, 7 = 일요일)
-    final weekday = date.weekday; // 1 = 월요일, 7 = 일요일
-    final monday = date.subtract(Duration(days: weekday - 1));
-    
-    List<DateTime> weekDates = [];
-    for (int i = 0; i < 7; i++) {
-      weekDates.add(monday.add(Duration(days: i)));
+    final startDate = date.subtract(const Duration(days: 6));
+    return List<DateTime>.generate(
+      7,
+      (index) => startDate.add(Duration(days: index)),
+    );
+  }
+
+  Future<UserProfile?> _ensureUserProfile() async {
+    if (_userProfile != null) return _userProfile;
+    try {
+      final profile = await _userService.fetchProfile();
+      _userProfile = profile;
+      return profile;
+    } catch (e) {
+      debugPrint('사용자 프로필 로드 실패: $e');
+      return null;
     }
-    print(weekDates);
-    return weekDates;
   }
 
   // 주간 패턴 분석 실행
@@ -324,8 +336,15 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
         ),
       );
 
+      final profile = await _ensureUserProfile();
+
       // 주간 패턴 분석 요청
-      final weeklyPattern = await _dailyLogService.analyzeWeeklyPattern(weeklyLogs);
+      final weeklyPattern = await _dailyLogService.analyzeWeeklyPattern(
+        weeklyLogs,
+        targetGroup: profile?.targetGroup,
+        fitnessLevelName: profile?.fitnessLevelName,
+        fitnessFactorName: profile?.fitnessFactorName,
+      );
       
       // 로딩 다이얼로그 닫기
       if (mounted) Navigator.pop(context);
@@ -411,8 +430,14 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
         ),
       );
 
+      final profile = await _ensureUserProfile();
       // AI 분석 요청
-      final analysis = await _dailyLogService.analyzeWorkoutLog(_currentLog!);
+      final analysis = await _dailyLogService.analyzeWorkoutLog(
+        _currentLog!,
+        targetGroup: profile?.targetGroup,
+        fitnessLevelName: profile?.fitnessLevelName,
+        fitnessFactorName: profile?.fitnessFactorName,
+      );
 
       // 로딩 다이얼로그 닫기
       if (mounted) Navigator.pop(context);
@@ -716,7 +741,7 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
                           Expanded(child:
                           InkWell(
                             onTap: () {
-                              Navigator.pushNamed(context, '/video/search/name');
+                              context.read<NavigationProvider>().goToExerciseSearch();
                             },
                             child: Container(
                               width: 120,

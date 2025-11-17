@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gukminexdiary/model/exercise_model.dart';
 import 'package:gukminexdiary/model/workout_analysis_model.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/video_card.dart';
-import 'package:gukminexdiary/widget/debug_response_dialog.dart';
 
 class WeeklyPatternAnalysisScreen extends StatefulWidget {
   final WeeklyPatternResponse weeklyPatternResponse;
@@ -87,16 +89,9 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
         automaticallyImplyLeading: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.bug_report, color: Colors.white),
+            icon: const Icon(Icons.code, color: Colors.white),
             tooltip: 'API 응답 확인',
-            onPressed: () {
-              final responseJson = widget.weeklyPatternResponse.toJson();
-              DebugResponseDialog.show(
-                context,
-                responseJson,
-                title: '주간 패턴 분석 API 응답',
-              );
-            },
+            onPressed: _showFullResponseDialog,
           ),
         ],
       ),
@@ -105,7 +100,7 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           gradient: RadialGradient(
-            colors: [Colors.white, const Color.fromARGB(255, 245, 255, 246)],
+            colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
             radius: 0.7,
             stops: const [0.3, 0.7],
           ),
@@ -187,6 +182,47 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
     );
   }
 
+  void _showFullResponseDialog() {
+    final encoder = const JsonEncoder.withIndent('  ');
+    final prettyJson = encoder.convert(widget.weeklyPatternResponse.toJson());
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('주간 패턴 분석 API 응답'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: SelectableText(
+                prettyJson,
+                style: const TextStyle(
+                  fontFamily: 'SourceCodePro',
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: prettyJson));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('응답이 클립보드에 복사되었습니다.')),
+                );
+              },
+              child: const Text('복사'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('닫기'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildWeekInfoCard() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -227,6 +263,11 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                 ],
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.code, color: Color.fromARGB(255, 0, 45, 89)),
+            tooltip: 'API 응답 확인',
+            onPressed: _showFullResponseDialog,
           ),
         ],
       ),

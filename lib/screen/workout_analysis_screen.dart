@@ -5,6 +5,8 @@ import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/provider/exercise_provider.dart';
 import 'package:gukminexdiary/widget/video_card_mini.dart';
 import 'package:gukminexdiary/services/dailylog_service.dart';
+import 'package:gukminexdiary/services/user_service.dart';
+import 'package:gukminexdiary/model/user_profile_model.dart';
 import 'package:provider/provider.dart';
 
 class WorkoutAnalysisScreen extends StatefulWidget {
@@ -29,6 +31,8 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
   final PageController _pageController = PageController();
   int _currentPage = 0;
   final DailyLogService _dailyLogService = DailyLogService();
+  final UserService _userService = UserService();
+  UserProfile? _userProfile;
   WorkoutAnalysisResponse? _currentAnalysis;
   bool _isRegenerating = false;
   
@@ -179,8 +183,15 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
         return;
       }
       
+      final profile = await _ensureUserProfile();
+
       // AI 분석 요청
-      final analysis = await _dailyLogService.analyzeWorkoutLog(log);
+      final analysis = await _dailyLogService.analyzeWorkoutLog(
+        log,
+        targetGroup: profile?.targetGroup,
+        fitnessLevelName: profile?.fitnessLevelName,
+        fitnessFactorName: profile?.fitnessFactorName,
+      );
       
       // 로딩 다이얼로그 닫기
       if (mounted) Navigator.pop(context);
@@ -233,6 +244,18 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
     }
   }
 
+  Future<UserProfile?> _ensureUserProfile() async {
+    if (_userProfile != null) return _userProfile;
+    try {
+      final profile = await _userService.fetchProfile();
+      _userProfile = profile;
+      return profile;
+    } catch (e) {
+      debugPrint('사용자 프로필 로드 실패: $e');
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -244,10 +267,10 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           gradient: RadialGradient(
-            colors: [Colors.white, const Color.fromARGB(255, 245, 255, 246)],
+            colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
             radius: 0.7,
-            stops: [0.3, 0.7],
-          )
+            stops: const [0.3, 0.7],
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,7 +349,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
                 ],
               ],),
             ),
-            SizedBox(height: 40),
+          //SizedBox(height: 40),
           ],
         ),
       ),

@@ -16,6 +16,7 @@ class WorkoutAnalysisResponse {
   });
 
   factory WorkoutAnalysisResponse.fromJson(Map<String, dynamic> json) {
+    print(json['basic_analysis']);
     return WorkoutAnalysisResponse(
       success: json['success'] ?? false,
       aiAnalysis: json['ai_analysis'] != null

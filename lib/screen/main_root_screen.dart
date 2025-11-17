@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gukminexdiary/provider/navigation_provider.dart';
 import 'package:gukminexdiary/screen/home_screen.dart';
 import 'package:gukminexdiary/screen/diary_screen.dart';
 import 'package:gukminexdiary/screen/facility_search_screen.dart';
@@ -7,6 +8,7 @@ import 'package:gukminexdiary/screen/bookmark_screen.dart';
 import 'package:gukminexdiary/widget/bottom_navigation_bar.dart';
 import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/custom_drawer.dart';
+import 'package:provider/provider.dart';
 
 /// 앱 전체의 하단 네비게이션 + PageView 를 관리하는 루트 화면
 class MainRootScreen extends StatefulWidget {
@@ -17,14 +19,11 @@ class MainRootScreen extends StatefulWidget {
 }
 
 class _MainRootScreenState extends State<MainRootScreen> {
-  late final PageController _pageController;
   late final List<Widget> _pages;
-  int _currentIndex = 2; // 기본 홈 탭 (0:시설, 1:영상, 2:홈, 3:일지, 4:즐겨찾기)
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: _currentIndex);
     _pages = const [
       FacilitySearchScreen(),
       VideoSearchScreen(lastPage: false),
@@ -35,44 +34,25 @@ class _MainRootScreenState extends State<MainRootScreen> {
   }
 
   @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  void _onNavItemSelected(int index) {
-    if (index == _currentIndex) return;
-
-    setState(() {
-      _currentIndex = index;
-    });
-
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final navigationProvider = context.watch<NavigationProvider>();
+    final currentIndex = navigationProvider.currentIndex;
+
     return Scaffold(
       // AppBar는 각 개별 페이지에서 가지고 있고,
       appBar: CustomAppbar(
-        title: _currentIndex == 0
+        title: currentIndex == NavigationProvider.facilityIndex
             ? '시설 검색'
-            : _currentIndex == 1
+            : currentIndex == NavigationProvider.videoSearchIndex
                 ? '영상 검색'
-                : _currentIndex == 2
+                : currentIndex == NavigationProvider.homeIndex
                     ? '홈'
-                    : _currentIndex == 3
+                    : currentIndex == NavigationProvider.diaryIndex
                         ? '운동 일지'
                         : '즐겨찾기',
         automaticallyImplyLeading: true,
       ),
-      drawer: CustomDrawer(
-        onTabSelected: _onNavItemSelected,
-      ),
+      drawer: const CustomDrawer(),
       extendBody: true, // body를 네비게이션 바 뒤까지 확장
       backgroundColor: const Color.fromRGBO(241, 248, 255, 1),
       body: Container(
@@ -84,19 +64,15 @@ class _MainRootScreenState extends State<MainRootScreen> {
           ),
         ),
         child: PageView(
-          controller: _pageController,
+          controller: navigationProvider.pageController,
           physics: const NeverScrollableScrollPhysics(), // 손가락 스와이프 금지, 버튼으로만 이동
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
+          onPageChanged: navigationProvider.handlePageChanged,
           children: _pages,
         ),
       ),
       bottomNavigationBar: BottomNavigationBarWidget(
-        currentIndex: _currentIndex,
-        onItemSelected: _onNavItemSelected,
+        currentIndex: currentIndex,
+        onItemSelected: (index) => context.read<NavigationProvider>().goTo(index),
       ),
     );
   }

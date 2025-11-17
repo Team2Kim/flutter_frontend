@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:gukminexdiary/provider/auth_provider.dart';
+import 'package:gukminexdiary/provider/navigation_provider.dart';
 
 class CustomDrawer extends StatefulWidget {
-  /// 메인 루트(Screen)에서 사용 시, 탭 인덱스를 직접 변경하기 위한 콜백
-  /// (0: 시설, 1: 운동검색, 2: 홈, 3: 일지, 4: 즐겨찾기)
-  final ValueChanged<int>? onTabSelected;
-
-  const CustomDrawer({super.key, this.onTabSelected});
+  const CustomDrawer({super.key});
 
   @override
   State<CustomDrawer> createState() => _CustomDrawerState();
@@ -48,11 +45,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
     });
   }
 
-  /// 메인 루트의 PageView 탭으로 이동하고 싶을 때 사용하는 헬퍼
-  void _selectRootTab(int index) {
+  /// NavigationProvider를 통해 탭 전환
+  Future<void> _selectRootTab(int index) async {
     Navigator.of(context).pop(); // Drawer 닫기
-    if (widget.onTabSelected != null) {
-      widget.onTabSelected!(index);
+    try {
+      final navigationProvider = context.read<NavigationProvider>();
+      await navigationProvider.goTo(index);
+    } catch (e) {
+      // NavigationProvider가 없는 경우를 대비하여 fallback 없이 무시
+      debugPrint('NavigationProvider unavailable: $e');
     }
   }
 
@@ -90,16 +91,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 leading: const Icon(Icons.home, color: Colors.white),
                 title: const Text('홈', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
-                  if (widget.onTabSelected != null) {
-                    _selectRootTab(2); // 홈 탭
-                  } else {
-                    Navigator.of(context).pop(); // Drawer 닫기
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/home',
-                      (route) => false, // 모든 이전 라우트 제거
-                    );
-                  }
+                  _selectRootTab(NavigationProvider.homeIndex);
                 },
               ),
             ),
@@ -112,12 +104,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 leading: const Icon(Icons.book, color: Colors.white),
                 title: const Text('AI 운동 일지', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
-                  if (widget.onTabSelected != null) {
-                    _selectRootTab(3); // 일지 탭
-                  } else {
-                    Navigator.of(context).pop(); // Drawer 닫기
-                    _navigateToScreen(context, '/diary');
-                  }
+                  _selectRootTab(NavigationProvider.diaryIndex);
                 },
               ),
             ),
@@ -130,12 +117,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 leading: const Icon(Icons.search, color: Colors.white),
                 title: const Text('시설 검색', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
-                  if (widget.onTabSelected != null) {
-                    _selectRootTab(0); // 시설 검색 탭
-                  } else {
-                    Navigator.of(context).pop(); // Drawer 닫기
-                    _navigateToScreen(context, '/facility/search');
-                  }
+                  _selectRootTab(NavigationProvider.facilityIndex);
                 },
               ),
             ),
@@ -148,12 +130,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 leading: const Icon(Icons.video_library, color: Colors.white),
                 title: const Text('운동 검색', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
-                  if (widget.onTabSelected != null) {
-                    _selectRootTab(1); // 운동 검색 탭
-                  } else {
-                    Navigator.of(context).pop(); // Drawer 닫기
-                    _navigateToScreen(context, '/video/search/name');
-                  }
+                  _selectRootTab(NavigationProvider.videoSearchIndex);
                 },
               ),
             ),
@@ -166,12 +143,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 leading: const Icon(Icons.bookmark, color: Colors.white),
                 title: const Text('즐겨찾기', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
-                  if (widget.onTabSelected != null) {
-                    _selectRootTab(4); // 즐겨찾기 탭
-                  } else {
-                    Navigator.of(context).pop(); // Drawer 닫기
-                    _navigateToScreen(context, '/bookmark');
-                  }
+                  _selectRootTab(NavigationProvider.bookmarkIndex);
                 },
               ),
             ),          

@@ -9,6 +9,7 @@ import 'package:gukminexdiary/screen/setting_screen.dart';
 import 'package:gukminexdiary/screen/video_search_screen.dart';
 import 'package:gukminexdiary/provider/exercise_provider.dart';
 import 'package:gukminexdiary/provider/bookmark_provider.dart';
+import 'package:gukminexdiary/provider/navigation_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -65,6 +66,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (context) => FacilityProvider()),
         ChangeNotifierProvider(create: (context) => ExerciseProvider()),
         ChangeNotifierProvider(create: (context) => BookmarkProvider()),
+        ChangeNotifierProvider(create: (context) => NavigationProvider()),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {

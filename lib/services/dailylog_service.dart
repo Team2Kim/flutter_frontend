@@ -266,38 +266,65 @@ class DailyLogService {
   Future<WorkoutAnalysisResponse> analyzeWorkoutLog(
     DailyLogModelResponse dailyLog, {
     String model = 'gpt-4o-mini',
+    String? targetGroup,
+    String? fitnessLevelName,
+    String? fitnessFactorName,
   }) async {
     try {
       final headers = await _getHeaders();
 
       // DailyLogModelResponse를 API 요청 형태로 변환
-      final requestBody = {
+      List<Map<String, dynamic>> exercisePayloads =
+          dailyLog.exercises.map((exercise) {
+        final exerciseInfo = exercise.exercise;
+        final muscles = _parseMusclesToList(exerciseInfo.muscleName);
+
+        final exerciseMap = <String, dynamic>{
+          'exerciseId': exerciseInfo.exerciseId,
+          'title': exerciseInfo.title,
+          'muscles': muscles,
+        };
+
+        void addIfNotEmpty(String key, String? value) {
+          if (value != null && value.trim().isNotEmpty) {
+            exerciseMap[key] = value;
+          }
+        }
+
+        addIfNotEmpty('videoUrl', exerciseInfo.videoUrl);
+        addIfNotEmpty('trainingName', exerciseInfo.trainingName);
+        addIfNotEmpty('exerciseTool', exerciseInfo.exerciseTool);
+        addIfNotEmpty('targetGroup', exerciseInfo.targetGroup);
+        addIfNotEmpty('fitnessFactorName', exerciseInfo.fitnessFactorName);
+        addIfNotEmpty('fitnessLevelName', exerciseInfo.fitnessLevelName);
+        addIfNotEmpty('trainingPlaceName', exerciseInfo.trainingPlaceName);
+
+        final payload = <String, dynamic>{
+          'logExerciseId': exercise.logExerciseId,
+          'exercise': exerciseMap,
+          'intensity': _normalizeIntensity(exercise.intensity),
+          'exerciseTime': exercise.exerciseTime,
+        };
+
+        if (exercise.exerciseMemo != null &&
+            exercise.exerciseMemo!.trim().isNotEmpty) {
+          payload['exerciseMemo'] = exercise.exerciseMemo;
+        }
+
+        return payload;
+      }).toList();
+
+      final requestBody = <String, dynamic>{
         'logId': dailyLog.logId,
         'date': dailyLog.date,
-        'memo': dailyLog.memo,
-        'exercises': dailyLog.exercises.map((exercise) {
-          // muscleName을 배열로 변환
-          final muscles = _parseMusclesToList(exercise.exercise.muscleName);
-          
-          return {
-            'logExerciseId': exercise.logExerciseId,
-            'exercise': {
-              'exerciseId': exercise.exercise.exerciseId,
-              'title': exercise.exercise.title,
-              'muscles': muscles,
-              'videoUrl': exercise.exercise.videoUrl,
-              'trainingName': exercise.exercise.trainingName,
-              'exerciseTool': exercise.exercise.exerciseTool,
-              'targetGroup': exercise.exercise.targetGroup,
-              'fitnessFactorName': exercise.exercise.fitnessFactorName,
-              'fitnessLevelName': exercise.exercise.fitnessLevelName,
-              'trainingPlaceName': exercise.exercise.trainingPlaceName,
-            },
-            'intensity': exercise.intensity,
-            'exerciseTime': exercise.exerciseTime,
-          'exerciseMemo': exercise.exerciseMemo,
-          };
-        }).toList(),
+        if (dailyLog.memo != null && dailyLog.memo!.trim().isNotEmpty)
+          'memo': dailyLog.memo,
+        'exercises': exercisePayloads,
+        if (targetGroup != null && targetGroup.isNotEmpty) 'targetGroup': targetGroup,
+        if (fitnessLevelName != null && fitnessLevelName.isNotEmpty)
+          'fitnessLevelName': fitnessLevelName,
+        if (fitnessFactorName != null && fitnessFactorName.isNotEmpty)
+          'fitnessFactorName': fitnessFactorName,
       };
 
       final response = await http.post(
@@ -305,10 +332,7 @@ class DailyLogService {
         headers: headers,
         body: jsonEncode(requestBody),
       );
-
       if (response.statusCode == 200) {
-        print(response.body);
-        print(jsonDecode(response.body));
         final Map<String, dynamic> jsonData =
             jsonDecode(utf8.decode(response.bodyBytes));
         return WorkoutAnalysisResponse.fromJson(jsonData);
@@ -390,6 +414,9 @@ class DailyLogService {
   Future<WeeklyPatternResponse> analyzeWeeklyPattern(
     List<DailyLogModelResponse> weeklyLogs, {
     String model = 'gpt-4o-mini',
+    String? targetGroup,
+    String? fitnessLevelName,
+    String? fitnessFactorName,
   }) async {
     try {
       final headers = await _getHeaders();
@@ -430,8 +457,13 @@ class DailyLogService {
         };
       }).toList();
 
-      final requestBody = {
+      final requestBody = <String, dynamic>{
         'weekly_logs': weeklyLogsJson,
+        if (targetGroup != null && targetGroup.isNotEmpty) 'targetGroup': targetGroup,
+        if (fitnessLevelName != null && fitnessLevelName.isNotEmpty)
+          'fitnessLevelName': fitnessLevelName,
+        if (fitnessFactorName != null && fitnessFactorName.isNotEmpty)
+          'fitnessFactorName': fitnessFactorName,
       };
 
       final weeklyPatternUrl = '${ApiConfig.workoutLogEndpoint}/weekly-pattern';
