@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gukminexdiary/widget/pulsing_loading_message.dart';
 import 'package:gukminexdiary/widget/exercise_record_dialog.dart';
 import 'package:gukminexdiary/services/dailylog_service.dart';
 import 'package:gukminexdiary/model/dailylog_model.dart';
@@ -257,18 +258,26 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: Card(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('이번 주 일지 불러오는 중...'),
-                ],
+        builder: (context) => Center(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                stops: [0.3, 0.7],
               ),
+              border: Border.all(color: Colors.grey.shade200),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircularProgressIndicator(color: Color.fromARGB(255, 143, 199, 255),),
+                SizedBox(height: 16),
+                PulsingLoadingMessage(message: '이번 주 일지 불러오는 중...'),
+              ],
             ),
           ),
         ),
@@ -319,18 +328,26 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: Card(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('AI 주간 패턴 분석 중...'),
-                ],
+        builder: (context) => Center(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                stops: [0.3, 0.7],
               ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircularProgressIndicator(color: Color.fromARGB(255, 143, 199, 255),),
+                SizedBox(height: 16),
+                PulsingLoadingMessage(message: 'AI 주간 패턴 분석 중...'),
+              ],
             ),
           ),
         ),
@@ -422,7 +439,7 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('AI 분석 중...'),
+                  PulsingLoadingMessage(message: 'AI 분석 중...'),
                 ],
               ),
             ),

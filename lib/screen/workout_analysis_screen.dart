@@ -9,6 +9,7 @@ import 'package:gukminexdiary/services/dailylog_service.dart';
 import 'package:gukminexdiary/services/exercise_service.dart';
 import 'package:gukminexdiary/services/user_service.dart';
 import 'package:gukminexdiary/model/user_profile_model.dart';
+import 'package:gukminexdiary/widget/pulsing_loading_message.dart';
 import 'package:provider/provider.dart';
 
 class WorkoutAnalysisScreen extends StatefulWidget {
@@ -173,18 +174,26 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: Card(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('AI 분석 중...'),
-                ],
+        builder: (context) => Center(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                stops: [0.3, 0.7],
               ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircularProgressIndicator(color: Color.fromARGB(255, 143, 199, 255),),
+                SizedBox(height: 16),
+                PulsingLoadingMessage(message: 'AI 분석 중...'),
+              ],
             ),
           ),
         ),
