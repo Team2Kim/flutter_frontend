@@ -343,7 +343,7 @@ class ExerciseService {
     
     final uri = Uri.parse('$baseUrl/exercises/by-ids')
         .replace(queryParameters: {
-          'ids': idsParam,
+          'id': idsParam,
         });
     print(idsParam);
     print('운동 ID 목록 조회 API 호출 URL: $uri');
