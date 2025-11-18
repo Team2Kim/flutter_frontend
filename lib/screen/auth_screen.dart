@@ -213,11 +213,10 @@ class _AuthScreenState extends State<AuthScreen> {
           return Container(
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [const Color.fromARGB(255, 193, 198, 221), Color.fromARGB(255, 255, 255, 255)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [0.7, 0.9],
+              gradient: RadialGradient(
+                colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
+                radius: 0.7,
+                stops: const [0.3, 0.7],
               ),
             ),
             child: Padding(
