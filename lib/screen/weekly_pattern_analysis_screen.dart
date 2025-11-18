@@ -130,11 +130,11 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
         title: '주간 패턴 분석',
         automaticallyImplyLeading: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.code, color: Colors.white),
-            tooltip: 'API 응답 확인',
-            onPressed: _showFullResponseDialog,
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.code, color: Colors.white),
+          //   tooltip: 'API 응답 확인',
+          //   onPressed: _showFullResponseDialog,
+          // ),
         ],
       ),
       body: Container(
@@ -193,12 +193,7 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                           children: [
                             Expanded(
                               child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white60,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey.shade200),
-                                ),
+                                padding: const EdgeInsets.all(5),
                                 child: PageView(
                                   controller: _pageController,
                                   onPageChanged: (index) {
@@ -306,11 +301,11 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.code, color: Color.fromARGB(255, 0, 45, 89)),
-            tooltip: 'API 응답 확인',
-            onPressed: _showFullResponseDialog,
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.code, color: Color.fromARGB(255, 0, 45, 89)),
+          //   tooltip: 'API 응답 확인',
+          //   onPressed: _showFullResponseDialog,
+          // ),
         ],
       ),
     );
@@ -508,7 +503,12 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
       );
       firstPageChildren.add(const SizedBox(height: 5));
     }
-
+    if (pattern.nextTargetMuscles != null && pattern.nextTargetMuscles!.isNotEmpty) {
+      secondPageChildren.add(
+        _buildNextTargetMusclesSection(pattern.nextTargetMuscles!),
+      );
+      secondPageChildren.add(const SizedBox(height: 5));
+    } 
     if (pattern.recommendedRoutine?.weeklyOverview != null &&
         pattern.recommendedRoutine!.weeklyOverview!.isNotEmpty) {
       secondPageChildren.add(
@@ -595,13 +595,6 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
       );
     }
 
-    if (pattern.nextTargetMuscles != null && pattern.nextTargetMuscles!.isNotEmpty) {
-      secondPageChildren.add(const SizedBox(height: 5));
-      secondPageChildren.add(
-        _buildNextTargetMusclesSection(pattern.nextTargetMuscles!),
-      );
-    }
-
     final pages = <Widget>[
       _buildScrollablePage(firstPageChildren),
     ];
@@ -648,7 +641,10 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
       return const SizedBox.shrink();
     }
 
-    return Column(children: [
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+      Text(_currentPage == 0 ? "운동 패턴 분석" : "추천 루틴", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(pageCount, (index) {
@@ -665,8 +661,6 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
             );
           }),
         ),
-        SizedBox(height: 5),
-        Text(_currentPage == 0 ? "운동 패턴 분석" : "추천 루틴", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
       ],
     );
   }

@@ -16,7 +16,6 @@ class WorkoutAnalysisResponse {
   });
 
   factory WorkoutAnalysisResponse.fromJson(Map<String, dynamic> json) {
-    print(json['basic_analysis']);
     return WorkoutAnalysisResponse(
       success: json['success'] ?? false,
       aiAnalysis: json['ai_analysis'] != null
@@ -48,6 +47,7 @@ class AIAnalysis {
   final String? targetMuscles;
   final AIRecommendations? recommendations;
   final List<String>? nextTargetMuscles;
+  final Map<String, List<int>>? nextTargetExercises;
   final String? encouragement;
 
   AIAnalysis({
@@ -55,10 +55,33 @@ class AIAnalysis {
     this.targetMuscles,
     this.recommendations,
     this.nextTargetMuscles,
+    this.nextTargetExercises,
     this.encouragement,
   });
 
   factory AIAnalysis.fromJson(Map<String, dynamic> json) {
+    Map<String, List<int>>? exercisesMap;
+    final rawExercises = json['next_target_exercises'];
+    if (rawExercises is Map<String, dynamic>) {
+      exercisesMap = {};
+      rawExercises.forEach((key, value) {
+        if (value is List) {
+          final ids = value.map((e) {
+            if (e is int) return e;
+            if (e is String) return int.tryParse(e);
+            if (e is num) return e.toInt();
+            return null;
+          }).whereType<int>().toList();
+          if (ids.isNotEmpty) {
+            exercisesMap![key] = ids;
+          }
+        }
+      });
+      if (exercisesMap.isEmpty) {
+        exercisesMap = null;
+      }
+    }
+
     return AIAnalysis(
       workoutEvaluation: json['workout_evaluation'],
       targetMuscles: json['target_muscles'],
@@ -68,6 +91,7 @@ class AIAnalysis {
       nextTargetMuscles: (json['next_target_muscles'] as List<dynamic>?)
           ?.map((e) => e.toString())
           .toList(),
+      nextTargetExercises: exercisesMap,
       encouragement: json['encouragement'],
     );
   }
@@ -78,6 +102,7 @@ class AIAnalysis {
       'target_muscles': targetMuscles,
       'recommendations': recommendations?.toJson(),
       'next_target_muscles': nextTargetMuscles,
+      'next_target_exercises': nextTargetExercises,
       'encouragement': encouragement,
     };
   }
