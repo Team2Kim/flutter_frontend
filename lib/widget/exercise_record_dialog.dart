@@ -139,15 +139,27 @@ class _ExerciseRecordDialogState extends State<ExerciseRecordDialog> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start, 
             children: [
-              Text(
-                widget.exerciseTitle,
-                style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                widget.standardTitle ?? '',
-                style: const TextStyle(fontSize: 14, color: Colors.white),
-              ),
-            ],
+              Container(
+                width: 200,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Text(
+                  widget.exerciseTitle,
+                  style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  ),
+                ),
+              Container(
+                width: 200,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Text(
+                  widget.standardTitle ?? '',
+                  style: const TextStyle(fontSize: 14, color: Colors.white),
+                  ),
+                  ),
+                ),
+            ]
           )
         ],
       ),

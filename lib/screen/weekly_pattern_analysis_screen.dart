@@ -130,11 +130,11 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
         title: '주간 패턴 분석',
         automaticallyImplyLeading: true,
         actions: [
-          // IconButton(
-          //   icon: const Icon(Icons.code, color: Colors.white),
-          //   tooltip: 'API 응답 확인',
-          //   onPressed: _showFullResponseDialog,
-          // ),
+          IconButton(
+            icon: const Icon(Icons.code, color: Colors.white),
+            tooltip: 'API 응답 확인',
+            onPressed: _showFullResponseDialog,
+          ),
         ],
       ),
       body: Container(

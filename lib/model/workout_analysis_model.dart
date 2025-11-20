@@ -301,6 +301,7 @@ class WeeklyPatternResponse {
   final String? model;
   final int? recordsAnalyzed;
   final String? message;
+  final String? nextTargetExercises;
 
   WeeklyPatternResponse({
     required this.success,
@@ -309,6 +310,7 @@ class WeeklyPatternResponse {
     this.model,
     this.recordsAnalyzed,
     this.message,
+    this.nextTargetExercises,
   });
 
   factory WeeklyPatternResponse.fromJson(Map<String, dynamic> json) {
@@ -323,6 +325,7 @@ class WeeklyPatternResponse {
       model: json['model'],
       recordsAnalyzed: _parseInt(json['records_analyzed']),
       message: json['message'],
+      nextTargetExercises: json['next_target_exercises'],
     );
   }
 
@@ -347,6 +350,7 @@ class WeeklyPatternResponse {
       'model': model,
       'records_analyzed': recordsAnalyzed,
       'message': message,
+      'next_target_exercises': nextTargetExercises,
     };
   }
 }

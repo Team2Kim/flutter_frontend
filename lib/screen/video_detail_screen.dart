@@ -4,6 +4,8 @@ import 'package:gukminexdiary/widget/custom_appbar.dart';
 import 'package:gukminexdiary/widget/add_dialog_widget.dart';
 import 'package:gukminexdiary/widget/muscle_description_dialog.dart';
 import 'package:video_player/video_player.dart';
+import 'package:provider/provider.dart';
+import 'package:gukminexdiary/provider/bookmark_provider.dart';
 
 class VideoDetailScreen extends StatefulWidget {
   final ExerciseModelResponse exercise;
@@ -307,10 +309,10 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
               Container(
                 height: MediaQuery.of(context).size.height,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.white, Colors.green.shade100],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+                  gradient: RadialGradient(
+                    colors: [Colors.white, const Color.fromRGBO(241, 248, 255, 1)],
+                    radius: 0.7,
+                    stops: const [0.3, 0.7],
                   ),
                 ),
                 child: 
@@ -490,20 +492,20 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
               
               // 운동 정보 섹션
               Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                  color: Colors.white54,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
+                // decoration: BoxDecoration(
+                //   boxShadow: [
+                //     BoxShadow(
+                //       color: Colors.black.withOpacity(0.1),
+                //       blurRadius: 10,
+                //       offset: const Offset(0, 2),
+                //     ),
+                //   ],
+                //   color: Colors.white54,
+                //   borderRadius: BorderRadius.circular(12),
+                //   border: Border.all(color: Colors.grey.shade300),
+                // ),
                 margin: const EdgeInsets.symmetric(horizontal: 10),
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -512,88 +514,49 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Container(
-                          width: MediaQuery.of(context).size.width * 0.5,
+                          width: MediaQuery.of(context).size.width * 0.85,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [ 
-                              Text(
-                                widget.exercise.title,
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                margin: const EdgeInsets.only(bottom: 5),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [Colors.blue.shade100, const Color.fromARGB(0, 255, 255, 255)],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
+                                child:
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Text(
+                                  widget.exercise.title,
+                                    style: const TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                )
                               ),
-                              Text(
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Text(
                                 widget.exercise.standardTitle ?? '',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Color.fromARGB(255, 87, 87, 87),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         )
-                      ),
-                      const Spacer(),
-                      if (canLogExercise)
-                        InkWell(
-                          onTap: () {
-                            AddExerciseDialog.show(context, widget.exercise);
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                              gradient: const LinearGradient(
-                                colors: [Color.fromARGB(255, 246, 251, 255), Colors.white],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              border: Border.all(color: Colors.blue.shade100),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            width: 100,
-                            height: 40,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add, size: 18, color: Colors.blue.shade700),
-                                const SizedBox(width: 8),
-                                Text('일지 추가', style: TextStyle(fontSize: 13, color: Colors.blue.shade700),),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.info_outline, size: 16, color: Colors.grey.shade600),
-                              const SizedBox(width: 6),
-                              Text(
-                                '기록 불가',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      )
                     ],),
                     const SizedBox(height: 16),
                     _buildInfoRow('카테고리', widget.exercise.fitnessFactorName ?? '', Color.fromARGB(255, 251, 242, 237), Color.fromARGB(255, 255, 255, 255), false),
@@ -604,7 +567,11 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        gradient: LinearGradient(
+                          colors: [const Color.fromARGB(255, 217, 238, 255), const Color.fromARGB(0, 255, 255, 255)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       padding: const EdgeInsets.all(10),
@@ -624,6 +591,89 @@ class _VideoDetailScreenState extends State<VideoDetailScreen> {
           ),
           ),
         ),
+        floatingActionButton: canLogExercise ? FloatingActionButton(
+          backgroundColor: Colors.blue.shade100,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          tooltip: '추가',
+          onPressed: () {
+            _showActionBottomSheet(context);
+          },
+          child: Icon(Icons.add),
+        ) : null,
+    );
+  }
+
+  void _showActionBottomSheet(BuildContext context) {
+    final bookmarkProvider = Provider.of<BookmarkProvider>(context, listen: false);
+    final isBookmarked = bookmarkProvider.isBookmarked(widget.exercise);
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 핸들 바
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // 일지 추가 옵션
+              ListTile(
+                leading: Icon(Icons.fitness_center, color: Colors.blue.shade700),
+                title: const Text('일지 추가'),
+                subtitle: const Text('오늘 한 운동을 일지에 기록합니다'),
+                onTap: () {
+                  Navigator.pop(context);
+                  AddExerciseDialog.show(context, widget.exercise);
+                },
+              ),
+              const Divider(),
+              // 즐겨찾기 추가/제거 옵션
+              ListTile(
+                leading: Icon(
+                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  color: isBookmarked ? Colors.amber : Colors.grey.shade700,
+                ),
+                title: Text(isBookmarked ? '즐겨찾기 제거' : '즐겨찾기 추가'),
+                subtitle: Text(isBookmarked 
+                    ? '즐겨찾기에서 제거합니다' 
+                    : '즐겨찾기에 추가합니다'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final success = await bookmarkProvider.toggleBookmark(widget.exercise);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          success
+                              ? (isBookmarked ? '즐겨찾기에서 제거되었습니다' : '즐겨찾기에 추가되었습니다')
+                              : '오류가 발생했습니다',
+                        ),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
     );
   }
 
