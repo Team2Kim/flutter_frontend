@@ -32,10 +32,7 @@ class _VideoCardState extends State<VideoCard> {
             margin: const EdgeInsets.only(top:5, bottom: 5, left: 10, right: 10),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color.fromARGB(255, 237, 255, 255),
-                  const Color.fromARGB(255, 151, 212, 255)
-                ],
+                colors: [Colors.blue.shade50, Colors.white],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -57,7 +54,7 @@ class _VideoCardState extends State<VideoCard> {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Color.fromARGB(255, 222, 255, 255),
+                                const Color.fromARGB(0, 231, 242, 250),
                                 const Color.fromARGB(0, 231, 242, 250)
                               ],
                               begin: Alignment.topLeft,
@@ -76,7 +73,7 @@ class _VideoCardState extends State<VideoCard> {
                                     imageUrl: "${widget.exercise.imageUrl}/${widget.exercise.imageFileName}", 
                                     imageBuilder: (context, imageProvider) => Container(
                                       width: 80,
-                                      height: 40,
+                                      height: 60,
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(10),
                                         image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
@@ -107,7 +104,7 @@ class _VideoCardState extends State<VideoCard> {
                                     ),
                                   ),
                                   Positioned(
-                                    bottom: 1,
+                                    bottom: 4,
                                     left: 4,
                                     child: Container(
                                       padding: const EdgeInsets.all(2),
@@ -180,7 +177,6 @@ class _VideoCardState extends State<VideoCard> {
                           ]
                         ),
                     ),
-                    const SizedBox(height: 10),
                     SizedBox(
                       height: 30,
                       child: widget.exercise.muscleName?.split(',').length != null && widget.exercise.muscleName!.split(',').length > 0 ? ListView.builder(
@@ -195,34 +191,32 @@ class _VideoCardState extends State<VideoCard> {
                               MuscleDescriptionDialog.show(context, currentMuscleName);
                             },
                             child: Container(
-                              padding: const EdgeInsets.all(4),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                               margin: const EdgeInsets.only(right: 6),
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                  color: Colors.blue.withOpacity(0.2),
+                                  color: !widget.selectedMuscleNames.contains(currentMuscleName) ? Colors.blue.withOpacity(0.2) : const Color.fromARGB(255, 200, 255, 202).withOpacity(0.2),
                                   width: 1,
                                 ),
+                                // color: Colors.white,
                                 gradient: !widget.selectedMuscleNames.contains(currentMuscleName) ? LinearGradient(
-                                  colors: [
-                                    Colors.blue.withOpacity(0.2),
-                                      Colors.blue.withOpacity(0.4),
-                                    ],
+                                  colors: [Colors.blue.shade50, Colors.white],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
-                                    stops: [0.1, 0.4],
+                                    stops: [0.05, 0.2],
                                   ) :  LinearGradient(
                                   colors: [
-                                    Colors.green.withOpacity(0.2),
-                                      Colors.green.withOpacity(0.4),
+                                    const Color.fromARGB(255, 200, 255, 202).withOpacity(0.2),
+                                      Colors.white,
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
-                                  stops: [0.1, 0.4],
+                                  stops: [0.05, 0.2],
                                 ),
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(6),
                               ),  
                               child: Text(currentMuscleName, 
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black),)
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color.fromARGB(255, 80, 80, 80)),)
                             ),
                           );
                         },
@@ -240,31 +234,64 @@ class _VideoCardState extends State<VideoCard> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () {
+                                    child: InkWell(
+                                      onTap: () {
                                         AddExerciseDialog.show(context, widget.exercise);
                                       },
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [Color.fromARGB(255, 214, 232, 249), Colors.white],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            stops: [0.01, 0.1],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                          border: Border.all(color: Colors.blue.withOpacity(0.2), width: 1,),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
-                                        backgroundColor: const Color.fromARGB(255, 131, 193, 255),
-                                        foregroundColor: Colors.white,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.fitness_center, size: 18),
+                                            SizedBox(width: 4),
+                                            Text("운동 기록", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black),),
+                                          ],
+                                        ),
                                       ),
-                                      child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                        children: [
-                                          Icon(Icons.fitness_center, size: 18),
-                                          SizedBox(width: 4),
-                                          Text("운동 기록"),
-                                        ],
-                                      ),
-                                    ),
+                                    )
+                                    // child: ElevatedButton(
+                                    //   onPressed: () {
+                                    //     AddExerciseDialog.show(context, widget.exercise);
+                                    //   },
+                                    //   style: ElevatedButton.styleFrom(
+                                    //     shape: RoundedRectangleBorder(
+                                    //       borderRadius: BorderRadius.circular(6),
+                                    //     ),
+                                    //     backgroundColor: const Color.fromARGB(255, 131, 193, 255),
+                                    //     foregroundColor: Colors.white,
+                                    //   ),
+                                    //   child: const Row(
+                                    //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    //     children: [
+                                    //       Icon(Icons.fitness_center, size: 18),
+                                    //       SizedBox(width: 4),
+                                    //       Text("운동 기록"),
+                                    //     ],
+                                    //   ),
+                                    // ),
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () {
+                                    child: InkWell(
+                                      onTap: () {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
@@ -272,22 +299,60 @@ class _VideoCardState extends State<VideoCard> {
                                           ),
                                         );
                                       },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color.fromARGB(255, 176, 255, 179),
-                                        foregroundColor: const Color.fromARGB(255, 44, 44, 44),
-                                        shape: RoundedRectangleBorder(
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [Color.fromARGB(255, 221, 254, 222), Colors.white],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            stops: [0.01, 0.1],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                          border: Border.all(color: Color.fromARGB(255, 205, 255, 207), width: 1,),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                        children: [
-                                          Icon(Icons.video_library, size: 18),
-                                          SizedBox(width: 4),
-                                          Text("영상 보기"),
-                                        ],
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.video_library, size: 18),
+                                            SizedBox(width: 4),
+                                            Text("영상 보기", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.black),),
+                                          ],
+                                        ),
                                       ),
                                     ),
+                                    // child: ElevatedButton(
+                                    //   onPressed: () {
+                                    //     Navigator.push(
+                                    //       context,
+                                    //       MaterialPageRoute(
+                                    //         builder: (context) => VideoDetailScreen(exercise: widget.exercise),
+                                    //       ),
+                                    //     );
+                                    //   },
+                                    //   style: ElevatedButton.styleFrom(
+                                    //     backgroundColor: const Color.fromARGB(255, 176, 255, 179),
+                                    //     foregroundColor: const Color.fromARGB(255, 44, 44, 44),
+                                    //     shape: RoundedRectangleBorder(
+                                    //       borderRadius: BorderRadius.circular(6),
+                                    //     ),
+                                    //   ),
+                                    //   child: const Row(
+                                    //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    //     children: [
+                                    //       Icon(Icons.video_library, size: 18),
+                                    //       SizedBox(width: 4),
+                                    //       Text("영상 보기"),
+                                    //     ],
+                                    //   ),
+                                    // ),
                                   ),
                                 ],
                               ),

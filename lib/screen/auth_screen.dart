@@ -229,19 +229,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   children: [
                     const SizedBox(height: 40),
                     // 로고 또는 제목
-                    const Icon(
-                      Icons.fitness_center,
-                      size: 80,
-                      color: Colors.blue,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      '국민체력 일기장',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
+                    Center(
+                      child: Image.asset('assets/images/app_sub.png', width: 200, height: 200),
                     ),
                     const SizedBox(height: 40),
                     
@@ -545,28 +534,28 @@ class _AuthScreenState extends State<AuthScreen> {
                     ],
                     
                     // 언어 선택
-                    DropdownButtonFormField<String>(
-                      value: _selectedLanguage,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: const Color.fromARGB(187, 255, 255, 255),
-                        labelText: '언어 선택',
-                        prefixIcon: Icon(Icons.language),
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _languages.map((String language) {
-                        return DropdownMenuItem<String>(
-                          value: language,
-                          child: Text(language),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedLanguage = newValue!;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
+                    // DropdownButtonFormField<String>(
+                    //   value: _selectedLanguage,
+                    //   decoration: InputDecoration(
+                    //     filled: true,
+                    //     fillColor: const Color.fromARGB(187, 255, 255, 255),
+                    //     labelText: '언어 선택',
+                    //     prefixIcon: Icon(Icons.language),
+                    //     border: OutlineInputBorder(),
+                    //   ),
+                    //   items: _languages.map((String language) {
+                    //     return DropdownMenuItem<String>(
+                    //       value: language,
+                    //       child: Text(language),
+                    //     );
+                    //   }).toList(),
+                    //   onChanged: (String? newValue) {
+                    //     setState(() {
+                    //       _selectedLanguage = newValue!;
+                    //     });
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
                     
                     // 로그인 유지 체크박스 (로그인 모드일 때만)
                     if (!_isSignupMode) ...[

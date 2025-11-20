@@ -138,9 +138,9 @@ class _SettingScreenState extends State<SettingScreen> {
     return Scaffold(
       appBar: const CustomAppbar(
         title: '설정',
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
       ),
-      drawer: const CustomDrawer(),
+      // drawer: const CustomDrawer(),
       body: SafeArea(
         child: Container(
           decoration: BoxDecoration(

@@ -70,17 +70,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
         ),
         child: Column(
           children: [
-            const DrawerHeader(
-              margin: EdgeInsets.zero,
+            DrawerHeader(
+              margin: EdgeInsets.only(bottom: 20),
               child: Center(
-                child: Text(
-                  '국민체력 일기장',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: Image.asset('assets/images/app_sub.png', width: 200, height: 200),
               ),
             ),
             Container(
