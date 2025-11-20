@@ -1,6 +1,8 @@
-# 오늘운동
+<img width="240" height="200" alt="image" src="https://github.com/user-attachments/assets/fcb68c23-da70-460f-b46c-d9c570e482a9" />
 
-한국체육진흥공단 공모전 애플리케이션 **오늘운동** - AI 기반 개인 맞춤 운동 일지 관리 앱
+한국체육진흥공단 공모전 애플리케이션 **오늘운동**
+
+AI(LLM, RAG) 기반 개인 맞춤 운동 일지 관리 앱
 
 ## 앱 소개
 
