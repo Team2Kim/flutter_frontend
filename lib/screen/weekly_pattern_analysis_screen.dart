@@ -1655,12 +1655,38 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                               children: [
                                 Icon(Icons.trending_up, size: 16, color: Colors.green.shade700),
                                 const SizedBox(width: 6),
-                                Text(
-                                  '제안 강도: ${recovery.suggestedIntensity}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.green.shade700,
+                                Expanded(
+                                  child: TextField(
+                                    readOnly: true,
+                                    controller: TextEditingController(text: recovery.suggestedIntensity),
+                                    decoration: InputDecoration(
+                                      labelText: '제안 강도',
+                                      labelStyle: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.green.shade700,
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(color: Colors.green.shade300),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(color: Colors.green.shade300),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(color: Colors.green.shade500, width: 2),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.green.shade50,
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.green.shade700,
+                                    ),
                                   ),
                                 ),
                               ],
