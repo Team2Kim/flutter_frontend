@@ -323,6 +323,30 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
       firstPageChildren.add(const SizedBox(height: 20));
     }
 
+    if (pattern.patternAnalysis?.exerciseDiversity != null) {
+      firstPageChildren.add(
+        AnimatedOpacity(
+          opacity: _patternAnalysisOpacity,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          child: _buildExerciseDiversitySection(pattern.patternAnalysis!.exerciseDiversity!),
+        ),
+      );
+      firstPageChildren.add(const SizedBox(height: 5));
+    }
+
+    if (pattern.patternAnalysis?.recoveryStatus != null) {
+      firstPageChildren.add(
+        AnimatedOpacity(
+          opacity: _patternAnalysisOpacity,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+          child: _buildRecoveryStatusSection(pattern.patternAnalysis!.recoveryStatus!),
+        ),
+      );
+      firstPageChildren.add(const SizedBox(height: 5));
+    }
+
     if (pattern.patternAnalysis?.consistency != null) {
       firstPageChildren.add(
         AnimatedOpacity(
@@ -503,6 +527,8 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
       );
       firstPageChildren.add(const SizedBox(height: 5));
     }
+
+    
     if (pattern.nextTargetMuscles != null && pattern.nextTargetMuscles!.isNotEmpty) {
       secondPageChildren.add(
         _buildNextTargetMusclesSection(pattern.nextTargetMuscles!),
@@ -903,6 +929,32 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
+                    if (detail.targetMuscles != null && detail.targetMuscles!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, bottom: 8),
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: detail.targetMuscles!.map((muscle) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                              ),
+                              child: Text(
+                                muscle,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.orange.shade700,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     if (detail.estimatedDuration != null && detail.estimatedDuration!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(left: 4, bottom: 12),
@@ -910,6 +962,35 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                           icon: Icons.timer_outlined,
                           label: '예상 소요 시간',
                           value: detail.estimatedDuration!,
+                        ),
+                      ),
+                    if (detail.ragQuery != null && detail.ragQuery!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, bottom: 12),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.search, size: 16, color: Colors.grey.shade600),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '${detail.ragQuery}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade700,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     if (hasExercises)
@@ -1173,48 +1254,23 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
 
         const SizedBox(height: 16),
 
-        // 부위별 분포
-        if (metrics.bodyPartCounts.isNotEmpty)
-          _buildSection('부위별 운동 분포', [
+        // 상위 장비
+        if (metrics.topEquipment.isNotEmpty)
+          _buildSection('자주 사용한 장비', [
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: metrics.bodyPartCounts.entries.map((entry) {
+              children: metrics.topEquipment.map((equipment) {
                 return Chip(
-                  label: Text('${entry.key}: ${entry.value}회'),
+                  label: Text('${equipment.name}: ${equipment.count}회'),
                   labelStyle: const TextStyle(fontSize: 12),
                   padding: EdgeInsets.zero,
                   visualDensity: VisualDensity.compact,
-                  backgroundColor: Colors.green.shade50,
+                  backgroundColor: Colors.purple.shade50,
                 );
               }).toList(),
             ),
-          ], Icons.category),
-
-        const SizedBox(height: 16),
-
-        // 상위 근육
-        if (metrics.topMuscles.isNotEmpty)
-          _buildSection('자주 운동한 근육', [
-            Container(
-              height: 80,
-                child: SingleChildScrollView(
-                  child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: metrics.topMuscles.map((muscle) {
-                    return Chip(
-                      label: Text('${muscle.name} (${muscle.count}회)'),
-                      labelStyle: const TextStyle(fontSize: 12),
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                      backgroundColor: Colors.blue.shade50,
-                    );
-                  }).toList(),
-                )
-              ),
-            )
-          ], Icons.fitness_center),
+          ], Icons.sports_gymnastics),
       ],
     );
   }
@@ -1292,6 +1348,361 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
       default:
         return Colors.grey.shade400;
     }
+  }
+
+  Widget _buildExerciseDiversitySection(ExerciseDiversity diversity) {
+    final title = '운동 다양성';
+    final isExpanded = _isSectionExpanded[title] ?? true;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () {
+            setState(() {
+              _isSectionExpanded[title] = !isExpanded;
+            });
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.indigo.shade50, Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.transparent),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.diversity_3, color: Colors.indigo, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.indigo,
+                    ),
+                  ),
+                ),
+                Icon(
+                  isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                  color: Colors.indigo,
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: isExpanded
+              ? Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white60,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.indigo.withOpacity(0.2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (diversity.exerciseVarietyScore != null) ...[
+                            Row(
+                              children: [
+                                Icon(Icons.star, size: 16, color: Colors.indigo.shade700),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '운동 다양성 점수: ${diversity.exerciseVarietyScore}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.indigo.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                          if (diversity.recentExercises != null && diversity.recentExercises!.isNotEmpty) ...[
+                            Text(
+                              '최근 운동:',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: diversity.recentExercises!.map((exercise) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.indigo.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.indigo.withOpacity(0.2)),
+                                  ),
+                                  child: Text(
+                                    exercise,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.indigo.shade700,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                          if (diversity.repetitionPattern != null && diversity.repetitionPattern!.isNotEmpty) ...[
+                            _buildInfoRow('반복 패턴', diversity.repetitionPattern!),
+                            const SizedBox(height: 8),
+                          ],
+                          if (diversity.recommendedVariation != null && diversity.recommendedVariation!.isNotEmpty) ...[
+                            _buildInfoRow('추천 변화', diversity.recommendedVariation!),
+                            const SizedBox(height: 8),
+                          ],
+                          if (diversity.preferredEquipment != null && diversity.preferredEquipment!.isNotEmpty) ...[
+                            Text(
+                              '선호 장비:',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: diversity.preferredEquipment!.map((equipment) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.purple.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.purple.withOpacity(0.2)),
+                                  ),
+                                  child: Text(
+                                    equipment,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.purple.shade700,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                          if (diversity.equipmentUsagePattern != null && diversity.equipmentUsagePattern!.isNotEmpty) ...[
+                            _buildInfoRow('장비 사용 패턴', diversity.equipmentUsagePattern!),
+                            const SizedBox(height: 8),
+                          ],
+                          if (diversity.performanceAnalysis != null) ...[
+                            const Divider(),
+                            const SizedBox(height: 8),
+                            if (diversity.performanceAnalysis!.currentLevel != null && diversity.performanceAnalysis!.currentLevel!.isNotEmpty)
+                              _buildInfoRow('현재 수준', diversity.performanceAnalysis!.currentLevel!),
+                            if (diversity.performanceAnalysis!.progressionTrend != null && diversity.performanceAnalysis!.progressionTrend!.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              _buildInfoRow('진행 추세', diversity.performanceAnalysis!.progressionTrend!),
+                            ],
+                            if (diversity.performanceAnalysis!.recommendedProgression != null && diversity.performanceAnalysis!.recommendedProgression!.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              _buildInfoRow('추천 진행', diversity.performanceAnalysis!.recommendedProgression!),
+                            ],
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecoveryStatusSection(RecoveryStatus recovery) {
+    final title = '회복 상태';
+    final isExpanded = _isSectionExpanded[title] ?? true;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () {
+            setState(() {
+              _isSectionExpanded[title] = !isExpanded;
+            });
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.green.shade50, Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.transparent),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.healing, color: Colors.green, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+                Icon(
+                  isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                  color: Colors.green,
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: isExpanded
+              ? Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white60,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.green.withOpacity(0.2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (recovery.fatigueLevel != null && recovery.fatigueLevel!.isNotEmpty) ...[
+                            Row(
+                              children: [
+                                Icon(Icons.battery_charging_full, size: 16, color: Colors.green.shade700),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '피로 수준: ${recovery.fatigueLevel}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                          if (recovery.recoveryNeeds != null && recovery.recoveryNeeds!.isNotEmpty) ...[
+                            Text(
+                              '회복 필요 부위:',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: recovery.recoveryNeeds!.map((muscle) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.green.withOpacity(0.2)),
+                                  ),
+                                  child: Text(
+                                    muscle,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.green.shade700,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                          if (recovery.suggestedIntensity != null && recovery.suggestedIntensity!.isNotEmpty) ...[
+                            Row(
+                              children: [
+                                Icon(Icons.trending_up, size: 16, color: Colors.green.shade700),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '제안 강도: ${recovery.suggestedIntensity}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 80,
+          child: Text(
+            '$label:',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade800,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 

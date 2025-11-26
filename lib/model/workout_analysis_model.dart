@@ -363,6 +363,7 @@ class WeeklyMetricsSummary {
   final Map<String, int> intensityCounts;
   final Map<String, int> bodyPartCounts;
   final List<MuscleCount> topMuscles;
+  final List<EquipmentCount> topEquipment;
 
   WeeklyMetricsSummary({
     required this.weeklyWorkoutCount,
@@ -371,6 +372,7 @@ class WeeklyMetricsSummary {
     required this.intensityCounts,
     required this.bodyPartCounts,
     required this.topMuscles,
+    this.topEquipment = const [],
   });
 
   factory WeeklyMetricsSummary.fromJson(Map<String, dynamic> json) {
@@ -382,6 +384,10 @@ class WeeklyMetricsSummary {
       bodyPartCounts: _parseStringIntMap(json['body_part_counts'] ?? {}),
       topMuscles: (json['top_muscles'] as List<dynamic>?)
               ?.map((e) => MuscleCount.fromJson(e))
+              .toList() ??
+          [],
+      topEquipment: (json['top_equipment'] as List<dynamic>?)
+              ?.map((e) => EquipmentCount.fromJson(e))
               .toList() ??
           [],
     );
@@ -421,6 +427,7 @@ class WeeklyMetricsSummary {
       'intensity_counts': intensityCounts,
       'body_part_counts': bodyPartCounts,
       'top_muscles': topMuscles.map((e) => e.toJson()).toList(),
+      'top_equipment': topEquipment.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -459,6 +466,155 @@ class MuscleCount {
     return {
       'name': name,
       'count': count,
+    };
+  }
+}
+
+// 장비 카운트 모델
+class EquipmentCount {
+  final String name;
+  final int count;
+
+  EquipmentCount({
+    required this.name,
+    required this.count,
+  });
+
+  factory EquipmentCount.fromJson(Map<String, dynamic> json) {
+    return EquipmentCount(
+      name: json['name'] ?? '',
+      count: _parseInt(json['count']) ?? 0,
+    );
+  }
+
+  // String 또는 int를 int로 안전하게 변환하는 헬퍼 함수
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) {
+      return int.tryParse(value);
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return null;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'count': count,
+    };
+  }
+}
+
+// 운동 다양성 분석 모델
+class ExerciseDiversity {
+  final List<String>? recentExercises;
+  final String? exerciseVarietyScore;
+  final String? repetitionPattern;
+  final String? recommendedVariation;
+  final List<String>? preferredEquipment;
+  final String? equipmentUsagePattern;
+  final PerformanceAnalysis? performanceAnalysis;
+
+  ExerciseDiversity({
+    this.recentExercises,
+    this.exerciseVarietyScore,
+    this.repetitionPattern,
+    this.recommendedVariation,
+    this.preferredEquipment,
+    this.equipmentUsagePattern,
+    this.performanceAnalysis,
+  });
+
+  factory ExerciseDiversity.fromJson(Map<String, dynamic> json) {
+    return ExerciseDiversity(
+      recentExercises: (json['recent_exercises'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      exerciseVarietyScore: json['exercise_variety_score'],
+      repetitionPattern: json['repetition_pattern'],
+      recommendedVariation: json['recommended_variation'],
+      preferredEquipment: (json['preferred_equipment'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      equipmentUsagePattern: json['equipment_usage_pattern'],
+      performanceAnalysis: json['performance_analysis'] != null
+          ? PerformanceAnalysis.fromJson(json['performance_analysis'])
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'recent_exercises': recentExercises,
+      'exercise_variety_score': exerciseVarietyScore,
+      'repetition_pattern': repetitionPattern,
+      'recommended_variation': recommendedVariation,
+      'preferred_equipment': preferredEquipment,
+      'equipment_usage_pattern': equipmentUsagePattern,
+      'performance_analysis': performanceAnalysis?.toJson(),
+    };
+  }
+}
+
+// 성능 분석 모델
+class PerformanceAnalysis {
+  final String? currentLevel;
+  final String? progressionTrend;
+  final String? recommendedProgression;
+
+  PerformanceAnalysis({
+    this.currentLevel,
+    this.progressionTrend,
+    this.recommendedProgression,
+  });
+
+  factory PerformanceAnalysis.fromJson(Map<String, dynamic> json) {
+    return PerformanceAnalysis(
+      currentLevel: json['current_level'],
+      progressionTrend: json['progression_trend'],
+      recommendedProgression: json['recommended_progression'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'current_level': currentLevel,
+      'progression_trend': progressionTrend,
+      'recommended_progression': recommendedProgression,
+    };
+  }
+}
+
+// 회복 상태 모델
+class RecoveryStatus {
+  final String? fatigueLevel;
+  final List<String>? recoveryNeeds;
+  final String? suggestedIntensity;
+
+  RecoveryStatus({
+    this.fatigueLevel,
+    this.recoveryNeeds,
+    this.suggestedIntensity,
+  });
+
+  factory RecoveryStatus.fromJson(Map<String, dynamic> json) {
+    return RecoveryStatus(
+      fatigueLevel: json['fatigue_level'],
+      recoveryNeeds: (json['recovery_needs'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      suggestedIntensity: json['suggested_intensity'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'fatigue_level': fatigueLevel,
+      'recovery_needs': recoveryNeeds,
+      'suggested_intensity': suggestedIntensity,
     };
   }
 }
@@ -510,12 +666,16 @@ class PatternAnalysis {
   final String? intensityTrend;
   final MuscleBalance? muscleBalance;
   final String? habitObservation;
+  final ExerciseDiversity? exerciseDiversity;
+  final RecoveryStatus? recoveryStatus;
 
   PatternAnalysis({
     this.consistency,
     this.intensityTrend,
     this.muscleBalance,
     this.habitObservation,
+    this.exerciseDiversity,
+    this.recoveryStatus,
   });
 
   factory PatternAnalysis.fromJson(Map<String, dynamic> json) {
@@ -526,6 +686,12 @@ class PatternAnalysis {
           ? MuscleBalance.fromJson(json['muscle_balance'])
           : null,
       habitObservation: json['habit_observation'],
+      exerciseDiversity: json['exercise_diversity'] != null
+          ? ExerciseDiversity.fromJson(json['exercise_diversity'])
+          : null,
+      recoveryStatus: json['recovery_status'] != null
+          ? RecoveryStatus.fromJson(json['recovery_status'])
+          : null,
     );
   }
 
@@ -535,6 +701,8 @@ class PatternAnalysis {
       'intensity_trend': intensityTrend,
       'muscle_balance': muscleBalance?.toJson(),
       'habit_observation': habitObservation,
+      'exercise_diversity': exerciseDiversity?.toJson(),
+      'recovery_status': recoveryStatus?.toJson(),
     };
   }
 }
@@ -608,12 +776,16 @@ class DailyDetail {
   final String? focus;
   final List<int>? exercises; // ID 배열로 변경
   final String? estimatedDuration;
+  final List<String>? targetMuscles;
+  final String? ragQuery;
 
   DailyDetail({
     this.day,
     this.focus,
     this.exercises,
     this.estimatedDuration,
+    this.targetMuscles,
+    this.ragQuery,
   });
 
   factory DailyDetail.fromJson(Map<String, dynamic> json) {
@@ -630,6 +802,10 @@ class DailyDetail {
           .whereType<int>()
           .toList(),
       estimatedDuration: json['estimated_duration'],
+      targetMuscles: (json['target_muscles'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      ragQuery: json['rag_query'],
     );
   }
 
@@ -639,6 +815,8 @@ class DailyDetail {
       'focus': focus,
       'exercises': exercises,
       'estimated_duration': estimatedDuration,
+      'target_muscles': targetMuscles,
+      'rag_query': ragQuery,
     };
   }
 }
