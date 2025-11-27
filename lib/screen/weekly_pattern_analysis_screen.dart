@@ -1255,12 +1255,12 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
         const SizedBox(height: 16),
 
         // 상위 장비
-        if (metrics.topEquipment.isNotEmpty)
+        if (metrics.topEquipment != null && metrics.topEquipment!.isNotEmpty)
           _buildSection('자주 사용한 장비', [
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: metrics.topEquipment.map((equipment) {
+              children: metrics.topEquipment!.map((equipment) {
                 return Chip(
                   label: Text('${equipment.name}: ${equipment.count}회'),
                   labelStyle: const TextStyle(fontSize: 12),
@@ -1513,15 +1513,15 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                           if (diversity.performanceAnalysis != null) ...[
                             const Divider(),
                             const SizedBox(height: 8),
-                            if (diversity.performanceAnalysis!.currentLevel != null && diversity.performanceAnalysis!.currentLevel!.isNotEmpty)
-                              _buildInfoRow('현재 수준', diversity.performanceAnalysis!.currentLevel!),
-                            if (diversity.performanceAnalysis!.progressionTrend != null && diversity.performanceAnalysis!.progressionTrend!.isNotEmpty) ...[
+                            if (diversity.performanceAnalysis!['current_level'] != null && diversity.performanceAnalysis!['current_level'].toString().isNotEmpty)
+                              _buildInfoRow('현재 수준', diversity.performanceAnalysis!['current_level'].toString()),
+                            if (diversity.performanceAnalysis!['progression_trend'] != null && diversity.performanceAnalysis!['progression_trend'].toString().isNotEmpty) ...[
                               const SizedBox(height: 6),
-                              _buildInfoRow('진행 추세', diversity.performanceAnalysis!.progressionTrend!),
+                              _buildInfoRow('진행 추세', diversity.performanceAnalysis!['progression_trend'].toString()),
                             ],
-                            if (diversity.performanceAnalysis!.recommendedProgression != null && diversity.performanceAnalysis!.recommendedProgression!.isNotEmpty) ...[
+                            if (diversity.performanceAnalysis!['recommended_progression'] != null && diversity.performanceAnalysis!['recommended_progression'].toString().isNotEmpty) ...[
                               const SizedBox(height: 6),
-                              _buildInfoRow('추천 진행', diversity.performanceAnalysis!.recommendedProgression!),
+                              _buildInfoRow('추천 진행', diversity.performanceAnalysis!['recommended_progression'].toString()),
                             ],
                           ],
                         ],

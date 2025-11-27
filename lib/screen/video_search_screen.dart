@@ -39,7 +39,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen>
   String? _selectedFitnessFactorName; // 체력항목 (fitnessFactorName)
   String? _selectedFitnessLevelName; // 운동 난이도 (fitnessLevelName)
   String? _selectedBodyPart; // 운동부위 (bodyPart)
-  String? _selectedExerciseTool; // 운동도구 (exerciseTool)
+  List<String> _selectedExerciseTools = []; // 운동도구 (exerciseTool) - 다중 선택
   String? _selectedDisease; // 질환 (disease)
   
   // 필터 옵션 리스트
@@ -47,7 +47,12 @@ class _VideoSearchScreenState extends State<VideoSearchScreen>
   final List<String> _fitnessOptions = ['근력/근지구력', '심폐지구력', '민첩성/순발력', '유연성', '평형성', '협응력'];
   final List<String> _fitnessLevelOptions = ['초급', '중급', '고급'];
   final List<String> _bodyPartOptions = ['몸통', '상체', '전신', '하체', '기타'];
-  final List<String> _equipmentOptions = ['맨몸', '머신', '의자', '짐볼', '폼롤러', '탄력밴드', '기타'];
+  final List<String> _equipmentOptions = [
+    '맨몸', '머신', '덤벨', '의자', '탄력밴드', '짐볼', '써클휠', '기타',
+    '줄넘기', '스텝박스', '써클링', '콘', '공', '라켓', '훌라후프',
+    '자전거', '트레드밀', '아쿠아봉', '바벨', '원판', '보슈볼',
+    '사다리', '폼롤러', '봉', '케틀벨'
+  ];
   final List<String> _conditionOptions = ['고혈압', '요통', '골다공증', '관절염', '우울증', '치매'];
 
   @override
@@ -123,7 +128,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen>
       _selectedFitnessFactorName = null;
       _selectedFitnessLevelName = null;
       _selectedBodyPart = null;
-      _selectedExerciseTool = null;
+      _selectedExerciseTools = [];
       _selectedDisease = null;
     });
     _performSearch();
@@ -143,7 +148,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen>
           selectedFitnessFactorName: _selectedFitnessFactorName,
           selectedFitnessLevelName: _selectedFitnessLevelName,
           selectedBodyPart: _selectedBodyPart,
-          selectedExerciseTool: _selectedExerciseTool,
+          selectedExerciseTools: _selectedExerciseTools,
           selectedDisease: _selectedDisease,
           targetOptions: _targetOptions,
           fitnessOptions: _fitnessOptions,
@@ -171,9 +176,9 @@ class _VideoSearchScreenState extends State<VideoSearchScreen>
               _selectedBodyPart = value;
             });
           },
-          onExerciseToolChanged: (value) {
+          onExerciseToolsChanged: (value) {
             setState(() {
-              _selectedExerciseTool = value;
+              _selectedExerciseTools = value;
             });
           },
           onDiseaseChanged: (value) {
@@ -224,7 +229,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen>
       fitnessFactorName: _selectedFitnessFactorName,
       fitnessLevelName: _selectedFitnessLevelName,
       bodyPart: _selectedBodyPart,
-      exerciseTool: _selectedExerciseTool,
+      exerciseTool: _selectedExerciseTools.isNotEmpty ? _selectedExerciseTools.first : null,
       disease: _selectedDisease,
     );
     
@@ -234,7 +239,7 @@ class _VideoSearchScreenState extends State<VideoSearchScreen>
     print('  - 체력항목: $_selectedFitnessFactorName');
     print('  - 운동 난이도: $_selectedFitnessLevelName');
     print('  - 운동부위: $_selectedBodyPart');
-    print('  - 운동도구: $_selectedExerciseTool');
+    print('  - 운동도구: $_selectedExerciseTools');
     print('  - 질환: $_selectedDisease');
   }
 
@@ -656,7 +661,7 @@ class _FilterDialog extends StatefulWidget {
   final String? selectedFitnessFactorName;
   final String? selectedFitnessLevelName;
   final String? selectedBodyPart;
-  final String? selectedExerciseTool;
+  final List<String> selectedExerciseTools;
   final String? selectedDisease;
   final List<String> targetOptions;
   final List<String> fitnessOptions;
@@ -668,7 +673,7 @@ class _FilterDialog extends StatefulWidget {
   final Function(String?) onFitnessFactorNameChanged;
   final Function(String?) onFitnessLevelNameChanged;
   final Function(String?) onBodyPartChanged;
-  final Function(String?) onExerciseToolChanged;
+  final Function(List<String>) onExerciseToolsChanged;
   final Function(String?) onDiseaseChanged;
   final VoidCallback onClearAll;
   final VoidCallback onApply;
@@ -678,7 +683,7 @@ class _FilterDialog extends StatefulWidget {
     required this.selectedFitnessFactorName,
     required this.selectedFitnessLevelName,
     required this.selectedBodyPart,
-    required this.selectedExerciseTool,
+    required this.selectedExerciseTools,
     required this.selectedDisease,
     required this.targetOptions,
     required this.fitnessOptions,
@@ -690,7 +695,7 @@ class _FilterDialog extends StatefulWidget {
     required this.onFitnessFactorNameChanged,
     required this.onFitnessLevelNameChanged,
     required this.onBodyPartChanged,
-    required this.onExerciseToolChanged,
+    required this.onExerciseToolsChanged,
     required this.onDiseaseChanged,
     required this.onClearAll,
     required this.onApply,
@@ -705,7 +710,7 @@ class _FilterDialogState extends State<_FilterDialog> {
   late String? _currentFitnessFactorName;
   late String? _currentFitnessLevelName;
   late String? _currentBodyPart;
-  late String? _currentExerciseTool;
+  late List<String> _currentExerciseTools;
   late String? _currentDisease;
 
   @override
@@ -715,7 +720,7 @@ class _FilterDialogState extends State<_FilterDialog> {
     _currentFitnessFactorName = widget.selectedFitnessFactorName;
     _currentFitnessLevelName = widget.selectedFitnessLevelName;
     _currentBodyPart = widget.selectedBodyPart;
-    _currentExerciseTool = widget.selectedExerciseTool;
+    _currentExerciseTools = List<String>.from(widget.selectedExerciseTools);
     _currentDisease = widget.selectedDisease;
   }
 
@@ -827,16 +832,7 @@ class _FilterDialogState extends State<_FilterDialog> {
                       },
                     ),
                     const Divider(height: 32),
-                    _buildFilterSection(
-                      '운동도구',
-                      widget.equipmentOptions,
-                      _currentExerciseTool,
-                      (value) {
-                        setState(() {
-                          _currentExerciseTool = value;
-                        });
-                      },
-                    ),
+                    _buildMultiSelectEquipmentFilter(),
                     const Divider(height: 32),
                     _buildFilterSection(
                       '질환',
@@ -874,7 +870,7 @@ class _FilterDialogState extends State<_FilterDialog> {
                         _currentFitnessFactorName = null;
                         _currentFitnessLevelName = null;
                         _currentBodyPart = null;
-                        _currentExerciseTool = null;
+                        _currentExerciseTools = [];
                         _currentDisease = null;
                       });
                     },
@@ -897,7 +893,7 @@ class _FilterDialogState extends State<_FilterDialog> {
                           widget.onFitnessFactorNameChanged(_currentFitnessFactorName);
                           widget.onFitnessLevelNameChanged(_currentFitnessLevelName);
                           widget.onBodyPartChanged(_currentBodyPart);
-                          widget.onExerciseToolChanged(_currentExerciseTool);
+                          widget.onExerciseToolsChanged(_currentExerciseTools);
                           widget.onDiseaseChanged(_currentDisease);
                           // 적용 버튼 콜백 실행
                           widget.onApply();
@@ -919,6 +915,120 @@ class _FilterDialogState extends State<_FilterDialog> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMultiSelectEquipmentFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [const Color.fromARGB(255, 245, 255, 177), const Color.fromARGB(0, 255, 255, 255)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Text(
+            '운동도구',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // 선택된 필터들을 Wrap으로 표시
+        if (_currentExerciseTools.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _currentExerciseTools.map((tool) {
+              return Chip(
+                label: Text(tool, style: const TextStyle(color: Colors.black)),
+                side: BorderSide(color: const Color.fromARGB(255, 167, 167, 167), width: 2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                backgroundColor: const Color.fromARGB(255, 249, 255, 195),
+                deleteIcon: const Icon(Icons.close, size: 18),
+                onDeleted: () {
+                  setState(() {
+                    _currentExerciseTools.remove(tool);
+                  });
+                },
+              );
+            }).toList(),
+          ),
+        // + 버튼
+        const SizedBox(height: 8),
+        ElevatedButton.icon(
+          onPressed: () {
+            _showEquipmentSelectionDialog();
+          },
+          icon: const Icon(Icons.add, size: 20),
+          label: const Text('운동 도구 추가'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue.shade100,
+            foregroundColor: Colors.blue.shade900,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showEquipmentSelectionDialog() {
+    // 이미 선택된 운동 도구를 제외한 목록
+    final availableOptions = widget.equipmentOptions.where(
+      (option) => !_currentExerciseTools.contains(option),
+    ).toList();
+
+    if (availableOptions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('모든 운동 도구가 선택되었습니다.')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('운동 도구 선택'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: availableOptions.length,
+              itemBuilder: (context, index) {
+                final option = availableOptions[index];
+                return ListTile(
+                  title: Text(option),
+                  onTap: () {
+                    setState(() {
+                      _currentExerciseTools.add(option);
+                    });
+                    Navigator.of(context).pop();
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('취소'),
+            ),
+          ],
+        );
+      },
     );
   }
 
