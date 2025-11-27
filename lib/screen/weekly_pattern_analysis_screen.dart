@@ -1057,7 +1057,7 @@ class _WeeklyPatternAnalysisScreenState extends State<WeeklyPatternAnalysisScree
                           return Column(
                             children: exercises.map((exercise) {
                               return Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.only(bottom: 0),
                                 child: VideoCard(exercise: exercise),
                               );
                             }).toList(),

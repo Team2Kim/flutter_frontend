@@ -73,7 +73,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
             DrawerHeader(
               margin: EdgeInsets.only(bottom: 20),
               child: Center(
-                child: Image.asset('assets/images/app_sub.png', width: 200, height: 200),
+                child: Image.asset('assets/images/app_sub.png', width: 100, height: 100),
               ),
             ),
             Container(

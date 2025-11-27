@@ -230,7 +230,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     const SizedBox(height: 40),
                     // 로고 또는 제목
                     Center(
-                      child: Image.asset('assets/images/app_sub.png', width: 200, height: 200),
+                      child: Image.asset('assets/images/app_sub.png', width: 150, height: 150),
                     ),
                     const SizedBox(height: 40),
                     

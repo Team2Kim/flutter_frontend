@@ -17,6 +17,7 @@ import 'package:gukminexdiary/screen/bookmark_screen.dart';
 import 'package:gukminexdiary/screen/muscle_selector_screen.dart';
 import 'package:gukminexdiary/screen/api_test_screen.dart';
 import 'package:gukminexdiary/screen/main_root_screen.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -52,6 +53,10 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     // 앱 시작 시 인증 상태 확인
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [SystemUiOverlay.top], // 상단 상태 바만 보이도록 설정
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       authProvider.checkAuthStatus();
