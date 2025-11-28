@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class WorkoutAnalysisResponse {
   final bool success;
   final AIAnalysis? aiAnalysis;
@@ -60,28 +62,9 @@ class AIAnalysis {
   });
 
   factory AIAnalysis.fromJson(Map<String, dynamic> json) {
-    Map<String, List<int>>? exercisesMap;
-    final rawExercises = json['next_target_exercises'];
-    if (rawExercises is Map<String, dynamic>) {
-      exercisesMap = {};
-      rawExercises.forEach((key, value) {
-        if (value is List) {
-          final ids = value.map((e) {
-            if (e is int) return e;
-            if (e is String) return int.tryParse(e);
-            if (e is num) return e.toInt();
-            return null;
-          }).whereType<int>().toList();
-          if (ids.isNotEmpty) {
-            exercisesMap![key] = ids;
-          }
-        }
-      });
-      if (exercisesMap.isEmpty) {
-        exercisesMap = null;
-      }
-    }
-
+    print(json['next_target_exercises']);
+    final exercisesMap =
+        _parseNextTargetExercises(json['next_target_exercises']);
     return AIAnalysis(
       workoutEvaluation: json['workout_evaluation'],
       targetMuscles: json['target_muscles'],
@@ -105,6 +88,107 @@ class AIAnalysis {
       'next_target_exercises': nextTargetExercises,
       'encouragement': encouragement,
     };
+  }
+  static Map<String, List<int>>? _parseNextTargetExercises(dynamic raw) {
+    if (raw == null) return null;
+
+    final Map<String, List<int>> normalized = {};
+
+    int? _asInt(dynamic value) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
+    List<int> _extractIds(dynamic value) {
+      if (value is List) {
+        return value.map(_asInt).whereType<int>().toList();
+      }
+      final singleId = _asInt(value);
+      return singleId != null ? [singleId] : <int>[];
+    }
+
+    void _addEntry(String? key, List<int> ids) {
+      if (ids.isEmpty) return;
+      final label = (key == null || key.trim().isEmpty)
+          ? '추천 운동 ${normalized.length + 1}'
+          : key;
+      normalized[label] = ids;
+    }
+
+    if (raw is Map<String, dynamic>) {
+      raw.forEach((key, value) {
+        final ids = _extractIds(value);
+        _addEntry(key, ids);
+      });
+    } else if (raw is List) {
+      for (final entry in raw) {
+        if (entry is Map<String, dynamic>) {
+          final label = entry['muscle'] ??
+              entry['muscle_name'] ??
+              entry['muscleName'] ??
+              entry['category'] ??
+              entry['label'];
+
+          List<int> ids = [];
+          for (final candidate in [
+            'exercise_ids',
+            'exerciseIds',
+            'ids',
+            'exercise_id',
+            'exerciseId',
+            'id',
+          ]) {
+            if (entry.containsKey(candidate)) {
+              ids = _extractIds(entry[candidate]);
+            }
+            if (ids.isNotEmpty) break;
+          }
+
+          if (ids.isEmpty && entry['exercises'] is List) {
+            ids = (entry['exercises'] as List)
+                .map((item) {
+                  if (item is Map<String, dynamic>) {
+                    for (final candidate in [
+                      'exercise_id',
+                      'exerciseId',
+                      'id',
+                    ]) {
+                      if (item.containsKey(candidate)) {
+                        return _asInt(item[candidate]);
+                      }
+                    }
+                  }
+                  return _asInt(item);
+                })
+                .whereType<int>()
+                .toList();
+          }
+
+          _addEntry(label, ids);
+        } else {
+          _addEntry(null, _extractIds(entry));
+        }
+      }
+    } else if (raw is String) {
+      try {
+        final decoded = jsonDecode(raw);
+        final parsed = _parseNextTargetExercises(decoded);
+        if (parsed != null) {
+          normalized.addAll(parsed);
+        }
+      } catch (_) {
+        final ids = raw
+            .split(RegExp(r'[,\s]+'))
+            .map(int.tryParse)
+            .whereType<int>()
+            .toList();
+        _addEntry(null, ids);
+      }
+    }
+
+    return normalized.isEmpty ? null : normalized;
   }
 }
 
