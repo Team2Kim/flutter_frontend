@@ -73,7 +73,7 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('일지를 불러오는 중 오류가 발생했습니다: $e')),
+          const SnackBar(content: Text('일지를 불러오는 중 오류가 발생했습니다')),
         );
       }
     }
@@ -112,7 +112,7 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('일지 생성 중 오류가 발생했습니다: $e')),
+          const SnackBar(content: Text('일지 생성 중 오류가 발생했습니다')),
         );
       }
     }
@@ -138,7 +138,7 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('메모 저장 중 오류가 발생했습니다: $e')),
+          const SnackBar(content: Text('메모 저장 중 오류가 발생했습니다')),
         );
       }
     }
@@ -158,7 +158,7 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('운동 삭제 중 오류가 발생했습니다: $e')),
+          const SnackBar(content: Text('운동 삭제 중 오류가 발생했습니다')),
         );
       }
     }
@@ -206,7 +206,7 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('운동 수정 중 오류가 발생했습니다: $e')),
+          const SnackBar(content: Text('운동 수정 중 오류가 발생했습니다')),
         );
       }
     }
@@ -402,7 +402,7 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('주간 패턴 분석 중 오류가 발생했습니다: $e'),
+            content: const Text('주간 패턴 분석 중 오류가 발생했습니다'),
             backgroundColor: Colors.red,
           ),
         );
@@ -505,7 +505,7 @@ class _DiaryScreenState extends State<DiaryScreen> with AutomaticKeepAliveClient
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('분석 중 오류가 발생했습니다: $e'),
+            content: const Text('분석 중 오류가 발생했습니다'),
             backgroundColor: Colors.red,
           ),
         );

@@ -266,7 +266,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('분석 중 오류가 발생했습니다: $e'),
+            content: const Text('분석 중 오류가 발생했습니다'),
             backgroundColor: Colors.red,
           ),
         );
@@ -1364,7 +1364,7 @@ class _WorkoutAnalysisScreenState extends State<WorkoutAnalysisScreen> with Tick
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('운동 영상을 불러오는데 실패했습니다: $e'),
+            content: const Text('운동 영상을 불러오는데 실패했습니다'),
             backgroundColor: Colors.red,
           ),
         );

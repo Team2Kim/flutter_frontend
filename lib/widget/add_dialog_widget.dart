@@ -147,7 +147,7 @@ class AddExerciseDialog {
                 Icon(Icons.error_outline, color: Colors.white),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text('운동 추가 중 오류가 발생했습니다\n$e'),
+                  child: const Text('운동 추가 중 오류가 발생했습니다'),
                 ),
               ],
             ),
