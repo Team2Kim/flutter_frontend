@@ -110,7 +110,20 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 leading: const Icon(Icons.search, color: Colors.white),
                 title: const Text('시설 검색', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                 onTap: () {
-                  _selectRootTab(NavigationProvider.facilityIndex);
+                  showDialog(context: context, builder: (context) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(color: Colors.white, width: 1),  
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    surfaceTintColor: const Color.fromARGB(255, 172, 172, 172),
+                    backgroundColor: const Color.fromARGB(255, 107, 125, 223),
+                    title: Text('준비 중', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                    content: Text('현재 준비 중인 기능입니다.', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.normal)),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(context), child: Text('확인', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.normal))),
+                    ],
+                  ));
+                  // _selectRootTab(NavigationProvider.facilityIndex);
                 },
               ),
             ),

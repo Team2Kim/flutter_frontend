@@ -72,7 +72,25 @@ class _MainRootScreenState extends State<MainRootScreen> {
       ),
       bottomNavigationBar: BottomNavigationBarWidget(
         currentIndex: currentIndex,
-        onItemSelected: (index) => context.read<NavigationProvider>().goTo(index),
+        onItemSelected: (index) {
+          if (index == NavigationProvider.facilityIndex) {
+            showDialog(context: context, builder: (context) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                side: BorderSide(color: Colors.white, width: 1),  
+                borderRadius: BorderRadius.circular(10),
+              ),
+              surfaceTintColor: const Color.fromARGB(255, 172, 172, 172),
+              backgroundColor: const Color.fromARGB(255, 107, 125, 223),
+              title: Text('준비 중', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              content: Text('현재 준비 중인 기능입니다.', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.normal)),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: Text('확인', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.normal))),
+              ],
+            ));
+          } else {
+            context.read<NavigationProvider>().goTo(index);
+          }
+        },
       ),
     );
   }
