@@ -66,6 +66,7 @@ class AuthProvider extends ChangeNotifier {
     await prefs.remove('refresh_token');
     await prefs.remove('loginId');
     await prefs.remove('password');
+    await prefs.remove('keepLoggedIn');
     _accessToken = null;
     _refreshToken = null;
   }

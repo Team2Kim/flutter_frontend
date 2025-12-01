@@ -534,6 +534,9 @@ class _AuthScreenState extends State<AuthScreen> {
                           setState(() {
                             // 버튼 상태 업데이트를 위해 setState 호출
                           });
+                          if (_nicknameController.text.isNotEmpty) {
+                          _formKey.currentState?.validate();
+                        }
                         },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -542,7 +545,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           if (value.length < 2) {
                             return '닉네임은 2자 이상이어야 합니다';
                           }
-                          return null;
+                          // return null;
                         },
                       ),
                       const SizedBox(height: 16),
@@ -581,6 +584,9 @@ class _AuthScreenState extends State<AuthScreen> {
                           setState(() {
                             // 버튼 상태 업데이트를 위해 setState 호출
                           });
+                          if (_emailController.text.isNotEmpty) {
+                            _formKey.currentState?.validate();
+                          }
                           _checkEmailDuplicate(value.trim());
                         },
                         validator: (value) {
