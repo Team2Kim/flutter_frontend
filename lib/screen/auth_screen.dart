@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:gukminexdiary/provider/auth_provider.dart';
+import 'package:gukminexdiary/screen/privacy_consent_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -24,6 +25,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isSignupMode = false;
+  bool _isConfirmed = false;
 
   final List<String> _languages = ['한국어', 'English', '日本語', '中文'];
   
@@ -60,8 +62,16 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _toggleMode() {
+    if (!_isSignupMode) {
+      _idController.text = '';
+      _passwordController.text = '';
+      _confirmPasswordController.text = '';
+      _nicknameController.text = '';
+      _emailController.text = '';
+    }
     setState(() {
       _isSignupMode = !_isSignupMode;
+      _isConfirmed = false;
       _formKey.currentState?.reset();
     });
     
@@ -223,10 +233,85 @@ class _AuthScreenState extends State<AuthScreen> {
             padding: const EdgeInsets.all(20.0),
             child: Form(
               key: _formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+              child: _isSignupMode && !_isConfirmed
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset('assets/images/app_sub.png', width: 150, height: 150),
+                          const SizedBox(height: 40),
+                          const Text(
+                            '회원가입을 위해\n개인정보 수집·이용 동의가 필요합니다',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const PrivacyConsentScreen(),
+                                  ),
+                                );
+                                
+                                if (result != null && result is Map<String, bool>) {
+                                  if (result['required'] == true) {
+                                    setState(() {
+                                      _isConfirmed = true;
+                                    });
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                '동의서 보기',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isSignupMode = false;
+                                });
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.blue,
+                                side: const BorderSide(color: Colors.blue),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                '돌아가기',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                     const SizedBox(height: 40),
                     // 로고 또는 제목
                     Center(

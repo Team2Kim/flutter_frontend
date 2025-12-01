@@ -17,6 +17,7 @@ import 'package:gukminexdiary/screen/bookmark_screen.dart';
 import 'package:gukminexdiary/screen/muscle_selector_screen.dart';
 import 'package:gukminexdiary/screen/api_test_screen.dart';
 import 'package:gukminexdiary/screen/main_root_screen.dart';
+import 'package:gukminexdiary/screen/privacy_consent_screen.dart';
 import 'package:flutter/services.dart';
 
 void main() async {
@@ -96,6 +97,7 @@ class _MyAppState extends State<MyApp> {
               // '/muscle/selector': (context) => const MuscleSelectorScreen(),
               '/muscle/selector': (context) => const MuscleSelectorScreen(),
               '/api/test': (context) => const ApiTestScreen(),
+              '/privacy/consent': (context) => const PrivacyConsentScreen(),
             },
           );
         },
